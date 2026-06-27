@@ -52,6 +52,7 @@ Partial Public Class MainWindow
                 UpdatePairing()
                 CalculateTotalPlayableNotes()
                 CalculateGreatestVPosition()
+                FollowSelectedNotes(iI, e.KeyCode)
                 RefreshPanelAll()
 
             Case Keys.Down
@@ -85,6 +86,7 @@ Partial Public Class MainWindow
                 UpdatePairing()
                 CalculateTotalPlayableNotes()
                 CalculateGreatestVPosition()
+                FollowSelectedNotes(iI, e.KeyCode)
                 RefreshPanelAll()
 
             Case Keys.Left
@@ -113,6 +115,7 @@ Partial Public Class MainWindow
                 If -1 - mLeft <> 0 Then AddUndo(xUndo, xBaseRedo.Next)
                 UpdatePairing()
                 CalculateTotalPlayableNotes()
+                FollowSelectedNotes(iI, e.KeyCode)
                 RefreshPanelAll()
 
             Case Keys.Right
@@ -130,6 +133,7 @@ Partial Public Class MainWindow
                 AddUndo(xUndo, xBaseRedo.Next)
                 UpdatePairing()
                 CalculateTotalPlayableNotes()
+                FollowSelectedNotes(iI, e.KeyCode)
                 RefreshPanelAll()
 
             Case Keys.Delete
@@ -234,6 +238,126 @@ Partial Public Class MainWindow
         PMainInMouseMove(sender)
         POStatusRefresh()
     End Sub
+
+    Private Sub FollowSelectedNotes(ByVal panelIndex As Integer, ByVal keyCode As Keys)
+        Dim xMinLeft As Integer = Integer.MaxValue
+        Dim xMaxRight As Integer = Integer.MinValue
+        Dim xMinV As Double = Double.MaxValue
+        Dim xMaxV As Double = Double.MinValue
+        Dim xFound As Boolean = False
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected Then Continue For
+            If Not nEnabled(Notes(xI1).ColumnIndex) Then Continue For
+
+            xFound = True
+
+            Dim xLeft As Integer = nLeft(Notes(xI1).ColumnIndex)
+            Dim xRight As Integer = xLeft + GetColumnWidth(Notes(xI1).ColumnIndex)
+            xMinLeft = Math.Min(xMinLeft, xLeft)
+            xMaxRight = Math.Max(xMaxRight, xRight)
+
+            Dim xLowerV As Double = Notes(xI1).VPosition
+            Dim xUpperV As Double = Notes(xI1).VPosition + IIf(NTInput, Notes(xI1).Length, 0)
+            xMinV = Math.Min(xMinV, xLowerV)
+            xMaxV = Math.Max(xMaxV, xUpperV)
+        Next
+
+        If Not xFound Then Return
+
+        Dim xPanel As Panel = spMain(panelIndex)
+        If xPanel.Width <= 0 OrElse xPanel.Height <= 0 Then Return
+
+        FollowSelectedNotesHorizontal(GetPanelHScroll(panelIndex), xPanel.Width, xMinLeft, xMaxRight, keyCode)
+        FollowSelectedNotesVertical(GetPanelVScrollBar(panelIndex), xPanel.Height, xMinV, xMaxV, keyCode)
+    End Sub
+
+    Private Sub FollowSelectedNotesHorizontal(ByVal xScroll As HScrollBar, ByVal xPanelWidth As Integer, ByVal xMinLeft As Integer, ByVal xMaxRight As Integer, ByVal keyCode As Keys)
+        If xScroll Is Nothing Then Return
+
+        Dim xValue As Integer = xScroll.Value
+        Dim xWidth As Double = xPanelWidth / gxWidth
+
+        Select Case keyCode
+            Case Keys.Left
+                If xMinLeft < xValue Then
+                    xValue = xMinLeft
+                ElseIf xMaxRight > xValue + xWidth Then
+                    xValue = CInt(Math.Ceiling(xMaxRight - xWidth))
+                End If
+
+            Case Keys.Right
+                If xMaxRight > xValue + xWidth Then
+                    xValue = CInt(Math.Ceiling(xMaxRight - xWidth))
+                ElseIf xMinLeft < xValue Then
+                    xValue = xMinLeft
+                End If
+        End Select
+
+        SetScrollValue(xScroll, xValue)
+    End Sub
+
+    Private Sub FollowSelectedNotesVertical(ByVal xScroll As VScrollBar, ByVal xPanelHeight As Integer, ByVal xMinV As Double, ByVal xMaxV As Double, ByVal keyCode As Keys)
+        If xScroll Is Nothing Then Return
+
+        Dim xValue As Integer = xScroll.Value
+
+        Select Case keyCode
+            Case Keys.Up
+                If xMinV > VisibleUpperVPosition(xValue, xPanelHeight) Then
+                    xValue = CInt(Math.Floor((xPanelHeight - vo.kHeight - 1) / gxHeight - xMinV))
+                ElseIf xMaxV < -xValue Then
+                    xValue = CInt(Math.Ceiling(-xMaxV))
+                End If
+
+            Case Keys.Down
+                If xMaxV < -xValue Then
+                    xValue = CInt(Math.Ceiling(-xMaxV))
+                ElseIf xMinV > VisibleUpperVPosition(xValue, xPanelHeight) Then
+                    xValue = CInt(Math.Floor((xPanelHeight - vo.kHeight - 1) / gxHeight - xMinV))
+                End If
+        End Select
+
+        SetScrollValue(xScroll, xValue)
+    End Sub
+
+    Private Function VisibleUpperVPosition(ByVal xScrollValue As Integer, ByVal xPanelHeight As Integer) As Double
+        Return -xScrollValue + (xPanelHeight - vo.kHeight - 1) / gxHeight
+    End Function
+
+    Private Sub SetScrollValue(ByVal xScroll As ScrollBar, ByVal xValue As Integer)
+        xValue = ClampScrollValue(xScroll, xValue)
+        If xScroll.Value <> xValue Then xScroll.Value = xValue
+    End Sub
+
+    Private Function ClampScrollValue(ByVal xScroll As ScrollBar, ByVal xValue As Integer) As Integer
+        Dim xMaximum As Integer = xScroll.Maximum - xScroll.LargeChange + 1
+        If xMaximum < xScroll.Minimum Then xMaximum = xScroll.Minimum
+        If xValue > xMaximum Then xValue = xMaximum
+        If xValue < xScroll.Minimum Then xValue = xScroll.Minimum
+
+        Return xValue
+    End Function
+
+    Private Function GetPanelHScroll(ByVal panelIndex As Integer) As HScrollBar
+        Select Case panelIndex
+            Case 0 : Return HSL
+            Case 1 : Return HS
+            Case 2 : Return HSR
+        End Select
+
+        Return Nothing
+    End Function
+
+    Private Function GetPanelVScrollBar(ByVal panelIndex As Integer) As VScrollBar
+        Select Case panelIndex
+            Case 0 : Return LeftPanelScroll
+            Case 1 : Return MainPanelScroll
+            Case 2 : Return RightPanelScroll
+        End Select
+
+        Return Nothing
+    End Function
 
     Private Sub IncreaseGridDivide()
         If gDivide * 2 <= CGDivide.Maximum Then CGDivide.Value = gDivide * 2
