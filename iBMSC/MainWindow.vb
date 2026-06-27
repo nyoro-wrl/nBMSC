@@ -232,6 +232,14 @@ Public Class MainWindow
                                       New PlayerArguments("<apppath>\o2play.exe",
                                                           "-P -N0 ""<filename>""",
                                                           "-P -N<measure> ""<filename>""",
+                                                          "-S"),
+                                      New PlayerArguments("<apppath>\beatoraja.exe",
+                                                          "-a ""<filename>""",
+                                                          "-s ""<filename>""",
+                                                          ""),
+                                      New PlayerArguments("<apppath>\LR2body.exe",
+                                                          "-A -NS ""<filename>""",
+                                                          "-NS ""<filename>""",
                                                           "-S")}
     End Function
 
