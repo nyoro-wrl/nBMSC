@@ -1134,10 +1134,8 @@ Public Class MainWindow
 
         If My.Computer.FileSystem.FileExists(My.Application.Info.DirectoryPath & "\iBMSC.Settings.xml") Then
             LoadSettings(My.Application.Info.DirectoryPath & "\iBMSC.Settings.xml")
-            'Else
-            '---- Settings for first-time start-up ---------------------------------------------------------------------------
-            'Me.LoadLocale(My.Application.Info.DirectoryPath & "\Data\chs.Lang.xml")
-            '-----------------------------------------------------------------------------------------------------------------
+        Else
+            LoadInitialPreferences()
         End If
         'On Error GoTo 0
         SetIsSaved(True)
@@ -1180,6 +1178,21 @@ Public Class MainWindow
         Me.WindowState = tempResize
 
         Me.Visible = True
+    End Sub
+
+    Private Sub LoadInitialPreferences()
+        Dim xDataPath As String = My.Application.Info.DirectoryPath & "\Data"
+        Dim xLangPath As String = xDataPath & "\jpn.Lang.xml"
+        Dim xThemePath As String = xDataPath & "\IIDX.Theme.xml"
+
+        If My.Computer.FileSystem.FileExists(xLangPath) Then
+            LoadLocale(xLangPath)
+        End If
+
+        If My.Computer.FileSystem.FileExists(xThemePath) Then
+            LoadSettings(xThemePath)
+            ChangePlaySideSkin(False)
+        End If
     End Sub
 
     Private Sub UpdatePairing()
