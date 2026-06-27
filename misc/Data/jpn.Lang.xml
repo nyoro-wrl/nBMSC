@@ -407,6 +407,7 @@
 		<AutoSave>自動保存</AutoSave>
 		<minutes>分</minutes>
 		<StopPreviewOnClick>エディットパネル上をクリックするとプレビュー再生をストップ</StopPreviewOnClick>
+		<SkipClippedMeasure>見切れている小節を飛ばして次の小節から再生する</SkipClippedMeasure>
 		<LaneHighlight>レーンのハイライト表示</LaneHighlight>
 		<UndoRedoMemoryLimit>Undo/Redo履歴メモリ上限</UndoRedoMemoryLimit>
 	</GeneralOptions>

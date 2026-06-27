@@ -62,7 +62,7 @@ Public Class OpGeneral
 
     Public Sub New(ByVal xMsWheel As Integer, ByVal xPgUpDn As Integer, ByVal xMiddleButton As Integer, ByVal xTextEncoding As Integer, ByVal xGridPartition As Integer, _
                    ByVal xAutoSave As Integer, ByVal xBeep As Boolean, ByVal xNewBase62 As Boolean, ByVal xBPMMode As Integer, ByVal xSTOPMode As Integer, _
-                   ByVal xShowMyO2 As Boolean, ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xLaneHighlight As Integer, _
+                   ByVal xShowMyO2 As Boolean, ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xSkipClippedMeasure As Boolean, ByVal xLaneHighlight As Integer, _
                    ByVal xUndoRedoMemoryLimitMB As Integer)
         InitializeComponent()
 
@@ -105,6 +105,7 @@ Public Class OpGeneral
         cMEnterFocus.Checked = xMFEnter
         cMClickFocus.Checked = xMFClick
         cMStopPreview.Checked = xMStopPreview
+        cSkipClippedMeasure.Checked = xSkipClippedMeasure
         nLaneHighlight.Value = Math.Min(nLaneHighlight.Maximum, Math.Max(nLaneHighlight.Minimum, xLaneHighlight))
         nUndoRedoMemoryLimit.Value = Math.Min(nUndoRedoMemoryLimit.Maximum, Math.Max(nUndoRedoMemoryLimit.Minimum, xUndoRedoMemoryLimitMB))
     End Sub
@@ -146,6 +147,7 @@ Public Class OpGeneral
         cAutoSave.Text = Strings.fopGeneral.AutoSave
         Label7.Text = Strings.fopGeneral.minutes
         cMStopPreview.Text = Strings.fopGeneral.StopPreviewOnClick
+        cSkipClippedMeasure.Text = Strings.fopGeneral.SkipClippedMeasure
         LabelLaneHighlight.Text = Strings.fopGeneral.LaneHighlight
         LabelUndoRedoMemoryLimit.Text = Strings.fopGeneral.UndoRedoMemoryLimit
 

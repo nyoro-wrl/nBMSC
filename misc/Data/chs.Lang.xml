@@ -380,6 +380,7 @@
 		<AutoSave>自动保存</AutoSave>
 		<minutes>分钟</minutes>
 		<StopPreviewOnClick>鼠标单击编辑区域时停止播放预览</StopPreviewOnClick>
+		<SkipClippedMeasure>跳过显示不完整的小节，从下一小节开始播放</SkipClippedMeasure>
 		<LaneHighlight>轨道高亮显示</LaneHighlight>
 		<UndoRedoMemoryLimit>撤销/重做历史内存上限</UndoRedoMemoryLimit>
 	</GeneralOptions>

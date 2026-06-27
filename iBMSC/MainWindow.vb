@@ -257,6 +257,7 @@ Public Class MainWindow
     Dim PreviewErrorCheck As Boolean = False
     Dim Rscratch As Boolean = False
     Dim ClickStopPreview As Boolean = True
+    Dim SkipClippedMeasure As Boolean = False
     Dim LaneHighlight As Integer = 0
     Dim pTempFileNames() As String = {}
 
@@ -531,12 +532,23 @@ Public Class MainWindow
         Return File.Exists(sPath) Or Directory.Exists(sPath)
     End Function
 
-    Public Function PrevCodeToReal(ByVal InitStr As String) As String
+    Private Function CurrentPreviewMeasure(ByVal skipClipped As Boolean) As Integer
+        Dim vpos As Double = Math.Abs(PanelVScroll(PanelFocus))
+        Dim xMeasure As Integer = MeasureAtDisplacement(vpos)
+
+        If skipClipped AndAlso xMeasure < 999 AndAlso vpos > MeasureBottom(xMeasure) + 0.0001R Then
+            xMeasure += 1
+        End If
+
+        Return xMeasure
+    End Function
+
+    Public Function PrevCodeToReal(ByVal InitStr As String, Optional ByVal skipClipped As Boolean = False) As String
         Dim xFileName As String = IIf(Not PathIsValid(FileName),
                                         IIf(InitPath = "", My.Application.Info.DirectoryPath, InitPath),
                                         ExcludeFileName(FileName)) _
                                         & "\___TempBMS.bms"
-        Dim xMeasure As Integer = MeasureAtDisplacement(Math.Abs(PanelVScroll(PanelFocus)))
+        Dim xMeasure As Integer = CurrentPreviewMeasure(skipClipped)
         Dim xS1 As String = Replace(InitStr, "<apppath>", My.Application.Info.DirectoryPath)
         Dim xS2 As String = Replace(xS1, "<measure>", xMeasure)
         Dim xS3 As String = Replace(xS2, "<filename>", xFileName)
@@ -2438,7 +2450,7 @@ EndSearch:
         My.Computer.FileSystem.WriteAllText(xFileName, xStrAll, False, TextEncoding)
 
         AddTempFileList(xFileName)
-        System.Diagnostics.Process.Start(PrevCodeToReal(xArg.Path), PrevCodeToReal(xArg.aHere))
+        System.Diagnostics.Process.Start(PrevCodeToReal(xArg.Path), PrevCodeToReal(xArg.aHere, SkipClippedMeasure))
     End Sub
 
     Private Sub TBPlayB_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPlayB.Click, mnPlayB.Click
@@ -3636,7 +3648,7 @@ StartCount:     If Not NTInput Then
 
         Dim xDiag As New OpGeneral(gWheel, gPgUpDn, MiddleButtonMoveMethod, xTE, 192.0R / BMSGridLimit,
             AutoSaveInterval, BeepWhileSaved, NewBMSUseBase62Definitions, BPMDefinitionMode, STOPDefinitionMode,
-            ShowMyO2Toolbox, AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, LaneHighlight, UndoRedoMemoryLimitMB)
+            ShowMyO2Toolbox, AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, SkipClippedMeasure, LaneHighlight, UndoRedoMemoryLimitMB)
 
         If xDiag.ShowDialog() = Windows.Forms.DialogResult.OK Then
             With xDiag
@@ -3655,6 +3667,7 @@ StartCount:     If Not NTInput Then
                 AutoFocusMouseEnter = .cMEnterFocus.Checked
                 FirstClickDisabled = .cMClickFocus.Checked
                 ClickStopPreview = .cMStopPreview.Checked
+                SkipClippedMeasure = .cSkipClippedMeasure.Checked
                 LaneHighlight = .zLaneHighlight
                 UndoRedoMemoryLimitMB = .zUndoRedoMemoryLimitMB
                 NormalizeUndoRedoMemoryLimit()

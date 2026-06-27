@@ -87,6 +87,7 @@ Partial Public Class MainWindow
             .WriteAttributeString("PreviewOnClick", PreviewOnClick)
             '.WriteAttributeString("PreviewErrorCheck", PreviewErrorCheck)
             .WriteAttributeString("ClickStopPreview", ClickStopPreview)
+            .WriteAttributeString("SkipClippedMeasure", SkipClippedMeasure)
             .WriteAttributeString("LaneHighlight", LaneHighlight)
             .WriteAttributeString("UndoRedoMemoryLimitMB", UndoRedoMemoryLimitMB)
             .WriteEndElement()
@@ -370,6 +371,7 @@ Partial Public Class MainWindow
                 TBChangePlaySide_Click(TBChangePlaySide, New System.EventArgs)
 
                 XMLLoadAttribute(.GetAttribute("ClickStopPreview"), ClickStopPreview)
+                XMLLoadAttribute(.GetAttribute("SkipClippedMeasure"), SkipClippedMeasure)
                 XMLLoadAttribute(.GetAttribute("LaneHighlight"), LaneHighlight)
                 LaneHighlight = Math.Min(100, Math.Max(0, LaneHighlight))
                 XMLLoadAttribute(.GetAttribute("UndoRedoMemoryLimitMB"), UndoRedoMemoryLimitMB)
@@ -1157,6 +1159,7 @@ EndOfSub:
                 XMLLoadLocale(eGeneralOptions.Item("AutoSave"), Strings.fopGeneral.AutoSave)
                 XMLLoadLocale(eGeneralOptions.Item("minutes"), Strings.fopGeneral.minutes)
                 XMLLoadLocale(eGeneralOptions.Item("StopPreviewOnClick"), Strings.fopGeneral.StopPreviewOnClick)
+                XMLLoadLocale(eGeneralOptions.Item("SkipClippedMeasure"), Strings.fopGeneral.SkipClippedMeasure)
                 XMLLoadLocale(eGeneralOptions.Item("LaneHighlight"), Strings.fopGeneral.LaneHighlight)
                 XMLLoadLocale(eGeneralOptions.Item("UndoRedoMemoryLimit"), Strings.fopGeneral.UndoRedoMemoryLimit)
             End If

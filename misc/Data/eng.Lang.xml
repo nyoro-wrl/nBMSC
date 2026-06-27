@@ -407,6 +407,7 @@
 		<AutoSave>AutoSave</AutoSave>
 		<minutes>minutes</minutes>
 		<StopPreviewOnClick>Stop preview if clicked on the editing panel</StopPreviewOnClick>
+		<SkipClippedMeasure>Skip clipped measure and play from next measure</SkipClippedMeasure>
 		<LaneHighlight>Lane highlight</LaneHighlight>
 		<UndoRedoMemoryLimit>Undo/Redo memory limit</UndoRedoMemoryLimit>
 	</GeneralOptions>

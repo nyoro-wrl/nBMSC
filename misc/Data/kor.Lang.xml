@@ -402,6 +402,7 @@
 		<AutoSave>자동저장</AutoSave>
 		<minutes>분</minutes>
 		<StopPreviewOnClick>편집 패널을 클릭하면 미리보기를 중지</StopPreviewOnClick>
+		<SkipClippedMeasure>잘려 보이는 마디를 건너뛰고 다음 마디부터 재생</SkipClippedMeasure>
 		<LaneHighlight>레인 하이라이트 표시</LaneHighlight>
 		<UndoRedoMemoryLimit>Undo/Redo 메모리 제한</UndoRedoMemoryLimit>
 	</GeneralOptions>

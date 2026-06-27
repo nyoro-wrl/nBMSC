@@ -49,6 +49,7 @@ Partial Class OpGeneral
         Me.Label7 = New System.Windows.Forms.Label()
         Me.cAutoSave = New System.Windows.Forms.CheckBox()
         Me.cMStopPreview = New System.Windows.Forms.CheckBox()
+        Me.cSkipClippedMeasure = New System.Windows.Forms.CheckBox()
         Me.nLaneHighlight = New System.Windows.Forms.NumericUpDown()
         Me.LabelLaneHighlight = New System.Windows.Forms.Label()
         Me.LabelLaneHighlightPercent = New System.Windows.Forms.Label()
@@ -80,7 +81,7 @@ Partial Class OpGeneral
         Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
         Me.TableLayoutPanel1.Controls.Add(Me.OK_Button, 0, 0)
         Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 1, 0)
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 587)
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 612)
         Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
         Me.TableLayoutPanel1.RowCount = 1
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
@@ -342,57 +343,67 @@ Partial Class OpGeneral
         Me.cMStopPreview.Text = "Stop preview if clicked on the editing panel"
         Me.cMStopPreview.UseVisualStyleBackColor = True
         '
+        'cSkipClippedMeasure
+        '
+        Me.cSkipClippedMeasure.AutoSize = True
+        Me.cSkipClippedMeasure.Location = New System.Drawing.Point(34, 515)
+        Me.cSkipClippedMeasure.Name = "cSkipClippedMeasure"
+        Me.cSkipClippedMeasure.Size = New System.Drawing.Size(319, 19)
+        Me.cSkipClippedMeasure.TabIndex = 69
+        Me.cSkipClippedMeasure.Text = "Skip clipped measure and play from next measure"
+        Me.cSkipClippedMeasure.UseVisualStyleBackColor = True
+        '
         'nLaneHighlight
         '
-        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 515)
+        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 540)
         Me.nLaneHighlight.Maximum = New Decimal(New Integer() {100, 0, 0, 0})
         Me.nLaneHighlight.Name = "nLaneHighlight"
         Me.nLaneHighlight.Size = New System.Drawing.Size(62, 23)
-        Me.nLaneHighlight.TabIndex = 69
+        Me.nLaneHighlight.TabIndex = 70
         '
         'LabelLaneHighlight
         '
-        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 517)
+        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 542)
         Me.LabelLaneHighlight.Name = "LabelLaneHighlight"
         Me.LabelLaneHighlight.Size = New System.Drawing.Size(179, 17)
-        Me.LabelLaneHighlight.TabIndex = 70
+        Me.LabelLaneHighlight.TabIndex = 71
         Me.LabelLaneHighlight.Text = "Lane Highlight"
         Me.LabelLaneHighlight.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LabelLaneHighlightPercent
         '
-        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 517)
+        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 542)
         Me.LabelLaneHighlightPercent.Name = "LabelLaneHighlightPercent"
         Me.LabelLaneHighlightPercent.Size = New System.Drawing.Size(28, 17)
-        Me.LabelLaneHighlightPercent.TabIndex = 71
+        Me.LabelLaneHighlightPercent.TabIndex = 72
         Me.LabelLaneHighlightPercent.Text = "%"
         Me.LabelLaneHighlightPercent.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'nUndoRedoMemoryLimit
         '
-        Me.nUndoRedoMemoryLimit.Location = New System.Drawing.Point(219, 544)
+        Me.nUndoRedoMemoryLimit.Location = New System.Drawing.Point(219, 569)
         Me.nUndoRedoMemoryLimit.Maximum = New Decimal(New Integer() {1024, 0, 0, 0})
         Me.nUndoRedoMemoryLimit.Minimum = New Decimal(New Integer() {16, 0, 0, 0})
         Me.nUndoRedoMemoryLimit.Name = "nUndoRedoMemoryLimit"
         Me.nUndoRedoMemoryLimit.Size = New System.Drawing.Size(62, 23)
-        Me.nUndoRedoMemoryLimit.TabIndex = 72
+        Me.nUndoRedoMemoryLimit.TabIndex = 73
         Me.nUndoRedoMemoryLimit.Value = New Decimal(New Integer() {1024, 0, 0, 0})
         '
         'LabelUndoRedoMemoryLimit
         '
-        Me.LabelUndoRedoMemoryLimit.Location = New System.Drawing.Point(34, 546)
+        Me.LabelUndoRedoMemoryLimit.Location = New System.Drawing.Point(34, 571)
         Me.LabelUndoRedoMemoryLimit.Name = "LabelUndoRedoMemoryLimit"
         Me.LabelUndoRedoMemoryLimit.Size = New System.Drawing.Size(179, 17)
-        Me.LabelUndoRedoMemoryLimit.TabIndex = 73
+        Me.LabelUndoRedoMemoryLimit.TabIndex = 74
         Me.LabelUndoRedoMemoryLimit.Text = "Undo/Redo memory limit"
         Me.LabelUndoRedoMemoryLimit.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LabelUndoRedoMemoryLimitMB
         '
-        Me.LabelUndoRedoMemoryLimitMB.Location = New System.Drawing.Point(287, 546)
+        Me.LabelUndoRedoMemoryLimitMB.Location = New System.Drawing.Point(287, 571)
         Me.LabelUndoRedoMemoryLimitMB.Name = "LabelUndoRedoMemoryLimitMB"
         Me.LabelUndoRedoMemoryLimitMB.Size = New System.Drawing.Size(28, 17)
-        Me.LabelUndoRedoMemoryLimitMB.TabIndex = 74
+        Me.LabelUndoRedoMemoryLimitMB.TabIndex = 75
         Me.LabelUndoRedoMemoryLimitMB.Text = "MB"
         Me.LabelUndoRedoMemoryLimitMB.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
@@ -484,13 +495,14 @@ Partial Class OpGeneral
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.CancelButton = Me.Cancel_Button
-        Me.ClientSize = New System.Drawing.Size(413, 634)
+        Me.ClientSize = New System.Drawing.Size(413, 659)
         Me.Controls.Add(Me.LabelUndoRedoMemoryLimitMB)
         Me.Controls.Add(Me.LabelUndoRedoMemoryLimit)
         Me.Controls.Add(Me.nUndoRedoMemoryLimit)
         Me.Controls.Add(Me.LabelLaneHighlightPercent)
         Me.Controls.Add(Me.LabelLaneHighlight)
         Me.Controls.Add(Me.nLaneHighlight)
+        Me.Controls.Add(Me.cSkipClippedMeasure)
         Me.Controls.Add(Me.FlowLayoutPanel1)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.TBAssociateBML)
@@ -569,6 +581,7 @@ Partial Class OpGeneral
     Friend WithEvents Label7 As System.Windows.Forms.Label
     Friend WithEvents cAutoSave As System.Windows.Forms.CheckBox
     Friend WithEvents cMStopPreview As System.Windows.Forms.CheckBox
+    Friend WithEvents cSkipClippedMeasure As System.Windows.Forms.CheckBox
     Friend WithEvents nLaneHighlight As System.Windows.Forms.NumericUpDown
     Friend WithEvents LabelLaneHighlight As System.Windows.Forms.Label
     Friend WithEvents LabelLaneHighlightPercent As System.Windows.Forms.Label
