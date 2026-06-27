@@ -156,10 +156,10 @@ Partial Public Class MainWindow
                 If PanelFocus = 2 Then RightPanelScroll.Value = IIf(RightPanelScroll.Value + gPgUpDn < 0, RightPanelScroll.Value + gPgUpDn, 0)
 
             Case Keys.Oemcomma
-                If gDivide * 2 <= CGDivide.Maximum Then CGDivide.Value = gDivide * 2
+                IncreaseGridDivide()
 
             Case Keys.OemPeriod
-                If gDivide \ 2 >= CGDivide.Minimum Then CGDivide.Value = gDivide \ 2
+                DecreaseGridDivide()
 
             Case Keys.OemQuestion
                 'Dim xTempSwap As Integer = gSlash
@@ -233,6 +233,22 @@ Partial Public Class MainWindow
 
         PMainInMouseMove(sender)
         POStatusRefresh()
+    End Sub
+
+    Private Sub IncreaseGridDivide()
+        If gDivide * 2 <= CGDivide.Maximum Then CGDivide.Value = gDivide * 2
+    End Sub
+
+    Private Sub DecreaseGridDivide()
+        If gDivide \ 2 >= CGDivide.Minimum Then CGDivide.Value = gDivide \ 2
+    End Sub
+
+    Private Sub HandleGridDivideMouseWheel(ByVal delta As Integer)
+        If delta > 0 Then
+            IncreaseGridDivide()
+        ElseIf delta < 0 Then
+            DecreaseGridDivide()
+        End If
     End Sub
 
     Private Sub SelectAllWithHoveredNoteLabel()
@@ -1648,9 +1664,7 @@ Partial Public Class MainWindow
         If Not My.Computer.Keyboard.CtrlKeyDown Then Exit Sub
 
         If My.Computer.Keyboard.ShiftKeyDown Then
-            Dim dh = Math.Round(CGWidth2.Value + e.Delta / 120)
-            CGWidth2.Value = Math.Min(CGWidth2.Maximum, Math.Max(CGWidth2.Minimum, dh))
-            CGWidth.Value = CGWidth2.Value / 4
+            HandleGridDivideMouseWheel(e.Delta)
             Exit Sub
         End If
 
