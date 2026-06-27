@@ -341,13 +341,21 @@
   <ItemGroup>
     <DataFiles Include="..\misc\Data\**\*.*" />
   </ItemGroup>
+  <Target Name="EmbedReleaseAssemblies" AfterTargets="ResolveReferences" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <ItemGroup>
+      <EmbeddedAssemblyFiles Include="@(ReferenceCopyLocalPaths)" Condition=" '%(ReferenceCopyLocalPaths.Extension)' == '.dll' ">
+        <LogicalName>EmbeddedAssemblies.%(Filename)%(Extension)</LogicalName>
+      </EmbeddedAssemblyFiles>
+      <EmbeddedResource Include="@(EmbeddedAssemblyFiles)" />
+    </ItemGroup>
+  </Target>
   <Target Name="CopyDataFiles" AfterTargets="Build">
     <MakeDir Directories="$(TargetDir)Data" />
     <Copy SourceFiles="@(DataFiles)" DestinationFiles="@(DataFiles->'$(TargetDir)Data\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="CleanReleaseFiles" AfterTargets="CopyDataFiles" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
-      <ReleaseExtraFiles Include="$(TargetDir)*.xml;$(TargetDir)*.pdb" />
+      <ReleaseExtraFiles Include="$(TargetDir)*.xml;$(TargetDir)*.pdb;@(ReferenceCopyLocalPaths->'$(TargetDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
     </ItemGroup>
     <Delete Files="@(ReleaseExtraFiles)" />
     <RemoveDir Directories="$(TargetDir)af" Condition="Exists('$(TargetDir)af')" />

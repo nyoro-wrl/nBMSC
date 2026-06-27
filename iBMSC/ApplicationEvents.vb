@@ -1,14 +1,46 @@
 Namespace My
 
     Partial Friend Class MyApplication
+        Private Const EmbeddedAssemblyPrefix As String = "EmbeddedAssemblies."
+        Private Shared ReadOnly EmbeddedAssemblyCache As New Dictionary(Of String, Reflection.Assembly)(StringComparer.OrdinalIgnoreCase)
 
         Private Sub MyApplication_Shutdown(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Shutdown
 
         End Sub
 
         Private Sub MyApplication_Startup(ByVal sender As Object, ByVal e As Microsoft.VisualBasic.ApplicationServices.StartupEventArgs) Handles Me.Startup
-
+            AddHandler AppDomain.CurrentDomain.AssemblyResolve, AddressOf ResolveEmbeddedAssembly
         End Sub
+
+        Private Shared Function ResolveEmbeddedAssembly(ByVal sender As Object, ByVal args As ResolveEventArgs) As Reflection.Assembly
+            Dim xAssemblyName As New Reflection.AssemblyName(args.Name)
+            Dim xResourceName As String = EmbeddedAssemblyPrefix & xAssemblyName.Name & ".dll"
+
+            SyncLock EmbeddedAssemblyCache
+                If EmbeddedAssemblyCache.ContainsKey(xAssemblyName.Name) Then
+                    Return EmbeddedAssemblyCache(xAssemblyName.Name)
+                End If
+
+                Dim xAssembly As Reflection.Assembly = Reflection.Assembly.GetExecutingAssembly()
+                Using xStream As IO.Stream = xAssembly.GetManifestResourceStream(xResourceName)
+                    If xStream Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Dim xBytes(CInt(xStream.Length) - 1) As Byte
+                    Dim xOffset As Integer = 0
+                    Do While xOffset < xBytes.Length
+                        Dim xRead As Integer = xStream.Read(xBytes, xOffset, xBytes.Length - xOffset)
+                        If xRead = 0 Then Exit Do
+                        xOffset += xRead
+                    Loop
+
+                    Dim xLoadedAssembly As Reflection.Assembly = Reflection.Assembly.Load(xBytes)
+                    EmbeddedAssemblyCache(xAssemblyName.Name) = xLoadedAssembly
+                    Return xLoadedAssembly
+                End Using
+            End SyncLock
+        End Function
 
         Private Sub MyApplication_UnhandledException(ByVal sender As Object, ByVal e As Microsoft.VisualBasic.ApplicationServices.UnhandledExceptionEventArgs) Handles Me.UnhandledException
             Dim xRes As MsgBoxResult = MsgBox("An unhandled exception has occurred in the application: " & vbCrLf & _
