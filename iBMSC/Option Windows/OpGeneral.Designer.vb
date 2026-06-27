@@ -178,7 +178,7 @@ Partial Class OpGeneral
         Me.cBpm1296.Name = "cBpm1296"
         Me.cBpm1296.Size = New System.Drawing.Size(253, 19)
         Me.cBpm1296.TabIndex = 9
-        Me.cBpm1296.Text = "Extend number of multi-byte BPMs to 1296"
+        Me.cBpm1296.Text = "Extend number of multi-byte BPMs to 3843 (01-zz)"
         Me.cBpm1296.UseVisualStyleBackColor = True
         '
         'cStop1296
@@ -188,7 +188,7 @@ Partial Class OpGeneral
         Me.cStop1296.Name = "cStop1296"
         Me.cStop1296.Size = New System.Drawing.Size(198, 19)
         Me.cStop1296.TabIndex = 10
-        Me.cStop1296.Text = "Extend number of STOPs to 1296"
+        Me.cStop1296.Text = "Extend number of STOPs to 3843 (01-zz)"
         Me.cStop1296.UseVisualStyleBackColor = True
         '
         'cMEnterFocus

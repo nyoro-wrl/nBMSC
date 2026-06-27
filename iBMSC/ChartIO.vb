@@ -14,10 +14,11 @@ Partial Public Class MainWindow
         Dim xExpansion As String = ""
         ReDim Notes(0)
         ReDim mColumn(999)
-        ReDim hWAV(1295)
-        ReDim hBPM(1295)    'x10000
-        ReDim hSTOP(1295)
-        ReDim hBMSCROLL(1295)
+        ReDim hWAV(MaxDefinition)
+        ReDim hBMP(MaxDefinition)
+        ReDim hBPM(MaxDefinition)    'x10000
+        ReDim hSTOP(MaxDefinition)
+        ReDim hBMSCROLL(MaxDefinition)
         Me.InitializeNewBMS()
         Me.InitializeOpenBMS()
 
@@ -223,7 +224,7 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         LWAV.Items.Clear()
         LBMP.Visible = False
         LBMP.Items.Clear()
-        For xI1 = 1 To 1295
+        For xI1 = 1 To MaxDefinition
             LWAV.Items.Add(C10to36(xI1) & ": " & hWAV(xI1))
             LBMP.Items.Add(C10to36(xI1) & ": " & hBMP(xI1))
         Next
@@ -330,14 +331,14 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         If hasOverlapping Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
                                                           Strings.Messages.NoteOverlapError & vbCrLf &
                                                 Strings.Messages.SavedFileWillContainErrors, MsgBoxStyle.Exclamation)
-        If UBound(hBPM) > IIf(BPMx1296, 1295, 255) Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
-                                                          Strings.Messages.BPMOverflowError & UBound(hBPM) & " > " & IIf(BPMx1296, 1295, 255) & vbCrLf &
+        If UBound(hBPM) > IIf(BPMx1296, MaxDefinition, MaxLegacyDefinition) Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
+                                                          Strings.Messages.BPMOverflowError & UBound(hBPM) & " > " & IIf(BPMx1296, MaxDefinition, MaxLegacyDefinition) & vbCrLf &
                                                 Strings.Messages.SavedFileWillContainErrors, MsgBoxStyle.Exclamation)
-        If UBound(hSTOP) > IIf(STOPx1296, 1295, 255) Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
-                                                           Strings.Messages.STOPOverflowError & UBound(hSTOP) & " > " & IIf(STOPx1296, 1295, 255) & vbCrLf &
+        If UBound(hSTOP) > IIf(STOPx1296, MaxDefinition, MaxLegacyDefinition) Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
+                                                           Strings.Messages.STOPOverflowError & UBound(hSTOP) & " > " & IIf(STOPx1296, MaxDefinition, MaxLegacyDefinition) & vbCrLf &
                                                   Strings.Messages.SavedFileWillContainErrors, MsgBoxStyle.Exclamation)
-        If UBound(hBMSCROLL) > 1295 Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
-                                           Strings.Messages.SCROLLOverflowError & UBound(hBMSCROLL) & " > " & 1295 & vbCrLf &
+        If UBound(hBMSCROLL) > MaxDefinition Then MsgBox(Strings.Messages.SaveWarning & vbCrLf &
+                                           Strings.Messages.SCROLLOverflowError & UBound(hBMSCROLL) & " > " & MaxDefinition & vbCrLf &
                                          Strings.Messages.SavedFileWillContainErrors, MsgBoxStyle.Exclamation)
 
         ' Add expansion text
@@ -636,11 +637,11 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         Dim sL As String
         ReDim Notes(0)
         ReDim mColumn(999)
-        ReDim hWAV(1295)
-        ReDim hBMP(1295)
-        ReDim hBPM(1295)    'x10000
-        ReDim hSTOP(1295)
-        ReDim hBMSCROLL(1295)
+        ReDim hWAV(MaxDefinition)
+        ReDim hBMP(MaxDefinition)
+        ReDim hBPM(MaxDefinition)    'x10000
+        ReDim hSTOP(MaxDefinition)
+        ReDim hBMSCROLL(MaxDefinition)
         Me.InitializeNewBMS()
 
         With Notes(0)
@@ -767,7 +768,7 @@ Jump1:
         LWAV.Items.Clear()
         LBMP.Visible = False
         LBMP.Items.Clear()
-        For xI1 As Integer = 1 To 1295
+        For xI1 As Integer = 1 To MaxDefinition
             LWAV.Items.Add(C10to36(xI1) & ": " & hWAV(xI1))
             LBMP.Items.Add(C10to36(xI1) & ": " & hBMP(xI1))
         Next
@@ -801,8 +802,8 @@ Jump1:
         ClearUndo()
         ReDim Notes(0)
         ReDim mColumn(999)
-        ReDim hWAV(1295)
-        ReDim hBMP(1295)
+        ReDim hWAV(MaxDefinition)
+        ReDim hBMP(MaxDefinition)
         Me.InitializeNewBMS()
         Me.InitializeOpenBMS()
 
@@ -1010,7 +1011,7 @@ EndOfSub:
         LBMP.Items.Clear()
         LWAV.Visible = False
         LWAV.Items.Clear()
-        For xI1 As Integer = 1 To 1295
+        For xI1 As Integer = 1 To MaxDefinition
             LWAV.Items.Add(C10to36(xI1) & ": " & hWAV(xI1))
             LBMP.Items.Add(C10to36(xI1) & ": " & hBMP(xI1))
         Next

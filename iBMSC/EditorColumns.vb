@@ -153,26 +153,26 @@ Partial Public Class MainWindow
         ' p1 side
         If iCol >= niA1 And iCol <= niAQ Then
             If xLong Then
-                Return C10to36(bmsBaseChannel + (&H5 * 36) - 36)
+                Return C10to36Channel(bmsBaseChannel + (&H5 * 36) - 36)
             ElseIf xHidden Then
-                Return C10to36(bmsBaseChannel + (&H3 * 36) - 36)
+                Return C10to36Channel(bmsBaseChannel + (&H3 * 36) - 36)
             ElseIf xLandmine Then
-                Return C10to36(bmsBaseChannel + (&HD * 36) - 36)
+                Return C10to36Channel(bmsBaseChannel + (&HD * 36) - 36)
             Else
-                Return C10to36(bmsBaseChannel + (&H1 * 36) - 36)
+                Return C10to36Channel(bmsBaseChannel + (&H1 * 36) - 36)
             End If
         End If
 
         ' p2 side
         If iCol >= niD1 And iCol <= niDQ Then
             If xLong Then
-                Return C10to36(bmsBaseChannel + (&H6 * 36) - 72)
+                Return C10to36Channel(bmsBaseChannel + (&H6 * 36) - 72)
             ElseIf xHidden Then
-                Return C10to36(bmsBaseChannel + (&H4 * 36) - 72)
+                Return C10to36Channel(bmsBaseChannel + (&H4 * 36) - 72)
             ElseIf xLandmine Then
-                Return C10to36(bmsBaseChannel + (&HE * 36) - 72)
+                Return C10to36Channel(bmsBaseChannel + (&HE * 36) - 72)
             Else
-                Return C10to36(bmsBaseChannel + (&H2 * 36) - 72)
+                Return C10to36Channel(bmsBaseChannel + (&H2 * 36) - 72)
             End If
         End If
 

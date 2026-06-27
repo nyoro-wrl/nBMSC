@@ -392,8 +392,8 @@
 		<AssociateFileType>Associate Filetype</AssociateFileType>
 		<MaxGridPartition>Max Grid Partition in BMS</MaxGridPartition>
 		<BeepWhileSaved>Beep while saved</BeepWhileSaved>
-		<ExtendBPM>Extend number of multi-byte BPMs to 1296</ExtendBPM>
-		<ExtendSTOP>Extend number of STOPs to 1296</ExtendSTOP>
+		<ExtendBPM>Extend number of multi-byte BPMs to 3843 (01-zz)</ExtendBPM>
+		<ExtendSTOP>Extend number of STOPs to 3843 (01-zz)</ExtendSTOP>
 		<AutoFocusOnMouseEnter>Automatically set focus to editing panel on mouse enter</AutoFocusOnMouseEnter>
 		<DisableFirstClick>Disable first click if the editing panel is not focused</DisableFirstClick>
 		<AutoSave>AutoSave</AutoSave>

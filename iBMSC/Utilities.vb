@@ -2,6 +2,14 @@
 
 Namespace Editor
     Public Module Functions
+        Public Const MaxDefinition As Integer = 3843
+        Public Const LastDefinitionListIndex As Integer = MaxDefinition - 1
+        Public Const MaxLegacyDefinition As Integer = 255
+
+        Private Const DefinitionRadix As Integer = 62
+        Private Const ChannelRadix As Integer = 36
+        Private Const MaxChannel As Integer = 1295
+
         Public Function WriteDecimalWithDot(v As Double) As String
             Static nfi As New System.Globalization.NumberFormatInfo()
             nfi.NumberDecimalSeparator = "."
@@ -19,9 +27,51 @@ Namespace Editor
         End Function
 
         Public Function C10to36S(ByVal xStart As Integer) As Char
-            If xStart < 10 Then Return CChar(CStr(xStart)) Else Return Chr(xStart + 55)
+            If xStart < 10 Then
+                Return CChar(CStr(xStart))
+            ElseIf xStart < ChannelRadix Then
+                Return Chr(xStart + 55)
+            End If
+            Return Chr(xStart + 61)
         End Function
         Public Function C36to10S(ByVal xChar As Char) As Integer
+            Dim xAsc As Integer = Asc(xChar)
+            If xAsc >= 48 And xAsc <= 57 Then
+                Return xAsc - 48
+            ElseIf xAsc >= 65 And xAsc <= 90 Then
+                Return xAsc - 55
+            ElseIf xAsc >= 97 And xAsc <= 122 Then
+                Return xAsc - 61
+            End If
+            Return 0
+        End Function
+        Public Function C10to36(ByVal xStart As Long) As String
+            If xStart < 0 Then xStart = 0
+            If xStart > MaxDefinition Then xStart = MaxDefinition
+            Return C10to36S(xStart \ DefinitionRadix) & C10to36S(xStart Mod DefinitionRadix)
+        End Function
+        Public Function C36to10(ByVal xStart As String) As Integer
+            xStart = Mid("00" & xStart, Len(xStart) + 1)
+            Return C36to10S(xStart.Chars(0)) * DefinitionRadix + C36to10S(xStart.Chars(1))
+        End Function
+
+        Public Function C10to36Channel(ByVal xStart As Long) As String
+            If xStart < 0 Then xStart = 0
+            If xStart > MaxChannel Then xStart = MaxChannel
+            Return C10to36ChannelS(xStart \ ChannelRadix) & C10to36ChannelS(xStart Mod ChannelRadix)
+        End Function
+
+        Public Function C36ChannelTo10(ByVal xStart As String) As Integer
+            xStart = Mid("00" & xStart, Len(xStart) + 1)
+            Return C36ChannelTo10S(xStart.Chars(0)) * ChannelRadix + C36ChannelTo10S(xStart.Chars(1))
+        End Function
+
+        Private Function C10to36ChannelS(ByVal xStart As Integer) As Char
+            If xStart < 10 Then Return CChar(CStr(xStart))
+            Return Chr(xStart + 55)
+        End Function
+
+        Private Function C36ChannelTo10S(ByVal xChar As Char) As Integer
             Dim xAsc As Integer = Asc(UCase(xChar))
             If xAsc >= 48 And xAsc <= 57 Then
                 Return xAsc - 48
@@ -29,15 +79,6 @@ Namespace Editor
                 Return xAsc - 55
             End If
             Return 0
-        End Function
-        Public Function C10to36(ByVal xStart As Long) As String
-            If xStart < 0 Then xStart = 0
-            If xStart > 1295 Then xStart = 1295
-            Return C10to36S(xStart \ 36) & C10to36S(xStart Mod 36)
-        End Function
-        Public Function C36to10(ByVal xStart As String) As Integer
-            xStart = Mid("00" & xStart, Len(xStart) + 1)
-            Return C36to10S(xStart.Chars(0)) * 36 + C36to10S(xStart.Chars(1))
         End Function
 
         Public Function EncodingToString(TextEncoding As System.Text.Encoding) As String

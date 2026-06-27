@@ -392,8 +392,8 @@
 		<AssociateFileType>関連づける拡張子</AssociateFileType>
 		<MaxGridPartition>BMS の Grid 最大分解能</MaxGridPartition>
 		<BeepWhileSaved>保存時に音を鳴らす。</BeepWhileSaved>
-		<ExtendBPM>拡張 BPM の最大使用数を1295個（01～ZZ拡張）にする。</ExtendBPM>
-		<ExtendSTOP>STOP の最大使用数を1295個（01～ZZ拡張）にする。</ExtendSTOP>
+		<ExtendBPM>拡張 BPM の最大使用数を3843個（01～zz拡張）にする。</ExtendBPM>
+		<ExtendSTOP>STOP の最大使用数を3843個（01～zz拡張）にする。</ExtendSTOP>
 		<AutoFocusOnMouseEnter>マウスがエディットパネルに入ると自動でフォーカス。</AutoFocusOnMouseEnter>
 		<DisableFirstClick>エディットパネルがフォーカスされていない場合、1クリック目を無効化。</DisableFirstClick>
 		<AutoSave>自動保存</AutoSave>

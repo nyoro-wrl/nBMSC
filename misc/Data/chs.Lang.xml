@@ -365,8 +365,8 @@
 		<AssociateFileType>设置文件关联</AssociateFileType>
 		<MaxGridPartition>BMS 最大格线</MaxGridPartition>
 		<BeepWhileSaved>保存后播放提示音</BeepWhileSaved>
-		<ExtendBPM>扩展多字节 BPM 数量至 1296 个</ExtendBPM>
-		<ExtendSTOP>扩展 STOP 数量至 1296 个</ExtendSTOP>
+		<ExtendBPM>扩展多字节 BPM 数量至 3843 个（01～zz）</ExtendBPM>
+		<ExtendSTOP>扩展 STOP 数量至 3843 个（01～zz）</ExtendSTOP>
 		<AutoFocusOnMouseEnter>鼠标进入编辑区域时自动设置焦点</AutoFocusOnMouseEnter>
 		<DisableFirstClick>编辑区域无焦点时首次单击无操作</DisableFirstClick>
 		<AutoSave>自动保存</AutoSave>

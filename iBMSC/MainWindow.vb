@@ -76,7 +76,7 @@ Public Class MainWindow
     'Dim FloatTolerance As Double = 0.0001R
     Dim BMSGridLimit As Double = 1.0R
 
-    Dim LnObj As Integer = 0    '0 for none, 1-1295 for 01-ZZ
+    Dim LnObj As Integer = 0    '0 for none, 1-3843 for 01-zz
 
     'IO
     Dim FileName As String = "Untitled.bms"
@@ -158,11 +158,11 @@ Public Class MainWindow
     Dim ErrorCheck As Boolean = True
 
     '----Header Options
-    Dim hWAV(1295) As String
-    Dim hBMP(1295) As String
-    Dim hBPM(1295) As Long   'x10000
-    Dim hSTOP(1295) As Long
-    Dim hBMSCROLL(1295) As Long
+    Dim hWAV(MaxDefinition) As String
+    Dim hBMP(MaxDefinition) As String
+    Dim hBPM(MaxDefinition) As Long   'x10000
+    Dim hSTOP(MaxDefinition) As Long
+    Dim hBMSCROLL(MaxDefinition) As Long
 
     '----Grid Options
     Dim gSnap As Boolean = True
@@ -1116,7 +1116,7 @@ Public Class MainWindow
 
         LWAV.Items.Clear()
         LBMP.Items.Clear()
-        For xI1 = 1 To 1295
+        For xI1 = 1 To MaxDefinition
             LWAV.Items.Add(C10to36(xI1) & ":")
             LBMP.Items.Add(C10to36(xI1) & ":")
         Next
@@ -1385,11 +1385,11 @@ EndSearch:
 
         ReDim Notes(0)
         ReDim mColumn(999)
-        ReDim hWAV(1295)
-        ReDim hBMP(1295)
-        ReDim hBPM(1295)    'x10000
-        ReDim hSTOP(1295)
-        ReDim hBMSCROLL(1295)
+        ReDim hWAV(MaxDefinition)
+        ReDim hBMP(MaxDefinition)
+        ReDim hBPM(MaxDefinition)    'x10000
+        ReDim hSTOP(MaxDefinition)
+        ReDim hBMSCROLL(MaxDefinition)
         THGenre.Text = ""
         THTitle.Text = ""
         THArtist.Text = ""
@@ -1407,7 +1407,7 @@ EndSearch:
         LWAV.Items.Clear()
         LBMP.Items.Clear()
         Dim xI1 As Integer
-        For xI1 = 1 To 1295
+        For xI1 = 1 To MaxDefinition
             LWAV.Items.Add(C10to36(xI1) & ": " & hWAV(xI1))
             LBMP.Items.Add(C10to36(xI1) & ": " & hBMP(xI1))
         Next
@@ -1434,11 +1434,11 @@ EndSearch:
 
         ReDim Notes(0)
         ReDim mColumn(999)
-        ReDim hWAV(1295)
-        ReDim hBMP(1295)
-        ReDim hBPM(1295)    'x10000
-        ReDim hSTOP(1295)
-        ReDim hBMSCROLL(1295)
+        ReDim hWAV(MaxDefinition)
+        ReDim hBMP(MaxDefinition)
+        ReDim hBPM(MaxDefinition)    'x10000
+        ReDim hSTOP(MaxDefinition)
+        ReDim hBMSCROLL(MaxDefinition)
         THGenre.Text = ""
         THTitle.Text = ""
         THArtist.Text = ""
@@ -2723,18 +2723,18 @@ StartCount:     If Not NTInput Then
             Dim currWavIndex As Integer = xIndices(0)
             ReDim Preserve xIndices(UBound(xPath))
 
-            Do While i < xIndices.Length And currWavIndex <= 1294
-                Do While currWavIndex <= 1294 AndAlso hWAV(currWavIndex + 1) <> ""
+            Do While i < xIndices.Length And currWavIndex <= LastDefinitionListIndex
+                Do While currWavIndex <= LastDefinitionListIndex AndAlso hWAV(currWavIndex + 1) <> ""
                     currWavIndex += 1
                 Loop
-                If currWavIndex > 1294 Then Exit Do
+                If currWavIndex > LastDefinitionListIndex Then Exit Do
 
                 xIndices(i) = currWavIndex
                 currWavIndex += 1
                 i += 1
             Loop
 
-            If currWavIndex > 1294 Then
+            If currWavIndex > LastDefinitionListIndex Then
                 ReDim Preserve xPath(i - 1)
                 ReDim Preserve xIndices(i - 1)
             End If
@@ -2744,18 +2744,18 @@ StartCount:     If Not NTInput Then
                 Dim currWavIndex As Integer = xIndices(UBound(xIndices)) + 1
                 ReDim Preserve xIndices(UBound(xPath))
 
-                Do While i < xIndices.Length And currWavIndex <= 1294
-                    Do While currWavIndex <= 1294 AndAlso hWAV(currWavIndex + 1) <> ""
+                Do While i < xIndices.Length And currWavIndex <= LastDefinitionListIndex
+                    Do While currWavIndex <= LastDefinitionListIndex AndAlso hWAV(currWavIndex + 1) <> ""
                         currWavIndex += 1
                     Loop
-                    If currWavIndex > 1294 Then Exit Do
+                    If currWavIndex > LastDefinitionListIndex Then Exit Do
 
                     xIndices(i) = currWavIndex
                     currWavIndex += 1
                     i += 1
                 Loop
 
-                If currWavIndex > 1294 Then
+                If currWavIndex > LastDefinitionListIndex Then
                     ReDim Preserve xPath(i - 1)
                     ReDim Preserve xIndices(i - 1)
                 End If
@@ -2825,18 +2825,18 @@ StartCount:     If Not NTInput Then
             Dim currBmpIndex As Integer = xIndices(0)
             ReDim Preserve xIndices(UBound(xPath))
 
-            Do While i < xIndices.Length And currBmpIndex <= 1294
-                Do While currBmpIndex <= 1294 AndAlso hBMP(currBmpIndex + 1) <> ""
+            Do While i < xIndices.Length And currBmpIndex <= LastDefinitionListIndex
+                Do While currBmpIndex <= LastDefinitionListIndex AndAlso hBMP(currBmpIndex + 1) <> ""
                     currBmpIndex += 1
                 Loop
-                If currBmpIndex > 1294 Then Exit Do
+                If currBmpIndex > LastDefinitionListIndex Then Exit Do
 
                 xIndices(i) = currBmpIndex
                 currBmpIndex += 1
                 i += 1
             Loop
 
-            If currBmpIndex > 1294 Then
+            If currBmpIndex > LastDefinitionListIndex Then
                 ReDim Preserve xPath(i - 1)
                 ReDim Preserve xIndices(i - 1)
             End If
@@ -2846,18 +2846,18 @@ StartCount:     If Not NTInput Then
                 Dim currBmpIndex As Integer = xIndices(UBound(xIndices)) + 1
                 ReDim Preserve xIndices(UBound(xPath))
 
-                Do While i < xIndices.Length And currBmpIndex <= 1294
-                    Do While currBmpIndex <= 1294 AndAlso hBMP(currBmpIndex + 1) <> ""
+                Do While i < xIndices.Length And currBmpIndex <= LastDefinitionListIndex
+                    Do While currBmpIndex <= LastDefinitionListIndex AndAlso hBMP(currBmpIndex + 1) <> ""
                         currBmpIndex += 1
                     Loop
-                    If currBmpIndex > 1294 Then Exit Do
+                    If currBmpIndex > LastDefinitionListIndex Then Exit Do
 
                     xIndices(i) = currBmpIndex
                     currBmpIndex += 1
                     i += 1
                 Loop
 
-                If currBmpIndex > 1294 Then
+                If currBmpIndex > LastDefinitionListIndex Then
                     ReDim Preserve xPath(i - 1)
                     ReDim Preserve xIndices(i - 1)
                 End If
@@ -4002,13 +4002,13 @@ Jump2:
         LWAV.SelectedIndices.CopyTo(xIndices, 0)
 
         Dim xS As Integer
-        For xS = 0 To 1294
+        For xS = 0 To LastDefinitionListIndex
             If Array.IndexOf(xIndices, xS) = -1 Then Exit For
         Next
 
         Dim xStr As String = ""
         Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To 1294
+        For xI1 As Integer = xS To LastDefinitionListIndex
             xIndex = Array.IndexOf(xIndices, xI1)
             If xIndex <> -1 Then
                 xStr = hWAV(xI1 + 1)
@@ -4061,7 +4061,7 @@ Jump2:
         LWAV.SelectedIndices.CopyTo(xIndices, 0)
 
         Dim xS As Integer
-        For xS = 1294 To 0 Step -1
+        For xS = LastDefinitionListIndex To 0 Step -1
             If Array.IndexOf(xIndices, xS) = -1 Then Exit For
         Next
 
@@ -4156,13 +4156,13 @@ Jump2:
         LBMP.SelectedIndices.CopyTo(xIndices, 0)
 
         Dim xS As Integer
-        For xS = 0 To 1294
+        For xS = 0 To LastDefinitionListIndex
             If Array.IndexOf(xIndices, xS) = -1 Then Exit For
         Next
 
         Dim xStr As String = ""
         Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To 1294
+        For xI1 As Integer = xS To LastDefinitionListIndex
             xIndex = Array.IndexOf(xIndices, xI1)
             If xIndex <> -1 Then
                 xStr = hBMP(xI1 + 1)
@@ -4215,7 +4215,7 @@ Jump2:
         LBMP.SelectedIndices.CopyTo(xIndices, 0)
 
         Dim xS As Integer
-        For xS = 1294 To 0 Step -1
+        For xS = LastDefinitionListIndex To 0 Step -1
             If Array.IndexOf(xIndices, xS) = -1 Then Exit For
         Next
 
