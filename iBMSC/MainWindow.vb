@@ -69,6 +69,7 @@ Public Class MainWindow
     Dim STOPDefinitionMode As Integer = DefinitionModeLegacy
     Dim UseBase62Definitions As Boolean = False
     Dim NewBMSUseBase62Definitions As Boolean = False
+    Dim ShowMyO2Toolbox As Boolean = False
 
     Dim IsInitializing As Boolean = True
     Dim FirstMouseEnter As Boolean = True
@@ -1134,6 +1135,7 @@ Public Class MainWindow
         Else
             LoadInitialPreferences()
         End If
+        UpdateMyO2ToolboxVisibility()
         SetUseBase62Definitions(NewBMSUseBase62Definitions)
         RefreshDefinitionLists()
         'On Error GoTo 0
@@ -3493,7 +3495,7 @@ StartCount:     If Not NTInput Then
 
         Dim xDiag As New OpGeneral(gWheel, gPgUpDn, MiddleButtonMoveMethod, xTE, 192.0R / BMSGridLimit,
             AutoSaveInterval, BeepWhileSaved, NewBMSUseBase62Definitions, BPMDefinitionMode, STOPDefinitionMode,
-            AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, LaneHighlight)
+            ShowMyO2Toolbox, AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, LaneHighlight)
 
         If xDiag.ShowDialog() = Windows.Forms.DialogResult.OK Then
             With xDiag
@@ -3506,6 +3508,7 @@ StartCount:     If Not NTInput Then
                 BMSGridLimit = 192.0R / .zGridPartition
                 BeepWhileSaved = .cBeep.Checked
                 NewBMSUseBase62Definitions = .cNewBMSUseBase62.Checked
+                ShowMyO2Toolbox = .cMyO2Toolbox.Checked
                 BPMDefinitionMode = .cBpm1296.SelectedIndex
                 STOPDefinitionMode = .cStop1296.SelectedIndex
                 AutoFocusMouseEnter = .cMEnterFocus.Checked
@@ -3515,8 +3518,15 @@ StartCount:     If Not NTInput Then
             End With
             If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval
             AutoSaveTimer.Enabled = AutoSaveInterval
+            UpdateMyO2ToolboxVisibility()
             RefreshPanelAll()
         End If
+    End Sub
+
+    Private Sub UpdateMyO2ToolboxVisibility()
+        mnMyO2.Visible = ShowMyO2Toolbox
+        ToolStripSeparator23.Visible = ShowMyO2Toolbox
+        TBMyO2.Visible = ShowMyO2Toolbox
     End Sub
 
     Private Sub POBLong_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBLong.Click

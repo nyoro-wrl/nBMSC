@@ -369,6 +369,7 @@
 		<MaxGridPartition>BMS 最大格线</MaxGridPartition>
 		<BeepWhileSaved>保存后播放提示音</BeepWhileSaved>
 		<NewBMSUseBase62>新建 BMS 使用 62 进制</NewBMSUseBase62>
+		<MyO2Toolbox>MyO2 工具箱</MyO2Toolbox>
 		<BPMDefinitionMode>BPM 定义数</BPMDefinitionMode>
 		<STOPDefinitionMode>STOP 定义数</STOPDefinitionMode>
 		<DefinitionModeDefault>默认（01～FF）</DefinitionModeDefault>

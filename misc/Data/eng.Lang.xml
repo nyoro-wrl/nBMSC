@@ -396,6 +396,7 @@
 		<MaxGridPartition>Max Grid Partition in BMS</MaxGridPartition>
 		<BeepWhileSaved>Beep while saved</BeepWhileSaved>
 		<NewBMSUseBase62>Use base62 for new BMS</NewBMSUseBase62>
+		<MyO2Toolbox>MyO2 ToolBox</MyO2Toolbox>
 		<BPMDefinitionMode>BPM definitions</BPMDefinitionMode>
 		<STOPDefinitionMode>STOP definitions</STOPDefinitionMode>
 		<DefinitionModeDefault>Default (01-FF)</DefinitionModeDefault>

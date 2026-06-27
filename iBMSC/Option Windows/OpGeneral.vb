@@ -60,7 +60,7 @@ Public Class OpGeneral
 
     Public Sub New(ByVal xMsWheel As Integer, ByVal xPgUpDn As Integer, ByVal xMiddleButton As Integer, ByVal xTextEncoding As Integer, ByVal xGridPartition As Integer, _
                    ByVal xAutoSave As Integer, ByVal xBeep As Boolean, ByVal xNewBase62 As Boolean, ByVal xBPMMode As Integer, ByVal xSTOPMode As Integer, _
-                   ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xLaneHighlight As Integer)
+                   ByVal xShowMyO2 As Boolean, ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xLaneHighlight As Integer)
         InitializeComponent()
 
         On Error Resume Next
@@ -96,6 +96,7 @@ Public Class OpGeneral
 
         cBeep.Checked = xBeep
         cNewBMSUseBase62.Checked = xNewBase62
+        cMyO2Toolbox.Checked = xShowMyO2
         cBpm1296.SelectedIndex = Math.Max(0, Math.Min(xBPMMode, cBpm1296.Items.Count - 1))
         cStop1296.SelectedIndex = Math.Max(0, Math.Min(xSTOPMode, cStop1296.Items.Count - 1))
         cMEnterFocus.Checked = xMFEnter
@@ -127,6 +128,7 @@ Public Class OpGeneral
 
         cBeep.Text = Strings.fopGeneral.BeepWhileSaved
         cNewBMSUseBase62.Text = Strings.fopGeneral.NewBMSUseBase62
+        cMyO2Toolbox.Text = Strings.fopGeneral.MyO2Toolbox
         LabelBPMDefinitionMode.Text = Strings.fopGeneral.BPMDefinitionMode
         LabelSTOPDefinitionMode.Text = Strings.fopGeneral.STOPDefinitionMode
         cBpm1296.Items(0) = Strings.fopGeneral.DefinitionModeDefault

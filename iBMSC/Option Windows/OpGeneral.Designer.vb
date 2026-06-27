@@ -33,6 +33,7 @@ Partial Class OpGeneral
         Me.TBAssociate = New System.Windows.Forms.Button()
         Me.cBeep = New System.Windows.Forms.CheckBox()
         Me.cNewBMSUseBase62 = New System.Windows.Forms.CheckBox()
+        Me.cMyO2Toolbox = New System.Windows.Forms.CheckBox()
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.LabelBPMDefinitionMode = New System.Windows.Forms.Label()
         Me.cBpm1296 = New System.Windows.Forms.ComboBox()
@@ -75,7 +76,7 @@ Partial Class OpGeneral
         Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
         Me.TableLayoutPanel1.Controls.Add(Me.OK_Button, 0, 0)
         Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 1, 0)
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 533)
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 558)
         Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
         Me.TableLayoutPanel1.RowCount = 1
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
@@ -106,7 +107,7 @@ Partial Class OpGeneral
         Me.CWheel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CWheel.FormattingEnabled = True
         Me.CWheel.Items.AddRange(New Object() {"1", "1 / 2", "1 / 3", "1 / 4"})
-        Me.CWheel.Location = New System.Drawing.Point(154, 305)
+        Me.CWheel.Location = New System.Drawing.Point(154, 330)
         Me.CWheel.Name = "CWheel"
         Me.CWheel.Size = New System.Drawing.Size(237, 23)
         Me.CWheel.TabIndex = 11
@@ -123,7 +124,7 @@ Partial Class OpGeneral
         '
         'Label1
         '
-        Me.Label1.Location = New System.Drawing.Point(12, 307)
+        Me.Label1.Location = New System.Drawing.Point(12, 332)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(136, 17)
         Me.Label1.TabIndex = 40
@@ -179,10 +180,20 @@ Partial Class OpGeneral
         Me.cNewBMSUseBase62.Text = "Use base62 for new BMS"
         Me.cNewBMSUseBase62.UseVisualStyleBackColor = True
         '
+        'cMyO2Toolbox
+        '
+        Me.cMyO2Toolbox.AutoSize = True
+        Me.cMyO2Toolbox.Location = New System.Drawing.Point(32, 219)
+        Me.cMyO2Toolbox.Name = "cMyO2Toolbox"
+        Me.cMyO2Toolbox.Size = New System.Drawing.Size(101, 19)
+        Me.cMyO2Toolbox.TabIndex = 10
+        Me.cMyO2Toolbox.Text = "MyO2 ToolBox"
+        Me.cMyO2Toolbox.UseVisualStyleBackColor = True
+        '
         'PictureBox1
         '
         Me.PictureBox1.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
-        Me.PictureBox1.Location = New System.Drawing.Point(20, 289)
+        Me.PictureBox1.Location = New System.Drawing.Point(20, 314)
         Me.PictureBox1.Name = "PictureBox1"
         Me.PictureBox1.Size = New System.Drawing.Size(375, 1)
         Me.PictureBox1.TabIndex = 47
@@ -190,7 +201,7 @@ Partial Class OpGeneral
         '
         'LabelBPMDefinitionMode
         '
-        Me.LabelBPMDefinitionMode.Location = New System.Drawing.Point(12, 227)
+        Me.LabelBPMDefinitionMode.Location = New System.Drawing.Point(12, 252)
         Me.LabelBPMDefinitionMode.Name = "LabelBPMDefinitionMode"
         Me.LabelBPMDefinitionMode.Size = New System.Drawing.Size(136, 17)
         Me.LabelBPMDefinitionMode.TabIndex = 67
@@ -202,14 +213,14 @@ Partial Class OpGeneral
         Me.cBpm1296.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cBpm1296.FormattingEnabled = True
         Me.cBpm1296.Items.AddRange(New Object() {"Default (01-FF)", "36 base (01-ZZ)", "62 base (01-zz)"})
-        Me.cBpm1296.Location = New System.Drawing.Point(154, 224)
+        Me.cBpm1296.Location = New System.Drawing.Point(154, 249)
         Me.cBpm1296.Name = "cBpm1296"
         Me.cBpm1296.Size = New System.Drawing.Size(237, 23)
         Me.cBpm1296.TabIndex = 10
         '
         'LabelSTOPDefinitionMode
         '
-        Me.LabelSTOPDefinitionMode.Location = New System.Drawing.Point(12, 255)
+        Me.LabelSTOPDefinitionMode.Location = New System.Drawing.Point(12, 280)
         Me.LabelSTOPDefinitionMode.Name = "LabelSTOPDefinitionMode"
         Me.LabelSTOPDefinitionMode.Size = New System.Drawing.Size(136, 17)
         Me.LabelSTOPDefinitionMode.TabIndex = 68
@@ -221,7 +232,7 @@ Partial Class OpGeneral
         Me.cStop1296.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cStop1296.FormattingEnabled = True
         Me.cStop1296.Items.AddRange(New Object() {"Default (01-FF)", "36 base (01-ZZ)", "62 base (01-zz)"})
-        Me.cStop1296.Location = New System.Drawing.Point(154, 252)
+        Me.cStop1296.Location = New System.Drawing.Point(154, 277)
         Me.cStop1296.Name = "cStop1296"
         Me.cStop1296.Size = New System.Drawing.Size(237, 23)
         Me.cStop1296.TabIndex = 11
@@ -229,7 +240,7 @@ Partial Class OpGeneral
         'cMEnterFocus
         '
         Me.cMEnterFocus.AutoSize = True
-        Me.cMEnterFocus.Location = New System.Drawing.Point(34, 415)
+        Me.cMEnterFocus.Location = New System.Drawing.Point(34, 440)
         Me.cMEnterFocus.Name = "cMEnterFocus"
         Me.cMEnterFocus.Size = New System.Drawing.Size(322, 19)
         Me.cMEnterFocus.TabIndex = 14
@@ -239,7 +250,7 @@ Partial Class OpGeneral
         'cMClickFocus
         '
         Me.cMClickFocus.AutoSize = True
-        Me.cMClickFocus.Location = New System.Drawing.Point(34, 440)
+        Me.cMClickFocus.Location = New System.Drawing.Point(34, 465)
         Me.cMClickFocus.Name = "cMClickFocus"
         Me.cMClickFocus.Size = New System.Drawing.Size(293, 19)
         Me.cMClickFocus.TabIndex = 15
@@ -266,7 +277,7 @@ Partial Class OpGeneral
         '
         'Label5
         '
-        Me.Label5.Location = New System.Drawing.Point(12, 336)
+        Me.Label5.Location = New System.Drawing.Point(12, 361)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(136, 17)
         Me.Label5.TabIndex = 56
@@ -278,7 +289,7 @@ Partial Class OpGeneral
         Me.CPgUpDn.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CPgUpDn.FormattingEnabled = True
         Me.CPgUpDn.Items.AddRange(New Object() {"8", "6", "4", "3", "2", "1", "1 / 2"})
-        Me.CPgUpDn.Location = New System.Drawing.Point(154, 334)
+        Me.CPgUpDn.Location = New System.Drawing.Point(154, 359)
         Me.CPgUpDn.Name = "CPgUpDn"
         Me.CPgUpDn.Size = New System.Drawing.Size(237, 23)
         Me.CPgUpDn.TabIndex = 12
@@ -320,7 +331,7 @@ Partial Class OpGeneral
         Me.cMStopPreview.AutoSize = True
         Me.cMStopPreview.Checked = True
         Me.cMStopPreview.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.cMStopPreview.Location = New System.Drawing.Point(34, 465)
+        Me.cMStopPreview.Location = New System.Drawing.Point(34, 490)
         Me.cMStopPreview.Name = "cMStopPreview"
         Me.cMStopPreview.Size = New System.Drawing.Size(253, 19)
         Me.cMStopPreview.TabIndex = 60
@@ -329,7 +340,7 @@ Partial Class OpGeneral
         '
         'nLaneHighlight
         '
-        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 490)
+        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 515)
         Me.nLaneHighlight.Maximum = New Decimal(New Integer() {100, 0, 0, 0})
         Me.nLaneHighlight.Name = "nLaneHighlight"
         Me.nLaneHighlight.Size = New System.Drawing.Size(62, 23)
@@ -337,7 +348,7 @@ Partial Class OpGeneral
         '
         'LabelLaneHighlight
         '
-        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 492)
+        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 517)
         Me.LabelLaneHighlight.Name = "LabelLaneHighlight"
         Me.LabelLaneHighlight.Size = New System.Drawing.Size(179, 17)
         Me.LabelLaneHighlight.TabIndex = 70
@@ -346,7 +357,7 @@ Partial Class OpGeneral
         '
         'LabelLaneHighlightPercent
         '
-        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 492)
+        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 517)
         Me.LabelLaneHighlightPercent.Name = "LabelLaneHighlightPercent"
         Me.LabelLaneHighlightPercent.Size = New System.Drawing.Size(28, 17)
         Me.LabelLaneHighlightPercent.TabIndex = 71
@@ -392,7 +403,7 @@ Partial Class OpGeneral
         '
         'Label3
         '
-        Me.Label3.Location = New System.Drawing.Point(12, 364)
+        Me.Label3.Location = New System.Drawing.Point(12, 389)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(136, 17)
         Me.Label3.TabIndex = 65
@@ -406,7 +417,7 @@ Partial Class OpGeneral
         Me.FlowLayoutPanel1.Controls.Add(Me.rMiddleAuto)
         Me.FlowLayoutPanel1.Controls.Add(Me.rMiddleDrag)
         Me.FlowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown
-        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(154, 363)
+        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(154, 388)
         Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
         Me.FlowLayoutPanel1.Size = New System.Drawing.Size(141, 38)
         Me.FlowLayoutPanel1.TabIndex = 66
@@ -441,7 +452,7 @@ Partial Class OpGeneral
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.CancelButton = Me.Cancel_Button
-        Me.ClientSize = New System.Drawing.Size(413, 580)
+        Me.ClientSize = New System.Drawing.Size(413, 605)
         Me.Controls.Add(Me.LabelLaneHighlightPercent)
         Me.Controls.Add(Me.LabelLaneHighlight)
         Me.Controls.Add(Me.nLaneHighlight)
@@ -466,6 +477,7 @@ Partial Class OpGeneral
         Me.Controls.Add(Me.cBpm1296)
         Me.Controls.Add(Me.LabelBPMDefinitionMode)
         Me.Controls.Add(Me.PictureBox1)
+        Me.Controls.Add(Me.cMyO2Toolbox)
         Me.Controls.Add(Me.cNewBMSUseBase62)
         Me.Controls.Add(Me.cBeep)
         Me.Controls.Add(Me.TBAssociate)
@@ -505,6 +517,7 @@ Partial Class OpGeneral
     Friend WithEvents TBAssociate As System.Windows.Forms.Button
     Friend WithEvents cBeep As System.Windows.Forms.CheckBox
     Friend WithEvents cNewBMSUseBase62 As System.Windows.Forms.CheckBox
+    Friend WithEvents cMyO2Toolbox As System.Windows.Forms.CheckBox
     Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents LabelBPMDefinitionMode As System.Windows.Forms.Label
     Friend WithEvents cBpm1296 As System.Windows.Forms.ComboBox

@@ -83,6 +83,7 @@ Partial Public Class MainWindow
             .WriteAttributeString("ChangePlaySide", Rscratch)
             .WriteAttributeString("MiddleButtonMoveMethod", MiddleButtonMoveMethod)
             .WriteAttributeString("AutoSaveInterval", AutoSaveInterval)
+            .WriteAttributeString("ShowMyO2Toolbox", ShowMyO2Toolbox)
             .WriteAttributeString("PreviewOnClick", PreviewOnClick)
             '.WriteAttributeString("PreviewErrorCheck", PreviewErrorCheck)
             .WriteAttributeString("ClickStopPreview", ClickStopPreview)
@@ -351,6 +352,13 @@ Partial Public Class MainWindow
 
                 XMLLoadAttribute(.GetAttribute("AutoSaveInterval"), AutoSaveInterval)
                 If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval Else AutoSaveTimer.Enabled = False
+
+                If .GetAttribute("ShowMyO2Toolbox").Length > 0 Then
+                    XMLLoadAttribute(.GetAttribute("ShowMyO2Toolbox"), ShowMyO2Toolbox)
+                Else
+                    ShowMyO2Toolbox = False
+                End If
+                UpdateMyO2ToolboxVisibility()
 
                 XMLLoadAttribute(.GetAttribute("PreviewOnClick"), PreviewOnClick)
                 TBPreviewOnClick.Checked = PreviewOnClick
@@ -1134,6 +1142,7 @@ EndOfSub:
                 XMLLoadLocale(eGeneralOptions.Item("MaxGridPartition"), Strings.fopGeneral.MaxGridPartition)
                 XMLLoadLocale(eGeneralOptions.Item("BeepWhileSaved"), Strings.fopGeneral.BeepWhileSaved)
                 XMLLoadLocale(eGeneralOptions.Item("NewBMSUseBase62"), Strings.fopGeneral.NewBMSUseBase62)
+                XMLLoadLocale(eGeneralOptions.Item("MyO2Toolbox"), Strings.fopGeneral.MyO2Toolbox)
                 XMLLoadLocale(eGeneralOptions.Item("BPMDefinitionMode"), Strings.fopGeneral.BPMDefinitionMode)
                 XMLLoadLocale(eGeneralOptions.Item("STOPDefinitionMode"), Strings.fopGeneral.STOPDefinitionMode)
                 XMLLoadLocale(eGeneralOptions.Item("DefinitionModeDefault"), Strings.fopGeneral.DefinitionModeDefault)

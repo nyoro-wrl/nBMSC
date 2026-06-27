@@ -3198,6 +3198,7 @@ Partial Class MainWindow
         '
         Me.ToolStripSeparator23.Name = "ToolStripSeparator23"
         Me.ToolStripSeparator23.Size = New System.Drawing.Size(230, 6)
+        Me.ToolStripSeparator23.Visible = False
         '
         'mnMyO2
         '
@@ -3205,6 +3206,7 @@ Partial Class MainWindow
         Me.mnMyO2.Name = "mnMyO2"
         Me.mnMyO2.Size = New System.Drawing.Size(233, 22)
         Me.mnMyO2.Text = "MyO2 ToolBox (Chinese Only)"
+        Me.mnMyO2.Visible = False
         '
         'mnSys
         '
@@ -3760,6 +3762,7 @@ Partial Class MainWindow
         Me.TBMyO2.Name = "TBMyO2"
         Me.TBMyO2.Size = New System.Drawing.Size(23, 22)
         Me.TBMyO2.Text = "MyO2 ToolBox (Chinese Only)"
+        Me.TBMyO2.Visible = False
         '
         'ToolStripSeparator4
         '

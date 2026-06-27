@@ -396,6 +396,7 @@
 		<MaxGridPartition>BMS の Grid 最大分解能</MaxGridPartition>
 		<BeepWhileSaved>保存時に音を鳴らす。</BeepWhileSaved>
 		<NewBMSUseBase62>新規BMSに62進数を使用する</NewBMSUseBase62>
+		<MyO2Toolbox>MyO2 ツールボックス</MyO2Toolbox>
 		<BPMDefinitionMode>拡張BPMの最大使用数</BPMDefinitionMode>
 		<STOPDefinitionMode>STOPの最大使用数</STOPDefinitionMode>
 		<DefinitionModeDefault>標準（01～FF）</DefinitionModeDefault>
