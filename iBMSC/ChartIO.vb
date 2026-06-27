@@ -833,8 +833,8 @@ Jump1:
                     mnSTB.Checked = xPref And &H200
                     mnSOP.Checked = xPref And &H400
                     mnSStatus.Checked = xPref And &H800
-                    mnSLSplitter.Checked = xPref And &H1000
-                    mnSRSplitter.Checked = xPref And &H2000
+                    SetSplitterEnabled(0, (xPref And &H1000) <> 0)
+                    SetSplitterEnabled(2, (xPref And &H2000) <> 0)
 
                     CGShow.Checked = xPref And &H4000
                     CGShowS.Checked = xPref And &H8000

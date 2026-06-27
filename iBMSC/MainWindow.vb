@@ -302,6 +302,8 @@ Public Class MainWindow
     Public Sub New()
         InitializeComponent()
         InitializeSplitterControls()
+        SetSplitterEnabled(0, mnSLSplitter.Checked, False)
+        SetSplitterEnabled(2, mnSRSplitter.Checked, False)
         Audio.Initialize()
     End Sub
 
