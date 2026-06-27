@@ -217,7 +217,7 @@
 		<Grid>
 			<Title>格线</Title>
 			<Snap>对齐至格线 (G)</Snap>
-			<BCols>BGM 列数量</BCols>
+			<BCols>BGM 列最小数量</BCols>
 			<DisableVertical>禁用垂直移动 (D)</DisableVertical>
 			<Scroll>分割面板滚动条锁定</Scroll>
 			<LockLeft>锁定左侧编辑面板</LockLeft>

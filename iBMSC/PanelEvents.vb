@@ -1160,7 +1160,7 @@ Partial Public Class MainWindow
 
         SortByVPositionInsertion()
         UpdatePairing()
-        CalculateTotalPlayableNotes()
+        CalculateTotalPlayableNotes(False)
         'Label1.Text = KInfo(KMouseDown)
     End Sub
 
@@ -1704,6 +1704,7 @@ Partial Public Class MainWindow
 
             ctrlPressed = False
             DuplicatedSelectedNotes = False
+            CalculateTotalPlayableNotes()
 
         ElseIf TBWrite.Checked Then
 

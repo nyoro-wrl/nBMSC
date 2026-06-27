@@ -226,7 +226,7 @@
 		<Grid>
 			<Title>Grid</Title>
 			<Snap>Snap to grid (G)</Snap>
-			<BCols>Number of B Columns</BCols>
+			<BCols>Minimum BGM Columns</BCols>
 			<DisableVertical>Disable vertical moves (D)</DisableVertical>
 			<Scroll>Vertical Scroll Lock</Scroll>
 			<LockLeft>Lock Left Editing Panel</LockLeft>

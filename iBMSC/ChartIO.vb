@@ -859,7 +859,8 @@ Jump1:
                     gSlash = br.ReadInt32
                     CGHeight.Value = br.ReadSingle
                     CGWidth.Value = br.ReadSingle
-                    CGB.Value = br.ReadInt32
+                    Dim xBGMColumns As Integer = br.ReadInt32
+                    CGB.Value = Math.Min(CInt(CGB.Maximum), Math.Max(CInt(CGB.Minimum), xBGMColumns))
 
                 Case &H64616548     'Header
                     THTitle.Text = br.ReadString
@@ -1057,7 +1058,7 @@ EndOfSub:
             bw.Write(BitConverter.GetBytes(gSlash))
             bw.Write(BitConverter.GetBytes(gxHeight))
             bw.Write(BitConverter.GetBytes(gxWidth))
-            bw.Write(BitConverter.GetBytes(gColumns))
+            bw.Write(BitConverter.GetBytes(CInt(CGB.Value)))
 
             'Header
             'bw.Write("Head".ToCharArray)

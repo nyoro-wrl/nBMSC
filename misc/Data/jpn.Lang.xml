@@ -226,7 +226,7 @@
 		<Grid>
 			<Title>Grid</Title>
 			<Snap>Grid に合わせる (G)</Snap>
-			<BCols>BGM 列の数</BCols>
+			<BCols>BGM 列の最小数</BCols>
 			<DisableVertical>オブジェを縦移動させない (D)</DisableVertical>
 			<Scroll>縦スクロールロック</Scroll>
 			<LockLeft>左エディット画面のロック</LockLeft>

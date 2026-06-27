@@ -1917,7 +1917,7 @@ Partial Class MainWindow
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(126, 29)
         Me.Label1.TabIndex = 43
-        Me.Label1.Text = "Number of B Columns"
+        Me.Label1.Text = "Minimum BGM Columns"
         Me.Label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         '
         'CGB

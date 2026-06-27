@@ -193,6 +193,8 @@ Public Class MainWindow
     Dim gBPM As Boolean = True
     'Dim gA8 As Boolean = False
     Dim iPlayer As Integer = 0
+    Private Const MaxBGMColumns As Integer = 999
+    Private Const BGMColumnTailMargin As Integer = 5
     Dim gColumns As Integer = 82
 
     '----Visual Options
@@ -340,6 +342,20 @@ Public Class MainWindow
         MainPanelScroll.Minimum = xI2
         LeftPanelScroll.Minimum = xI2
         RightPanelScroll.Minimum = xI2
+    End Sub
+
+    Private Sub CalculateGreatestColumn()
+        Dim xColumns As Integer = Math.Min(MaxBGMColumns, Math.Max(1, CInt(CGB.Value)))
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Notes(xI1).ColumnIndex >= niB Then
+                xColumns = Math.Max(xColumns, Notes(xI1).ColumnIndex - niB + 1 + BGMColumnTailMargin)
+            End If
+        Next
+
+        xColumns = Math.Min(MaxBGMColumns, xColumns)
+        gColumns = niB + xColumns - 1
+        UpdateColumnsX()
     End Sub
 
 
@@ -2511,7 +2527,7 @@ StartCount:     If Not NTInput Then
     ''' Remark: Pls sort and updatepairing before this process.
     ''' </summary>
 
-    Private Sub CalculateTotalPlayableNotes()
+    Private Sub CalculateTotalPlayableNotes(Optional updateGreatestColumn As Boolean = True)
         Dim xI1 As Integer
         Dim xIAll As Integer = 0
 
@@ -2536,6 +2552,7 @@ StartCount:     If Not NTInput Then
         End If
 
         TBStatistics.Text = xIAll
+        If updateGreatestColumn Then CalculateGreatestColumn()
     End Sub
 
     Private Function CalculateTotalNotes() As Integer
@@ -3428,9 +3445,21 @@ StartCount:     If Not NTInput Then
             column(xI1).Left = column(xI1 - 1).Left + IIf(column(xI1 - 1).isVisible, column(xI1 - 1).Width, 0)
             'If col(xI1).Width = 0 Then col(xI1).Visible = False
         Next
-        HSL.Maximum = nLeft(gColumns) + column(niB).Width
-        HS.Maximum = nLeft(gColumns) + column(niB).Width
-        HSR.Maximum = nLeft(gColumns) + column(niB).Width
+        Dim xMaximum As Integer = nLeft(gColumns) + column(niB).Width
+        SetHorizontalScrollMaximum(HSL, xMaximum)
+        SetHorizontalScrollMaximum(HS, xMaximum)
+        SetHorizontalScrollMaximum(HSR, xMaximum)
+    End Sub
+
+    Private Sub SetHorizontalScrollMaximum(xScroll As HScrollBar, xMaximum As Integer)
+        xMaximum = Math.Max(xScroll.Minimum, xMaximum)
+        If xScroll.Value > xMaximum Then xScroll.Value = xMaximum
+
+        xScroll.Maximum = xMaximum
+
+        Dim xValueMax As Integer = xScroll.Maximum - xScroll.LargeChange + 1
+        If xValueMax < xScroll.Minimum Then xValueMax = xScroll.Minimum
+        If xScroll.Value > xValueMax Then xScroll.Value = xValueMax
     End Sub
 
     Private Sub CHPlayer_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CHPlayer.SelectedIndexChanged
@@ -3489,8 +3518,7 @@ StartCount:     If Not NTInput Then
     End Sub
 
     Private Sub CGB_ValueChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGB.ValueChanged
-        gColumns = niB + CGB.Value - 1
-        UpdateColumnsX()
+        CalculateGreatestColumn()
         RefreshPanelAll()
     End Sub
 
