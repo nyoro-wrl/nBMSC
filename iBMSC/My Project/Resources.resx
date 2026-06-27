@@ -355,6 +355,12 @@
   <data name="x16Select" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\ImageButtonsSmall\x16Select.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="x16SidebarLeft" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ImageButtonsSmall\x16SidebarLeft.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="x16SidebarRight" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\ImageButtonsSmall\x16SidebarRight.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="x16settings" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\ImageButtonsSmall\x16settings.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

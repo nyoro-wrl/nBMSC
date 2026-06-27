@@ -81,6 +81,7 @@ Partial Public Class MainWindow
             .WriteAttributeString("FirstClickDisabled", FirstClickDisabled)
             .WriteAttributeString("ShowFileName", ShowFileName)
             .WriteAttributeString("ChangePlaySide", Rscratch)
+            .WriteAttributeString("SyncSplitterScroll", SyncSplitterScroll)
             .WriteAttributeString("MiddleButtonMoveMethod", MiddleButtonMoveMethod)
             .WriteAttributeString("AutoSaveInterval", AutoSaveInterval)
             .WriteAttributeString("ShowMyO2Toolbox", ShowMyO2Toolbox)
@@ -109,12 +110,15 @@ Partial Public Class MainWindow
             .WriteEndElement()
 
             .WriteStartElement("ShowHide")
+            StoreVisibleSplitterRatios()
             .WriteAttributeString("showMenu", mnSMenu.Checked)
             .WriteAttributeString("showTB", mnSTB.Checked)
             .WriteAttributeString("showOpPanel", mnSOP.Checked)
             .WriteAttributeString("showStatus", mnSStatus.Checked)
             .WriteAttributeString("showLSplit", mnSLSplitter.Checked)
             .WriteAttributeString("showRSplit", mnSRSplitter.Checked)
+            .WriteAttributeString("leftSplitRatio", WriteDecimalWithDot(GetSplitPanelRatio(0)))
+            .WriteAttributeString("rightSplitRatio", WriteDecimalWithDot(GetSplitPanelRatio(2)))
             .WriteEndElement()
 
             .WriteStartElement("Grid")
@@ -370,6 +374,9 @@ Partial Public Class MainWindow
                 TBChangePlaySide.Checked = Rscratch
                 TBChangePlaySide_Click(TBChangePlaySide, New System.EventArgs)
 
+                XMLLoadAttribute(.GetAttribute("SyncSplitterScroll"), SyncSplitterScroll)
+                SetSplitterScrollSync(SyncSplitterScroll)
+
                 XMLLoadAttribute(.GetAttribute("ClickStopPreview"), ClickStopPreview)
                 XMLLoadAttribute(.GetAttribute("SkipClippedMeasure"), SkipClippedMeasure)
                 XMLLoadAttribute(.GetAttribute("LaneHighlight"), LaneHighlight)
@@ -449,12 +456,20 @@ Partial Public Class MainWindow
         Dim eShowHide As XmlElement = Root.Item("ShowHide")
         If eShowHide IsNot Nothing Then
             With eShowHide
+                XMLLoadAttribute(.GetAttribute("leftSplitRatio"), SplitPanelRatio(0))
+                XMLLoadAttribute(.GetAttribute("rightSplitRatio"), SplitPanelRatio(2))
+                SplitPanelRatio(0) = GetSplitPanelRatio(0)
+                SplitPanelRatio(2) = GetSplitPanelRatio(2)
                 XMLLoadAttribute(.GetAttribute("showMenu"), mnSMenu.Checked)
                 XMLLoadAttribute(.GetAttribute("showTB"), mnSTB.Checked)
                 XMLLoadAttribute(.GetAttribute("showOpPanel"), mnSOP.Checked)
                 XMLLoadAttribute(.GetAttribute("showStatus"), mnSStatus.Checked)
-                XMLLoadAttribute(.GetAttribute("showLSplit"), mnSLSplitter.Checked)
-                XMLLoadAttribute(.GetAttribute("showRSplit"), mnSRSplitter.Checked)
+                Dim xShowLSplit As Boolean = mnSLSplitter.Checked
+                Dim xShowRSplit As Boolean = mnSRSplitter.Checked
+                XMLLoadAttribute(.GetAttribute("showLSplit"), xShowLSplit)
+                XMLLoadAttribute(.GetAttribute("showRSplit"), xShowRSplit)
+                SetSplitterEnabled(0, xShowLSplit, False)
+                SetSplitterEnabled(2, xShowRSplit, False)
             End With
         End If
 
@@ -735,6 +750,7 @@ EndOfSub:
                     XMLLoadLocaleMenu(eOptions.Item("PreviewOnClick"), mnPreviewOnClick.Text)
                     XMLLoadLocaleMenu(eOptions.Item("ShowFileName"), mnShowFileName.Text)
                     XMLLoadLocaleMenu(eOptions.Item("ChangePlaySide"), mnChangePlaySide.Text)
+                    XMLLoadLocaleMenu(eOptions.Item("SyncSplitterScroll"), mnSyncSplitterScroll.Text)
                     XMLLoadLocaleMenu(eOptions.Item("GeneralOptions"), mnGOptions.Text)
                     XMLLoadLocaleMenu(eOptions.Item("VisualOptions"), mnVOptions.Text)
                     XMLLoadLocaleMenu(eOptions.Item("PlayerOptions"), mnPOptions.Text)
@@ -777,6 +793,9 @@ EndOfSub:
                 XMLLoadLocale(eToolBar.Item("PreviewOnClick"), TBPreviewOnClick.Text)
                 XMLLoadLocale(eToolBar.Item("ShowFileName"), TBShowFileName.Text)
                 XMLLoadLocale(eToolBar.Item("ChangePlaySide"), TBChangePlaySide.Text)
+                XMLLoadLocale(eToolBar.Item("LeftSplitter"), TBSLSplitter.Text)
+                XMLLoadLocale(eToolBar.Item("RightSplitter"), TBSRSplitter.Text)
+                XMLLoadLocale(eToolBar.Item("SyncSplitterScroll"), TBSyncSplitterScroll.Text)
                 XMLLoadLocale(eToolBar.Item("Undo"), TBUndo.Text)
                 XMLLoadLocale(eToolBar.Item("Redo"), TBRedo.Text)
                 XMLLoadLocale(eToolBar.Item("NT"), TBNTInput.Text)

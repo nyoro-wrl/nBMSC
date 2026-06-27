@@ -52,6 +52,7 @@
 			<ErrorCheck>错误检查 (&amp;E)</ErrorCheck>
 			<PreviewOnClick>单击播放Key音 (&amp;C)</PreviewOnClick>
 			<ShowFileName>Note上显示文件名 (&amp;F)</ShowFileName>
+			<SyncSplitterScroll>同步分割器间滚动</SyncSplitterScroll>
 			<GeneralOptions>常规设置 (&amp;G)</GeneralOptions>
 			<VisualOptions>外观设置 (&amp;V)</VisualOptions>
 			<PlayerOptions>播放器设置 (&amp;P)</PlayerOptions>
@@ -86,6 +87,9 @@
 		<ErrorCheck>错误检查</ErrorCheck>
 		<PreviewOnClick>单击播放Key音</PreviewOnClick>
 		<ShowFileName>Note上显示文件名</ShowFileName>
+		<LeftSplitter>左分割器</LeftSplitter>
+		<RightSplitter>右分割器</RightSplitter>
+		<SyncSplitterScroll>同步分割器间滚动</SyncSplitterScroll>
 		<Undo>撤销 (Ctrl+Z)</Undo>
 		<Redo>重做 (Ctrl+Y)</Redo>
 		<NT>面条输入模式 - NoteTool/BMSE</NT>

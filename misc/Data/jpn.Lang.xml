@@ -55,6 +55,7 @@
 			<PreviewOnClick amp="15">クリック時に音声プレビュー (C)</PreviewOnClick>
 			<ShowFileName amp="10">ファイル名を表示 (F)</ShowFileName>
 			<ChangePlaySide amp="12">スクラッチ位置の変更 (R)</ChangePlaySide>
+			<SyncSplitterScroll>スプリッタ間のスクロールを同期</SyncSplitterScroll>
 			<GeneralOptions amp="9">一般オプション (G)</GeneralOptions>
 			<VisualOptions amp="9">表示オプション (V)</VisualOptions>
 			<PlayerOptions amp="10">再生ソフトの設定 (P)</PlayerOptions>
@@ -90,6 +91,9 @@
 		<PreviewOnClick>クリックしたものを音声プレビュー</PreviewOnClick>
 		<ShowFileName>ファイル名を表示</ShowFileName>
 		<ChangePlaySide>スクラッチ位置の変更</ChangePlaySide>
+		<LeftSplitter>左スプリッタ</LeftSplitter>
+		<RightSplitter>右スプリッタ</RightSplitter>
+		<SyncSplitterScroll>スプリッタ間のスクロールを同期</SyncSplitterScroll>
 		<Undo>元に戻す (Ctrl+Z)</Undo>
 		<Redo>やり直し (Ctrl+Y)</Redo>
 		<NT>LN 入力モード - NoteTool/BMSE</NT>

@@ -55,6 +55,7 @@
 			<PreviewOnClick amp="11">Preview on Click</PreviewOnClick>
 			<ShowFileName amp="5">Show File Name on Notes</ShowFileName>
 			<ChangePlaySide amp="0">RightScratch Mode</ChangePlaySide>
+			<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
 			<GeneralOptions amp="0">General Options</GeneralOptions>
 			<VisualOptions amp="0">Visual Options</VisualOptions>
 			<PlayerOptions amp="0">Player Options</PlayerOptions>
@@ -90,6 +91,9 @@
 		<PreviewOnClick>Preview On Click</PreviewOnClick>
 		<ShowFileName>Show File Name on Notes</ShowFileName>
 		<ChangePlaySide>RightScratch Mode</ChangePlaySide>
+		<LeftSplitter>Left Splitter</LeftSplitter>
+		<RightSplitter>Right Splitter</RightSplitter>
+		<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
 		<Undo>Undo (Ctrl+Z)</Undo>
 		<Redo>Redo (Ctrl+Y)</Redo>
 		<NT>LongNote Input Style - NoteTool/BMSE</NT>

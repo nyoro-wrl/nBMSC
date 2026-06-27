@@ -265,6 +265,14 @@ Public Class MainWindow
     Dim PanelWidth() As Single = {0, 100, 0}
     Dim PanelhBMSCROLL() As Integer = {0, 0, 0}
     Dim PanelVScroll() As Integer = {0, 0, 0}
+    Private Const DefaultSplitPanelRatio As Single = 0.25!
+    Private Const MaxSplitPanelShowRatio As Single = 0.4!
+    Private Const MinSplitPanelWidth As Integer = 25
+    Private Const MinMainPanelWidth As Integer = 120
+    Dim SplitPanelRatio() As Single = {DefaultSplitPanelRatio, 0.0!, DefaultSplitPanelRatio}
+    Dim SyncSplitterScroll As Boolean = False
+    Dim UpdatingSplitterControls As Boolean = False
+    Dim SyncingPanelScroll As Boolean = False
     Dim spLock() As Boolean = {False, False, False}
     Dim spDiff() As Integer = {0, 0, 0}
     Dim PanelFocus As Integer = 1 '0 = Left, 1 = Middle, 2 = Right
@@ -275,6 +283,11 @@ Public Class MainWindow
     Dim tempFirstMouseDown As Boolean = False
 
     Dim spMain() As Panel = {}
+    Private WithEvents mnSyncSplitterScroll As ToolStripMenuItem
+    Private WithEvents TBSLSplitter As ToolStripButton
+    Private WithEvents TBSRSplitter As ToolStripButton
+    Private WithEvents TBSyncSplitterScroll As ToolStripButton
+    Private ToolStripSeparatorSplitter As ToolStripSeparator
 
     '----Find Delete Replace Options
     Dim fdriMesL As Integer
@@ -288,7 +301,62 @@ Public Class MainWindow
 
     Public Sub New()
         InitializeComponent()
+        InitializeSplitterControls()
         Audio.Initialize()
+    End Sub
+
+    Private Sub InitializeSplitterControls()
+        mnSyncSplitterScroll = New ToolStripMenuItem With {
+            .CheckOnClick = True,
+            .Image = My.Resources.x16Lock,
+            .Name = "mnSyncSplitterScroll",
+            .Text = "Sync Scroll between Splitters"
+        }
+
+        Dim menuIndex As Integer = mnOptions.DropDownItems.IndexOf(mnChangePlaySide)
+        If menuIndex >= 0 Then
+            mnOptions.DropDownItems.Insert(menuIndex + 1, mnSyncSplitterScroll)
+        Else
+            mnOptions.DropDownItems.Add(mnSyncSplitterScroll)
+        End If
+
+        ToolStripSeparatorSplitter = New ToolStripSeparator With {
+            .Name = "ToolStripSeparatorSplitter"
+        }
+        TBSLSplitter = New ToolStripButton With {
+            .CheckOnClick = True,
+            .DisplayStyle = ToolStripItemDisplayStyle.Image,
+            .Image = CType(My.Resources.ResourceManager.GetObject("x16SidebarLeft"), System.Drawing.Bitmap),
+            .ImageTransparentColor = Color.Magenta,
+            .Name = "TBSLSplitter",
+            .Text = "Left Splitter"
+        }
+        TBSRSplitter = New ToolStripButton With {
+            .CheckOnClick = True,
+            .DisplayStyle = ToolStripItemDisplayStyle.Image,
+            .Image = CType(My.Resources.ResourceManager.GetObject("x16SidebarRight"), System.Drawing.Bitmap),
+            .ImageTransparentColor = Color.Magenta,
+            .Name = "TBSRSplitter",
+            .Text = "Right Splitter"
+        }
+        TBSyncSplitterScroll = New ToolStripButton With {
+            .CheckOnClick = True,
+            .DisplayStyle = ToolStripItemDisplayStyle.Image,
+            .Image = My.Resources.x16Lock,
+            .ImageTransparentColor = Color.Magenta,
+            .Name = "TBSyncSplitterScroll",
+            .Text = "Sync Scroll between Splitters"
+        }
+
+        Dim toolbarIndex As Integer = TBMain.Items.IndexOf(ToolStripSeparator4)
+        Dim splitterItems As ToolStripItem() = {ToolStripSeparatorSplitter, TBSLSplitter, TBSRSplitter, TBSyncSplitterScroll}
+        If toolbarIndex >= 0 Then
+            For i As Integer = 0 To splitterItems.Length - 1
+                TBMain.Items.Insert(toolbarIndex + i, splitterItems(i))
+            Next
+        Else
+            TBMain.Items.AddRange(splitterItems)
+        End If
     End Sub
 
     ''' <summary>
@@ -1835,6 +1903,12 @@ EndSearch:
     Private Sub VSValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles MainPanelScroll.ValueChanged, LeftPanelScroll.ValueChanged, RightPanelScroll.ValueChanged
         Dim iI As Integer = sender.Tag
 
+        If SyncingPanelScroll Then
+            PanelVScroll(iI) = sender.Value
+            RefreshPanel(iI, spMain(iI).DisplayRectangle)
+            Exit Sub
+        End If
+
         ' az: We got a wheel event when we're zooming in/out
         If My.Computer.Keyboard.CtrlKeyDown Then
             sender.Value = VSValue ' Undo the scroll
@@ -1844,7 +1918,10 @@ EndSearch:
         If iI = PanelFocus And Not LastMouseDownLocation = New Point(-1, -1) And Not VSValue = -1 Then LastMouseDownLocation.Y += (VSValue - sender.Value) * gxHeight
         PanelVScroll(iI) = sender.Value
 
-        If spLock((iI + 1) Mod 3) Then
+        If SyncSplitterScroll Then
+            SyncPanelVScroll(iI, sender.Value)
+
+        ElseIf spLock((iI + 1) Mod 3) Then
             Dim xVS As Integer = PanelVScroll(iI) + spDiff(iI)
             If xVS > 0 Then xVS = 0
             If xVS < MainPanelScroll.Minimum Then xVS = MainPanelScroll.Minimum
@@ -1855,7 +1932,7 @@ EndSearch:
             End Select
         End If
 
-        If spLock((iI + 2) Mod 3) Then
+        If Not SyncSplitterScroll AndAlso spLock((iI + 2) Mod 3) Then
             Dim xVS As Integer = PanelVScroll(iI) - spDiff((iI + 2) Mod 3)
             If xVS > 0 Then xVS = 0
             If xVS < MainPanelScroll.Minimum Then xVS = MainPanelScroll.Minimum
@@ -1870,8 +1947,34 @@ EndSearch:
         spDiff((iI + 2) Mod 3) = PanelVScroll(iI) - PanelVScroll((iI + 2) Mod 3)
 
         VSValue = sender.Value
-        RefreshPanel(iI, spMain(iI).DisplayRectangle)
+        If SyncSplitterScroll Then
+            RefreshPanelAll()
+        Else
+            RefreshPanel(iI, spMain(iI).DisplayRectangle)
+        End If
     End Sub
+
+    Private Sub SyncPanelVScroll(ByVal sourceIndex As Integer, ByVal value As Integer)
+        SyncingPanelScroll = True
+        Try
+            For i As Integer = 0 To 2
+                If i = sourceIndex Then Continue For
+
+                Dim xScroll As VScrollBar = GetPanelVScrollBar(i)
+                Dim xValue As Integer = ClampPanelVScroll(xScroll, value)
+                If xScroll.Value <> xValue Then xScroll.Value = xValue
+                PanelVScroll(i) = xValue
+            Next
+        Finally
+            SyncingPanelScroll = False
+        End Try
+    End Sub
+
+    Private Function ClampPanelVScroll(ByVal xScroll As VScrollBar, ByVal value As Integer) As Integer
+        If value > 0 Then Return 0
+        If value < xScroll.Minimum Then Return xScroll.Minimum
+        Return value
+    End Function
 
     Private Sub cVSLock_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cVSLockL.CheckedChanged, cVSLock.CheckedChanged, cVSLockR.CheckedChanged
         Dim iI As Integer = sender.Tag
@@ -4813,11 +4916,136 @@ Jump2:
     Private Sub mnSStatus_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSStatus.CheckedChanged
         pStatus.Visible = mnSStatus.Checked
     End Sub
-    Private Sub mnSLSplitter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSLSplitter.CheckedChanged
-        SpL.Visible = mnSLSplitter.Checked
+    Private Sub mnSLSplitter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSLSplitter.CheckedChanged, TBSLSplitter.CheckedChanged
+        If UpdatingSplitterControls Then Return
+        SetSplitterEnabled(0, sender.Checked)
     End Sub
-    Private Sub mnSRSplitter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSRSplitter.CheckedChanged
-        SpR.Visible = mnSRSplitter.Checked
+    Private Sub mnSRSplitter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSRSplitter.CheckedChanged, TBSRSplitter.CheckedChanged
+        If UpdatingSplitterControls Then Return
+        SetSplitterEnabled(2, sender.Checked)
+    End Sub
+    Private Sub SyncSplitterScroll_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnSyncSplitterScroll.CheckedChanged, TBSyncSplitterScroll.CheckedChanged
+        If UpdatingSplitterControls Then Return
+        SetSplitterScrollSync(sender.Checked)
+    End Sub
+
+    Private Sub SetSplitterEnabled(ByVal panelIndex As Integer, ByVal enabled As Boolean, Optional ByVal limitOnShow As Boolean = True)
+        UpdatingSplitterControls = True
+        Try
+            Select Case panelIndex
+                Case 0
+                    mnSLSplitter.Checked = enabled
+                    If TBSLSplitter IsNot Nothing Then TBSLSplitter.Checked = enabled
+                Case 2
+                    mnSRSplitter.Checked = enabled
+                    If TBSRSplitter IsNot Nothing Then TBSRSplitter.Checked = enabled
+            End Select
+            ApplySplitterState(panelIndex, enabled, limitOnShow)
+        Finally
+            UpdatingSplitterControls = False
+        End Try
+    End Sub
+
+    Private Sub ApplySplitterState(ByVal panelIndex As Integer, ByVal enabled As Boolean, ByVal limitOnShow As Boolean)
+        Dim xPanel As Panel = If(panelIndex = 0, PMainL, PMainR)
+        Dim xSplitter As Button = If(panelIndex = 0, SpL, SpR)
+
+        If enabled Then
+            If limitOnShow Then LimitSplitPanelRatioOnShow(panelIndex)
+            xPanel.Visible = True
+            xPanel.Width = GetSplitPanelWidth(panelIndex, limitOnShow)
+            xSplitter.Visible = True
+            If SyncSplitterScroll Then SyncPanelVScroll(PanelFocus, PanelVScroll(PanelFocus))
+        Else
+            StoreSplitPanelRatio(panelIndex)
+            xSplitter.Visible = False
+            xPanel.Width = 0
+            xPanel.Visible = False
+            If PanelFocus = panelIndex Then
+                PanelFocus = 1
+                PMainIn.Focus()
+            End If
+        End If
+
+        PanelWidth(panelIndex) = xPanel.Width
+        If Me.Created Then RefreshPanelAll()
+    End Sub
+
+    Private Function GetSplitPanelWidth(ByVal panelIndex As Integer, Optional ByVal limitOnShow As Boolean = False) As Integer
+        Dim xRatio As Single = GetSplitPanelRatio(panelIndex)
+
+        Dim xWidth As Integer = CInt(ToolStripContainer1.ContentPanel.Width * xRatio)
+        xWidth = Math.Max(MinSplitPanelWidth, xWidth)
+
+        Dim xMaxWidth As Integer = GetMaxSplitPanelWidth(panelIndex)
+        If limitOnShow Then
+            Dim xMaxShowWidth As Integer = Math.Max(MinSplitPanelWidth, CInt(ToolStripContainer1.ContentPanel.Width * MaxSplitPanelShowRatio))
+            xMaxWidth = Math.Min(xMaxWidth, xMaxShowWidth)
+        End If
+
+        Return Math.Min(xWidth, xMaxWidth)
+    End Function
+
+    Private Sub LimitSplitPanelRatioOnShow(ByVal panelIndex As Integer)
+        Dim xRatio As Single = GetSplitPanelRatio(panelIndex)
+        If xRatio > MaxSplitPanelShowRatio Then SplitPanelRatio(panelIndex) = MaxSplitPanelShowRatio
+    End Sub
+
+    Private Function GetMaxSplitPanelWidth(ByVal panelIndex As Integer) As Integer
+        Dim xOtherWidth As Integer = If(panelIndex = 0, If(PMainR.Visible, PMainR.Width, 0), If(PMainL.Visible, PMainL.Width, 0))
+        Dim xMaxWidth As Integer = ToolStripContainer1.ContentPanel.Width - MinMainPanelWidth - xOtherWidth - SpL.Width - SpR.Width
+        Return Math.Max(MinSplitPanelWidth, xMaxWidth)
+    End Function
+
+    Private Sub StoreSplitPanelRatio(ByVal panelIndex As Integer)
+        Dim xPanel As Panel = If(panelIndex = 0, PMainL, PMainR)
+        If xPanel.Width > 0 AndAlso ToolStripContainer1.ContentPanel.Width > 0 Then
+            SplitPanelRatio(panelIndex) = ClampSplitPanelRatio(xPanel.Width / ToolStripContainer1.ContentPanel.Width)
+        End If
+    End Sub
+
+    Private Function GetSplitPanelRatio(ByVal panelIndex As Integer) As Single
+        Dim xRatio As Single = SplitPanelRatio(panelIndex)
+        If xRatio <= 0.0! Then xRatio = DefaultSplitPanelRatio
+        Return ClampSplitPanelRatio(xRatio)
+    End Function
+
+    Private Function ClampSplitPanelRatio(ByVal xRatio As Single) As Single
+        Return Math.Max(0.0!, xRatio)
+    End Function
+
+    Private Sub StoreVisibleSplitterRatios()
+        StoreSplitPanelRatio(0)
+        StoreSplitPanelRatio(2)
+    End Sub
+
+    Private Sub ResizeSplitPanelsByRatio() Handles ToolStripContainer1.ContentPanel.Resize
+        If UpdatingSplitterControls OrElse Not Me.Created Then Return
+        If ToolStripContainer1.ContentPanel.Width <= 0 Then Return
+
+        UpdatingSplitterControls = True
+        Try
+            If PMainL.Visible Then PMainL.Width = GetSplitPanelWidth(0)
+            If PMainR.Visible Then PMainR.Width = GetSplitPanelWidth(2)
+        Finally
+            UpdatingSplitterControls = False
+        End Try
+    End Sub
+
+    Private Sub SetSplitterScrollSync(ByVal enabled As Boolean)
+        UpdatingSplitterControls = True
+        Try
+            SyncSplitterScroll = enabled
+            If mnSyncSplitterScroll IsNot Nothing Then mnSyncSplitterScroll.Checked = enabled
+            If TBSyncSplitterScroll IsNot Nothing Then TBSyncSplitterScroll.Checked = enabled
+        Finally
+            UpdatingSplitterControls = False
+        End Try
+
+        If enabled Then
+            SyncPanelVScroll(PanelFocus, PanelVScroll(PanelFocus))
+            RefreshPanelAll()
+        End If
     End Sub
     Private Sub CGShow_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGShow.CheckedChanged
         gShowGrid = CGShow.Checked
@@ -5289,8 +5517,10 @@ case2:              Dim xI0 As Integer
 
         Try
             Dim xWidth As Integer = PMainR.Width - e.X + tempResize
-            If xWidth < 0 Then xWidth = 0
+            If xWidth < MinSplitPanelWidth Then xWidth = MinSplitPanelWidth
+            If xWidth > GetMaxSplitPanelWidth(2) Then xWidth = GetMaxSplitPanelWidth(2)
             PMainR.Width = xWidth
+            StoreSplitPanelRatio(2)
 
             Me.ToolStripContainer1.Refresh()
             Application.DoEvents()
@@ -5305,8 +5535,10 @@ case2:              Dim xI0 As Integer
 
         Try
             Dim xWidth As Integer = PMainL.Width + e.X - tempResize
-            If xWidth < 0 Then xWidth = 0
+            If xWidth < MinSplitPanelWidth Then xWidth = MinSplitPanelWidth
+            If xWidth > GetMaxSplitPanelWidth(0) Then xWidth = GetMaxSplitPanelWidth(0)
             PMainL.Width = xWidth
+            StoreSplitPanelRatio(0)
 
             Me.ToolStripContainer1.Refresh()
             Application.DoEvents()
