@@ -580,10 +580,10 @@ Partial Class MainWindow
         Me.POptions.AutoSize = True
         Me.POptions.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.POptions.Controls.Add(Me.POExpansion)
+        Me.POptions.Controls.Add(Me.POWaveForm)
         Me.POptions.Controls.Add(Me.POBeat)
         Me.POptions.Controls.Add(Me.POBMP)
         Me.POptions.Controls.Add(Me.POWAV)
-        Me.POptions.Controls.Add(Me.POWaveForm)
         Me.POptions.Controls.Add(Me.POGrid)
         Me.POptions.Controls.Add(Me.POHeader)
         Me.POptions.Dock = System.Windows.Forms.DockStyle.Top
