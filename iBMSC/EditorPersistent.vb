@@ -243,7 +243,7 @@ Partial Public Class MainWindow
         With column(i)
             'XMLLoadAttribute(n.GetAttribute("Left"), .Left)
             XMLLoadAttribute(n.GetAttribute("Width"), .Width)
-            XMLLoadAttribute(n.GetAttribute("Title"), .Title)
+            If n.HasAttribute("Title") Then .Title = n.GetAttribute("Title")
             'XMLLoadAttribute(n.GetAttribute("Text"), .Text)
             Dim Display As Boolean
             Dim attr = n.GetAttribute("Display")
