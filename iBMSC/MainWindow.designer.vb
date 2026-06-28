@@ -268,6 +268,8 @@ Partial Class MainWindow
         Me.POBHidden = New System.Windows.Forms.ToolStripMenuItem()
         Me.POBVisible = New System.Windows.Forms.ToolStripMenuItem()
         Me.POBHiddenVisible = New System.Windows.Forms.ToolStripMenuItem()
+        Me.POBLandmine = New System.Windows.Forms.ToolStripMenuItem()
+        Me.POBNormalLandmine = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator11 = New System.Windows.Forms.ToolStripSeparator()
         Me.POBModify = New System.Windows.Forms.ToolStripMenuItem()
         Me.POBMirror = New System.Windows.Forms.ToolStripMenuItem()
@@ -3155,24 +3157,24 @@ Partial Class MainWindow
         '
         'cmnConversion
         '
-        Me.cmnConversion.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.POBLong, Me.POBShort, Me.POBLongShort, Me.ToolStripSeparator10, Me.POBHidden, Me.POBVisible, Me.POBHiddenVisible, Me.ToolStripSeparator11, Me.POBModify, Me.POBMirror})
+        Me.cmnConversion.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.POBLong, Me.POBShort, Me.POBLongShort, Me.ToolStripSeparator10, Me.POBHidden, Me.POBLandmine, Me.POBVisible, Me.POBHiddenVisible, Me.POBNormalLandmine, Me.ToolStripSeparator11, Me.POBModify, Me.POBMirror})
         Me.cmnConversion.Name = "cmnLanguage"
         Me.cmnConversion.OwnerItem = Me.POConvert
-        Me.cmnConversion.Size = New System.Drawing.Size(222, 192)
+        Me.cmnConversion.Size = New System.Drawing.Size(253, 236)
         '
         'POBLong
         '
         Me.POBLong.Enabled = False
         Me.POBLong.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesL
         Me.POBLong.Name = "POBLong"
-        Me.POBLong.Size = New System.Drawing.Size(221, 22)
+        Me.POBLong.Size = New System.Drawing.Size(252, 22)
         Me.POBLong.Text = "→ &Long Note"
         '
         'POBShort
         '
         Me.POBShort.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesN
         Me.POBShort.Name = "POBShort"
-        Me.POBShort.Size = New System.Drawing.Size(221, 22)
+        Me.POBShort.Size = New System.Drawing.Size(252, 22)
         Me.POBShort.Text = "→ &Short Note"
         '
         'POBLongShort
@@ -3180,52 +3182,66 @@ Partial Class MainWindow
         Me.POBLongShort.Enabled = False
         Me.POBLongShort.Image = Global.iBMSC.My.Resources.Resources.ConvertNotes
         Me.POBLongShort.Name = "POBLongShort"
-        Me.POBLongShort.Size = New System.Drawing.Size(221, 22)
+        Me.POBLongShort.Size = New System.Drawing.Size(252, 22)
         Me.POBLongShort.Text = "Long Note ↔ Short Note"
         '
         'ToolStripSeparator10
         '
         Me.ToolStripSeparator10.Name = "ToolStripSeparator10"
-        Me.ToolStripSeparator10.Size = New System.Drawing.Size(218, 6)
+        Me.ToolStripSeparator10.Size = New System.Drawing.Size(249, 6)
         '
         'POBHidden
         '
         Me.POBHidden.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesH
         Me.POBHidden.Name = "POBHidden"
-        Me.POBHidden.Size = New System.Drawing.Size(221, 22)
+        Me.POBHidden.Size = New System.Drawing.Size(252, 22)
         Me.POBHidden.Text = "→ &Hidden Note"
         '
         'POBVisible
         '
         Me.POBVisible.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesV
         Me.POBVisible.Name = "POBVisible"
-        Me.POBVisible.Size = New System.Drawing.Size(221, 22)
-        Me.POBVisible.Text = "→ &Visible Note"
+        Me.POBVisible.Size = New System.Drawing.Size(252, 22)
+        Me.POBVisible.Text = "→ &Normal Note"
         '
         'POBHiddenVisible
         '
         Me.POBHiddenVisible.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesHV
         Me.POBHiddenVisible.Name = "POBHiddenVisible"
-        Me.POBHiddenVisible.Size = New System.Drawing.Size(221, 22)
-        Me.POBHiddenVisible.Text = "Hidden Note ↔ Visible Note"
+        Me.POBHiddenVisible.Size = New System.Drawing.Size(252, 22)
+        Me.POBHiddenVisible.Text = "Normal Note ↔ Hidden Note"
+        '
+        'POBLandmine
+        '
+        Me.POBLandmine.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesM
+        Me.POBLandmine.Name = "POBLandmine"
+        Me.POBLandmine.Size = New System.Drawing.Size(252, 22)
+        Me.POBLandmine.Text = "→ LandMine Note"
+        '
+        'POBNormalLandmine
+        '
+        Me.POBNormalLandmine.Image = Global.iBMSC.My.Resources.Resources.ConvertNotesVM
+        Me.POBNormalLandmine.Name = "POBNormalLandmine"
+        Me.POBNormalLandmine.Size = New System.Drawing.Size(252, 22)
+        Me.POBNormalLandmine.Text = "Normal Note ↔ LandMine Note"
         '
         'ToolStripSeparator11
         '
         Me.ToolStripSeparator11.Name = "ToolStripSeparator11"
-        Me.ToolStripSeparator11.Size = New System.Drawing.Size(218, 6)
+        Me.ToolStripSeparator11.Size = New System.Drawing.Size(249, 6)
         '
         'POBModify
         '
         Me.POBModify.Image = Global.iBMSC.My.Resources.Resources.x16ModifyLabel
         Me.POBModify.Name = "POBModify"
-        Me.POBModify.Size = New System.Drawing.Size(221, 22)
+        Me.POBModify.Size = New System.Drawing.Size(252, 22)
         Me.POBModify.Text = "&Modify Labels"
         '
         'POBMirror
         '
         Me.POBMirror.Image = Global.iBMSC.My.Resources.Resources.x16Mirror
         Me.POBMirror.Name = "POBMirror"
-        Me.POBMirror.Size = New System.Drawing.Size(221, 22)
+        Me.POBMirror.Size = New System.Drawing.Size(252, 22)
         Me.POBMirror.Text = "Mi&rror"
         '
         'mnPreview
@@ -4337,6 +4353,8 @@ Partial Class MainWindow
     Friend WithEvents POBHidden As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents POBVisible As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents POBHiddenVisible As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents POBLandmine As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents POBNormalLandmine As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator11 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents POBMirror As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents POBModify As System.Windows.Forms.ToolStripMenuItem

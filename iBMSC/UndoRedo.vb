@@ -9,6 +9,7 @@ Public Class UndoRedo
     Public Const opLongNoteModify As Byte = 5
     Public Const opHiddenNoteModify As Byte = 6
     Public Const opRelabelNote As Byte = 7
+    Public Const opLandmineNoteModify As Byte = 8
     Public Const opRemoveAllNotes As Byte = 15
     Public Const opChangeMeasureLength As Byte = 16
     Public Const opChangeTimeSelection As Byte = 17
@@ -67,6 +68,7 @@ Public Class UndoRedo
             Case opLongNoteModify : Return New LongNoteModify(b)
             Case opHiddenNoteModify : Return New HiddenNoteModify(b)
             Case opRelabelNote : Return New RelabelNote(b)
+            Case opLandmineNoteModify : Return New LandmineNoteModify(b)
             Case opRemoveAllNotes : Return New RemoveAllNotes(b)
             Case opChangeMeasureLength : Return New ChangeMeasureLength(b)
             Case opChangeTimeSelection : Return New ChangeTimeSelection(b)
@@ -305,6 +307,39 @@ Public Class UndoRedo
 
         Public Overrides Function ofType() As Byte
             Return opHiddenNoteModify
+        End Function
+    End Class
+
+
+
+    Public Class LandmineNoteModify : Inherits LinkedURNoteCmd
+        Public NLandmine As Boolean = False
+
+        Public Overrides Function toBytes() As Byte()
+            Dim MS = New MemoryStream()
+            Dim bw = New BinaryWriter(MS)
+            WriteBinWriter(bw)
+            bw.Write(NLandmine)
+            Return MS.GetBuffer()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Return MyBase.EstimateBytes() + 4
+        End Function
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br = New BinaryReader(New MemoryStream(b))
+            FromBinaryReader(br)
+            NLandmine = br.ReadBoolean()
+        End Sub
+
+        Public Sub New(_note As Note, ByVal xNLandmine As Boolean)
+            note = _note
+            NLandmine = xNLandmine
+        End Sub
+
+        Public Overrides Function ofType() As Byte
+            Return opLandmineNoteModify
         End Function
     End Class
 

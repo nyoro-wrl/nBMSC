@@ -175,8 +175,10 @@
 			<Short amp="9">일반노트화 (S)</Short>
 			<LongShort>롱노트↔일반노트</LongShort>
 			<Hidden amp="9">노트숨기기 (H)</Hidden>
-			<Visible amp="9">노트보이기 (V)</Visible>
-			<HiddenVisible>노트 보이기 반전</HiddenVisible>
+			<Landmine>지뢰노트</Landmine>
+			<Visible amp="9">일반노트 (V)</Visible>
+			<HiddenVisible>일반노트 ↔ 노트숨기기</HiddenVisible>
+			<NormalLandmine>일반노트 ↔ 지뢰노트</NormalLandmine>
 			<Relabel amp="10">노트번호 변경 (M)</Relabel>
 			<Mirror amp="5">좌우반전 (R)</Mirror>
 		</Convert>

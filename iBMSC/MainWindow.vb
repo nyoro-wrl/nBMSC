@@ -327,6 +327,8 @@ Public Class MainWindow
     Private EditorContextHidden As ToolStripMenuItem
     Private EditorContextVisible As ToolStripMenuItem
     Private EditorContextHiddenVisible As ToolStripMenuItem
+    Private EditorContextLandmine As ToolStripMenuItem
+    Private EditorContextNormalLandmine As ToolStripMenuItem
     Private EditorContextModify As ToolStripMenuItem
     Private EditorContextMirror As ToolStripMenuItem
     Private EditorContextEditSeparator As ToolStripSeparator
@@ -731,6 +733,8 @@ Public Class MainWindow
         EditorContextHidden = New ToolStripMenuItem()
         EditorContextVisible = New ToolStripMenuItem()
         EditorContextHiddenVisible = New ToolStripMenuItem()
+        EditorContextLandmine = New ToolStripMenuItem()
+        EditorContextNormalLandmine = New ToolStripMenuItem()
         EditorContextModify = New ToolStripMenuItem()
         EditorContextMirror = New ToolStripMenuItem()
         EditorContextEditSeparator = New ToolStripSeparator()
@@ -750,8 +754,10 @@ Public Class MainWindow
             EditorContextDelete,
             EditorContextConvertSeparator,
             EditorContextHidden,
+            EditorContextLandmine,
             EditorContextVisible,
             EditorContextHiddenVisible,
+            EditorContextNormalLandmine,
             EditorContextModifySeparator,
             EditorContextModify,
             EditorContextMirror})
@@ -768,6 +774,8 @@ Public Class MainWindow
         AddHandler EditorContextHidden.Click, AddressOf POBHidden_Click
         AddHandler EditorContextVisible.Click, AddressOf POBVisible_Click
         AddHandler EditorContextHiddenVisible.Click, AddressOf POBHiddenVisible_Click
+        AddHandler EditorContextLandmine.Click, AddressOf POBLandmine_Click
+        AddHandler EditorContextNormalLandmine.Click, AddressOf POBNormalLandmine_Click
         AddHandler EditorContextModify.Click, AddressOf POBModify_Click
         AddHandler EditorContextMirror.Click, AddressOf POBMirror_Click
     End Sub
@@ -785,11 +793,13 @@ Public Class MainWindow
         CopyMenuItem(EditorContextCopy, mnCopy)
         CopyMenuItem(EditorContextPaste, mnPaste)
         CopyMenuItem(EditorContextDelete, mnDelete)
-        CopyMenuItem(EditorContextHidden, POBHidden)
-        CopyMenuItem(EditorContextVisible, POBVisible)
-        CopyMenuItem(EditorContextHiddenVisible, POBHiddenVisible)
-        CopyMenuItem(EditorContextModify, POBModify)
-        CopyMenuItem(EditorContextMirror, POBMirror)
+        CopyMenuItem(EditorContextHidden, POBHidden, True)
+        CopyMenuItem(EditorContextVisible, POBVisible, True)
+        CopyMenuItem(EditorContextHiddenVisible, POBHiddenVisible, True)
+        CopyMenuItem(EditorContextLandmine, POBLandmine, True)
+        CopyMenuItem(EditorContextNormalLandmine, POBNormalLandmine, True)
+        CopyMenuItem(EditorContextModify, POBModify, True)
+        CopyMenuItem(EditorContextMirror, POBMirror, True)
 
         EditorContextMenu.Font = Menu1.Font
 
@@ -805,6 +815,8 @@ Public Class MainWindow
         EditorContextHidden.Visible = xHasSelection
         EditorContextVisible.Visible = xHasSelection
         EditorContextHiddenVisible.Visible = xHasSelection
+        EditorContextLandmine.Visible = xHasSelection
+        EditorContextNormalLandmine.Visible = xHasSelection
         EditorContextConvertSeparator.Visible = xHasSelection
 
         EditorContextModify.Visible = xHasSelection
@@ -812,9 +824,10 @@ Public Class MainWindow
         EditorContextModifySeparator.Visible = xHasSelection
     End Sub
 
-    Private Sub CopyMenuItem(ByVal xTarget As ToolStripMenuItem, ByVal xSource As ToolStripMenuItem)
+    Private Sub CopyMenuItem(ByVal xTarget As ToolStripMenuItem, ByVal xSource As ToolStripMenuItem, Optional ByVal xCopyImage As Boolean = False)
         xTarget.Text = xSource.Text
         xTarget.Image = Nothing
+        If xCopyImage Then xTarget.Image = xSource.Image
         xTarget.ShortcutKeys = xSource.ShortcutKeys
         xTarget.ShortcutKeyDisplayString = xSource.ShortcutKeyDisplayString
         xTarget.ShowShortcutKeys = xSource.ShowShortcutKeys
@@ -4924,6 +4937,42 @@ StartCount:     If Not NTInput Then
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()
         UpdatePairing()
+        RefreshPanelAll()
+    End Sub
+
+    Private Sub POBLandmine_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBLandmine.Click
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected Then Continue For
+
+            Me.RedoLandmineNoteModify(Notes(xI1), True, True, xUndo, xRedo)
+            Notes(xI1).Landmine = True
+        Next
+        AddUndo(xUndo, xBaseRedo.Next)
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
+        RefreshPanelAll()
+    End Sub
+
+    Private Sub POBNormalLandmine_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBNormalLandmine.Click
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected Then Continue For
+
+            Me.RedoLandmineNoteModify(Notes(xI1), Not Notes(xI1).Landmine, True, xUndo, xRedo)
+            Notes(xI1).Landmine = Not Notes(xI1).Landmine
+        Next
+        AddUndo(xUndo, xBaseRedo.Next)
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
         RefreshPanelAll()
     End Sub
 

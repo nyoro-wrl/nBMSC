@@ -177,8 +177,10 @@
 			<Short amp="2">→ Short Note</Short>
 			<LongShort>Long Note ↔ Short Note</LongShort>
 			<Hidden amp="2">→ Hidden Note</Hidden>
-			<Visible amp="2">→ Visible Note</Visible>
-			<HiddenVisible>Hidden Note ↔ Visible Note</HiddenVisible>
+			<Landmine>→ LandMine Note</Landmine>
+			<Visible amp="2">→ Normal Note</Visible>
+			<HiddenVisible>Normal Note ↔ Hidden Note</HiddenVisible>
+			<NormalLandmine>Normal Note ↔ LandMine Note</NormalLandmine>
 			<Relabel amp="0">Modify Labels</Relabel>
 			<Mirror amp="2">Mirror</Mirror>
 		</Convert>

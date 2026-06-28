@@ -177,8 +177,10 @@
 			<Short amp="12">→ ノーマルオブジェ (S)</Short>
 			<LongShort>ロングノート ←→ ノーマルオブジェ</LongShort>
 			<Hidden amp="11">→ 不可視オブジェ (H)</Hidden>
-			<Visible amp="10">→ 可視オブジェ (V)</Visible>
-			<HiddenVisible>不可視オブジェ ←→ 可視オブジェ</HiddenVisible>
+			<Landmine>→ 地雷オブジェ</Landmine>
+			<Visible amp="10">→ 通常オブジェ (V)</Visible>
+			<HiddenVisible>通常オブジェ ←→ 不可視オブジェ</HiddenVisible>
+			<NormalLandmine>通常オブジェ ←→ 地雷オブジェ</NormalLandmine>
 			<Relabel amp="10">オブジェ番号変更 (M)</Relabel>
 			<Mirror amp="5">ミラー (R)</Mirror>
 		</Convert>

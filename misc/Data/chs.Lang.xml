@@ -171,8 +171,10 @@
 			<Short>→ 小米 (&amp;S)</Short>
 			<LongShort>面条 ↔ 小米</LongShort>
 			<Hidden>→ 隐藏Note (&amp;H)</Hidden>
-			<Visible>→ 可见Note (&amp;V)</Visible>
-			<HiddenVisible>隐藏Note ↔ 可见Note</HiddenVisible>
+			<Landmine>→ 地雷Note</Landmine>
+			<Visible>→ 普通Note (&amp;V)</Visible>
+			<HiddenVisible>普通Note ↔ 隐藏Note</HiddenVisible>
+			<NormalLandmine>普通Note ↔ 地雷Note</NormalLandmine>
 			<Relabel>修改标签 (&amp;M)</Relabel>
 			<Mirror>镜像 (&amp;R)</Mirror>
 		</Convert>

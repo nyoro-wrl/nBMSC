@@ -88,6 +88,15 @@ Partial Public Class MainWindow
                         Notes(xI2).Selected = xCmd.note.Selected And nEnabled(Notes(xI2).ColumnIndex)
                     End If
 
+                Case UndoRedo.opLandmineNoteModify
+                    Dim xCmd As UndoRedo.LandmineNoteModify = sCmd
+                    Dim xI2 As Integer = FindNoteIndex(xCmd.note)
+
+                    If xI2 < Notes.Length Then
+                        Notes(xI2).Landmine = xCmd.NLandmine
+                        Notes(xI2).Selected = xCmd.note.Selected And nEnabled(Notes(xI2).ColumnIndex)
+                    End If
+
                 Case UndoRedo.opRelabelNote
                     Dim xCmd As UndoRedo.RelabelNote = sCmd
                     Dim xI2 As Integer = FindNoteIndex(xCmd.note)
@@ -525,6 +534,17 @@ Partial Public Class MainWindow
         noteAfterModification.Hidden = nHide
         Dim xUndo As New UndoRedo.HiddenNoteModify(noteAfterModification, xN.Hidden)
         Dim xRedo As New UndoRedo.HiddenNoteModify(xN, nHide)
+        xUndo.Next = BaseUndo
+        BaseUndo = xUndo
+        If BaseRedo IsNot Nothing Then BaseRedo.Next = xRedo
+        BaseRedo = xRedo
+    End Sub
+
+    Private Sub RedoLandmineNoteModify(xN As Note, nLandmine As Boolean, xSel As Boolean, ByRef BaseUndo As UndoRedo.LinkedURCmd, ByRef BaseRedo As UndoRedo.LinkedURCmd)
+        Dim noteAfterModification = xN
+        noteAfterModification.Landmine = nLandmine
+        Dim xUndo As New UndoRedo.LandmineNoteModify(noteAfterModification, xN.Landmine)
+        Dim xRedo As New UndoRedo.LandmineNoteModify(xN, nLandmine)
         xUndo.Next = BaseUndo
         BaseUndo = xUndo
         If BaseRedo IsNot Nothing Then BaseRedo.Next = xRedo

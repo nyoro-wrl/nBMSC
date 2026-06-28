@@ -874,6 +874,8 @@ EndOfSub:
                     XMLLoadLocaleMenu(eConvert.Item("Hidden"), POBHidden.Text)
                     XMLLoadLocaleMenu(eConvert.Item("Visible"), POBVisible.Text)
                     XMLLoadLocaleMenu(eConvert.Item("HiddenVisible"), POBHiddenVisible.Text)
+                    XMLLoadLocaleMenu(eConvert.Item("Landmine"), POBLandmine.Text)
+                    XMLLoadLocaleMenu(eConvert.Item("NormalLandmine"), POBNormalLandmine.Text)
                     XMLLoadLocaleMenu(eConvert.Item("Relabel"), POBModify.Text)
                     XMLLoadLocaleMenu(eConvert.Item("Mirror"), POBMirror.Text)
                 End If
