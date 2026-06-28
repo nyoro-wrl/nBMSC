@@ -69,7 +69,6 @@ Public Class MainWindow
     Dim STOPDefinitionMode As Integer = DefinitionModeLegacy
     Dim UseBase62Definitions As Boolean = False
     Dim NewBMSUseBase62Definitions As Boolean = False
-    Dim ShowMyO2Toolbox As Boolean = False
 
     Dim IsInitializing As Boolean = True
     Dim FirstMouseEnter As Boolean = True
@@ -182,6 +181,7 @@ Public Class MainWindow
 
     '----Grid Options
     Dim gSnap As Boolean = True
+    Private GridNoSnapText As String = "Do not snap to grid"
     Dim gShowGrid As Boolean = True 'Grid
     Dim gShowSubGrid As Boolean = True 'Sub
     Dim gShowBG As Boolean = True 'BG Color
@@ -251,6 +251,18 @@ Public Class MainWindow
                                                           "-S")}
     End Function
 
+    Public Shared Function PlayerDisplayName(ByVal playerPath As String) As String
+        If playerPath Is Nothing Then Return ""
+
+        Dim fslash As Integer = InStrRev(playerPath, "/")
+        Dim bslash As Integer = InStrRev(playerPath, "\")
+        Dim fileName As String = Mid(playerPath, Math.Max(fslash, bslash) + 1)
+        Dim dot As Integer = InStrRev(fileName, ".")
+        If dot > 1 Then fileName = Microsoft.VisualBasic.Left(fileName, dot - 1)
+
+        Return fileName
+    End Function
+
     Public pArgs() As PlayerArguments = DefaultPlayerArguments()
     Public CurrentPlayer As Integer = 0
     Dim PreviewOnClick As Boolean = True
@@ -284,6 +296,16 @@ Public Class MainWindow
 
     Dim spMain() As Panel = {}
     Private WithEvents mnSyncSplitterScroll As ToolStripMenuItem
+    Private WithEvents mnSlashGrid As ToolStripMenuItem
+    Private WithEvents TBGridDivide As ToolStripComboBox
+    Private WithEvents TBGridSub As ToolStripComboBox
+    Private WithEvents TBGridHeight As ToolStripComboBox
+    Private WithEvents TBGridWidth As ToolStripComboBox
+    Private WithEvents TBDisableVertical As ToolStripButton
+    Private WithEvents TBGridSnap As ToolStripButton
+    Private UpdatingGridToolbar As Boolean = False
+    Private WithEvents TBPlayer As ToolStripComboBox
+    Private UpdatingPlayerSelector As Boolean = False
     Private WithEvents TBSLSplitter As ToolStripButton
     Private WithEvents TBSRSplitter As ToolStripButton
     Private WithEvents TBSyncSplitterScroll As ToolStripButton
@@ -301,10 +323,302 @@ Public Class MainWindow
 
     Public Sub New()
         InitializeComponent()
+        InitializePlayerSelector()
+        InitializeGridToolbar()
+        ArrangeGridOptionsPanel()
+        InitializeOptionsMenuItems()
         InitializeSplitterControls()
+        ApplyToolbarLayoutRules()
         SetSplitterEnabled(0, mnSLSplitter.Checked, False)
         SetSplitterEnabled(2, mnSRSplitter.Checked, False)
         Audio.Initialize()
+    End Sub
+
+    Private Sub ApplyToolbarLayoutRules()
+        For Each item As ToolStripItem In TBMain.Items
+            Dim button As ToolStripButton = TryCast(item, ToolStripButton)
+            If button Is Nothing Then Continue For
+            If Not IsIndependentToolbarToggle(button) Then Continue For
+
+            ' Independent toggle buttons need a 1 px right gap so checked borders do not merge.
+            button.Margin = New Padding(button.Margin.Left, button.Margin.Top, 1, button.Margin.Bottom)
+        Next
+    End Sub
+
+    Private Function IsIndependentToolbarToggle(ByVal button As ToolStripButton) As Boolean
+        If IsExclusiveToolbarToggle(button) Then Return False
+        If button.CheckOnClick Then Return True
+
+        Select Case button.Name
+            Case "TBWavIncrease"
+                Return True
+        End Select
+
+        Return False
+    End Function
+
+    Private Function IsExclusiveToolbarToggle(ByVal button As ToolStripButton) As Boolean
+        Select Case button.Name
+            Case "TBTimeSelect", "TBSelect", "TBWrite"
+                Return True
+        End Select
+
+        Return False
+    End Function
+
+    Private Sub InitializeOptionsMenuItems()
+        mnSlashGrid = New ToolStripMenuItem With {
+            .Image = My.Resources.Shortcut,
+            .Name = "mnSlashGrid",
+            .ShortcutKeyDisplayString = "/",
+            .Text = "Slash key grid value"
+        }
+
+        Dim menuIndex As Integer = mnOptions.DropDownItems.IndexOf(ToolStripSeparator20)
+        If menuIndex >= 0 Then
+            mnOptions.DropDownItems.Insert(menuIndex, mnSlashGrid)
+        Else
+            mnOptions.DropDownItems.Add(mnSlashGrid)
+        End If
+    End Sub
+
+    Private Sub ArrangeGridOptionsPanel()
+        POGridInner.SuspendLayout()
+        POGridPart1.SuspendLayout()
+        TableLayoutPanel5.SuspendLayout()
+
+        POGridPart1.Controls.Remove(TableLayoutPanel2)
+        POGridPart1.Controls.Remove(TableLayoutPanel3)
+        POGridPart1.Controls.Remove(CGDisableVertical)
+        POGridInner.Controls.Remove(POGridExpander)
+        POGridInner.Controls.Remove(POGridPart2)
+        TableLayoutPanel5.Controls.Remove(Label5)
+        TableLayoutPanel5.Controls.Remove(FlowLayoutPanel2)
+
+        FlowLayoutPanel2.Margin = New Padding(3, 0, 0, 0)
+        FlowLayoutPanel2.Padding = New Padding(0)
+        FlowLayoutPanel2.WrapContents = False
+
+        POGridPart1.Controls.Clear()
+        POGridPart1.ColumnStyles.Clear()
+        POGridPart1.RowStyles.Clear()
+        POGridPart1.ColumnCount = 1
+        POGridPart1.RowCount = 1
+        POGridPart1.ColumnStyles.Add(New ColumnStyle())
+        POGridPart1.RowStyles.Add(New RowStyle())
+        POGridPart1.Controls.Add(FlowLayoutPanel2, 0, 0)
+
+        TableLayoutPanel5.ResumeLayout(True)
+        POGridPart1.ResumeLayout(True)
+        POGridInner.ResumeLayout(True)
+    End Sub
+
+    Private Sub InitializeGridToolbar()
+        TBGridDivide = CreateGridCombo("TBGridDivide", 47, New String() {"1", "2", "3", "4", "6", "8", "12", "16", "24", "32", "48", "64", "96", "192"})
+        TBGridSub = CreateGridCombo("TBGridSub", 47, New String() {"1", "2", "3", "4", "6", "8", "12", "16"})
+        TBGridHeight = CreateGridCombo("TBGridHeight", 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
+        TBGridWidth = CreateGridCombo("TBGridWidth", 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
+        TBDisableVertical = New ToolStripButton With {
+            .CheckOnClick = True,
+            .DisplayStyle = ToolStripItemDisplayStyle.Image,
+            .Image = My.Resources.x16VerticalLock,
+            .ImageTransparentColor = Color.Magenta,
+            .Name = "TBDisableVertical",
+            .Text = CGDisableVertical.Text
+        }
+        TBGridSnap = New ToolStripButton With {
+            .CheckOnClick = True,
+            .DisplayStyle = ToolStripItemDisplayStyle.Image,
+            .Image = My.Resources.pgmbl,
+            .ImageTransparentColor = Color.Magenta,
+            .Name = "TBGridSnap",
+            .Text = CGSnap.Text
+        }
+
+        Dim gridItems As ToolStripItem() = {
+            New ToolStripSeparator With {.Name = "ToolStripSeparatorGridStart"},
+            New ToolStripLabel With {.Name = "TBGridDivideLabel", .Text = "Grid"},
+            TBGridDivide,
+            New ToolStripLabel With {.Name = "TBGridSubLabel", .Text = "補助"},
+            TBGridSub,
+            New ToolStripSeparator With {.Name = "ToolStripSeparatorGridScale"},
+            New ToolStripLabel With {.Name = "TBGridHeightLabel", .Text = "高さ"},
+            TBGridHeight,
+            New ToolStripLabel With {.Name = "TBGridWidthLabel", .Text = "幅"},
+            TBGridWidth,
+            New ToolStripSeparator With {.Name = "ToolStripSeparatorDisableVertical"},
+            TBDisableVertical,
+            TBGridSnap
+        }
+
+        TBMain.Items.AddRange(gridItems)
+
+        RefreshGridToolbar()
+        RefreshDisableVerticalToolbar()
+        RefreshGridSnapToolbar()
+    End Sub
+
+    Private Function CreateGridCombo(ByVal name As String, ByVal width As Integer, ByVal values() As String) As ToolStripComboBox
+        Dim combo As New ToolStripComboBox With {
+            .AutoSize = False,
+            .DropDownStyle = ComboBoxStyle.DropDown,
+            .Name = name,
+            .Margin = New Padding(0, 0, 1, 0),
+            .Size = New Size(width, 25)
+        }
+        combo.ComboBox.FlatStyle = FlatStyle.Standard
+        combo.ComboBox.Tag = combo
+        For Each value As String In values
+            combo.Items.Add(value)
+        Next
+
+        AddHandler combo.ComboBox.Leave, AddressOf TBGridCombo_Leave
+        AddHandler combo.ComboBox.KeyDown, AddressOf TBGridCombo_KeyDown
+        Return combo
+    End Function
+
+    Private Sub RefreshGridToolbar()
+        If TBGridDivide Is Nothing Then Return
+
+        UpdatingGridToolbar = True
+        TBGridDivide.Text = CInt(CGDivide.Value).ToString()
+        TBGridSub.Text = CInt(CGSub.Value).ToString()
+        TBGridHeight.Text = GridScaleText(CGHeight.Value)
+        TBGridWidth.Text = GridScaleText(CGWidth.Value)
+        TBGridDivide.ToolTipText = TBGridDivide.Text
+        TBGridSub.ToolTipText = TBGridSub.Text
+        TBGridHeight.ToolTipText = TBGridHeight.Text
+        TBGridWidth.ToolTipText = TBGridWidth.Text
+        UpdatingGridToolbar = False
+    End Sub
+
+    Private Function GridScaleText(ByVal value As Decimal) As String
+        Dim xText As String = value.ToString("0.##", Globalization.CultureInfo.InvariantCulture)
+        If Not xText.Contains("."c) Then xText &= ".0"
+        Return "x" & xText
+    End Function
+
+    Private Sub ApplyGridToolbarValue(ByVal item As ToolStripComboBox)
+        If UpdatingGridToolbar OrElse item Is Nothing Then Return
+
+        Dim intValue As Integer
+        Dim decimalValue As Decimal
+        If Object.ReferenceEquals(item, TBGridDivide) Then
+            If TryGridInteger(item.Text, intValue, CGDivide.Minimum, CGDivide.Maximum) Then CGDivide.Value = intValue
+        ElseIf Object.ReferenceEquals(item, TBGridSub) Then
+            If TryGridInteger(item.Text, intValue, CGSub.Minimum, CGSub.Maximum) Then CGSub.Value = intValue
+        ElseIf Object.ReferenceEquals(item, TBGridHeight) Then
+            If TryGridScale(item.Text, decimalValue, CGHeight.Minimum, CGHeight.Maximum) Then CGHeight.Value = decimalValue
+        ElseIf Object.ReferenceEquals(item, TBGridWidth) Then
+            If TryGridScale(item.Text, decimalValue, CGWidth.Minimum, CGWidth.Maximum) Then CGWidth.Value = decimalValue
+        End If
+
+        RefreshGridToolbar()
+    End Sub
+
+    Private Function TryGridInteger(ByVal text As String, ByRef value As Integer, ByVal minimum As Decimal, ByVal maximum As Decimal) As Boolean
+        If Not Integer.TryParse(text.Trim(), value) Then Return False
+        Return value >= minimum AndAlso value <= maximum
+    End Function
+
+    Private Function TryGridScale(ByVal text As String, ByRef value As Decimal, ByVal minimum As Decimal, ByVal maximum As Decimal) As Boolean
+        Dim xText As String = text.Trim()
+        If xText.StartsWith("x", StringComparison.OrdinalIgnoreCase) OrElse xText.StartsWith("×") Then xText = xText.Substring(1)
+        If Not Decimal.TryParse(xText, Globalization.NumberStyles.Number, Globalization.CultureInfo.CurrentCulture, value) AndAlso
+           Not Decimal.TryParse(xText, Globalization.NumberStyles.Number, Globalization.CultureInfo.InvariantCulture, value) Then Return False
+
+        Return value >= minimum AndAlso value <= maximum
+    End Function
+
+    Private Sub TBGridCombo_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs) Handles TBGridDivide.SelectedIndexChanged, TBGridSub.SelectedIndexChanged, TBGridHeight.SelectedIndexChanged, TBGridWidth.SelectedIndexChanged
+        ApplyGridToolbarValue(DirectCast(sender, ToolStripComboBox))
+    End Sub
+
+    Private Sub TBGridCombo_Leave(ByVal sender As Object, ByVal e As EventArgs)
+        ApplyGridToolbarValue(DirectCast(DirectCast(sender, ComboBox).Tag, ToolStripComboBox))
+    End Sub
+
+    Private Sub TBGridCombo_KeyDown(ByVal sender As Object, ByVal e As KeyEventArgs)
+        If e.KeyCode <> Keys.Enter Then Return
+
+        ApplyGridToolbarValue(DirectCast(DirectCast(sender, ComboBox).Tag, ToolStripComboBox))
+        e.SuppressKeyPress = True
+    End Sub
+
+    Private Sub TBDisableVertical_Click(ByVal sender As Object, ByVal e As EventArgs) Handles TBDisableVertical.Click
+        CGDisableVertical.Checked = TBDisableVertical.Checked
+    End Sub
+
+    Private Sub TBGridSnap_Click(ByVal sender As Object, ByVal e As EventArgs) Handles TBGridSnap.Click
+        CGSnap.Checked = TBGridSnap.Checked
+    End Sub
+
+    Private Sub RefreshDisableVerticalToolbar()
+        If TBDisableVertical Is Nothing Then Return
+
+        TBDisableVertical.Checked = CGDisableVertical.Checked
+        TBDisableVertical.Image = If(CGDisableVertical.Checked, My.Resources.x16VerticalLock, My.Resources.x16VerticalLockN)
+        TBDisableVertical.Text = CGDisableVertical.Text
+        TBDisableVertical.ToolTipText = CGDisableVertical.Text
+    End Sub
+
+    Private Sub RefreshGridSnapToolbar()
+        If TBGridSnap Is Nothing Then Return
+
+        TBGridSnap.Checked = CGSnap.Checked
+        TBGridSnap.Text = If(TBGridSnap.Checked, CGSnap.Text, GridNoSnapText)
+        TBGridSnap.ToolTipText = TBGridSnap.Text
+    End Sub
+
+    Private Sub InitializePlayerSelector()
+        TBPlayer = New ToolStripComboBox With {
+            .AutoSize = False,
+            .DropDownStyle = ComboBoxStyle.DropDownList,
+            .Name = "TBPlayer",
+            .Margin = New Padding(0, 0, 1, 0),
+            .Size = New Size(PlayerSelectorWidth(), 25)
+        }
+        TBPlayer.ComboBox.FlatStyle = FlatStyle.Standard
+
+        Dim toolbarIndex As Integer = TBMain.Items.IndexOf(TBPlayB)
+        If toolbarIndex >= 0 Then
+            TBMain.Items.Insert(toolbarIndex, TBPlayer)
+        Else
+            TBMain.Items.Add(TBPlayer)
+        End If
+
+        RefreshPlayerSelector()
+    End Sub
+
+    Private Function PlayerSelectorWidth() As Integer
+        Dim xWidth As Integer = 0
+        For Each xArg As PlayerArguments In DefaultPlayerArguments()
+            xWidth = Math.Max(xWidth, TextRenderer.MeasureText(PlayerDisplayName(xArg.Path), Me.Font, Size.Empty, TextFormatFlags.NoPadding).Width)
+        Next
+
+        Return xWidth + SystemInformation.VerticalScrollBarWidth + 6
+    End Function
+
+    Private Sub RefreshPlayerSelector()
+        If TBPlayer Is Nothing OrElse pArgs Is Nothing OrElse pArgs.Length = 0 Then Return
+
+        CurrentPlayer = Math.Min(pArgs.Length - 1, Math.Max(0, CurrentPlayer))
+        UpdatingPlayerSelector = True
+        TBPlayer.Items.Clear()
+        For i As Integer = 0 To pArgs.Length - 1
+            TBPlayer.Items.Add(PlayerDisplayName(pArgs(i).Path))
+        Next
+
+        TBPlayer.SelectedIndex = CurrentPlayer
+        TBPlayer.ToolTipText = TBPlayer.Text
+        UpdatingPlayerSelector = False
+    End Sub
+
+    Private Sub TBPlayer_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs) Handles TBPlayer.SelectedIndexChanged
+        If UpdatingPlayerSelector OrElse TBPlayer.SelectedIndex < 0 Then Return
+
+        CurrentPlayer = TBPlayer.SelectedIndex
+        TBPlayer.ToolTipText = TBPlayer.Text
     End Sub
 
     Private Sub InitializeSplitterControls()
@@ -351,7 +665,7 @@ Public Class MainWindow
         }
 
         Dim toolbarIndex As Integer = TBMain.Items.IndexOf(ToolStripSeparator4)
-        Dim splitterItems As ToolStripItem() = {ToolStripSeparatorSplitter, TBSLSplitter, TBSRSplitter, TBSyncSplitterScroll}
+        Dim splitterItems As ToolStripItem() = {ToolStripSeparatorSplitter, TBSRSplitter, TBSyncSplitterScroll}
         If toolbarIndex >= 0 Then
             For i As Integer = 0 To splitterItems.Length - 1
                 TBMain.Items.Insert(toolbarIndex + i, splitterItems(i))
@@ -1275,7 +1589,7 @@ Public Class MainWindow
         Else
             LoadInitialPreferences()
         End If
-        UpdateMyO2ToolboxVisibility()
+        RefreshPlayerSelector()
         SetUseBase62Definitions(NewBMSUseBase62Definitions)
         RefreshDefinitionLists()
         'On Error GoTo 0
@@ -2077,6 +2391,7 @@ EndSearch:
     Private Sub CGHeight_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGHeight.ValueChanged
         gxHeight = CSng(CGHeight.Value)
         CGHeight2.Value = IIf(CGHeight.Value * 4 < CGHeight2.Maximum, CDec(CGHeight.Value * 4), CGHeight2.Maximum)
+        RefreshGridToolbar()
         RefreshPanelAll()
     End Sub
 
@@ -2087,13 +2402,11 @@ EndSearch:
     Private Sub CGWidth_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGWidth.ValueChanged
         gxWidth = CSng(CGWidth.Value)
         CGWidth2.Value = IIf(CGWidth.Value * 4 < CGWidth2.Maximum, CDec(CGWidth.Value * 4), CGWidth2.Maximum)
+        RefreshGridToolbar()
 
-        HS.LargeChange = PMainIn.Width / gxWidth
-        If HS.Value > HS.Maximum - HS.LargeChange + 1 Then HS.Value = HS.Maximum - HS.LargeChange + 1
-        HSL.LargeChange = PMainInL.Width / gxWidth
-        If HSL.Value > HSL.Maximum - HSL.LargeChange + 1 Then HSL.Value = HSL.Maximum - HSL.LargeChange + 1
-        HSR.LargeChange = PMainInR.Width / gxWidth
-        If HSR.Value > HSR.Maximum - HSR.LargeChange + 1 Then HSR.Value = HSR.Maximum - HSR.LargeChange + 1
+        SetHorizontalScrollLargeChange(HS, PMainIn.Width)
+        SetHorizontalScrollLargeChange(HSL, PMainInL.Width)
+        SetHorizontalScrollLargeChange(HSR, PMainInR.Width)
 
         CalculateGreatestColumn()
         RefreshPanelAll()
@@ -2105,13 +2418,15 @@ EndSearch:
 
     Private Sub CGDivide_ValueChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGDivide.ValueChanged
         gDivide = CGDivide.Value
+        RefreshGridToolbar()
         RefreshPanelAll()
     End Sub
     Private Sub CGSub_ValueChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGSub.ValueChanged
         gSub = CGSub.Value
+        RefreshGridToolbar()
         RefreshPanelAll()
     End Sub
-    Private Sub BGSlash_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BGSlash.Click
+    Private Sub BGSlash_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BGSlash.Click, mnSlashGrid.Click
         Dim xd As Integer = Val(InputBox(Strings.Messages.PromptSlashValue, , gSlash))
         If xd = 0 Then Exit Sub
         If xd > CGDivide.Maximum Then xd = CGDivide.Maximum
@@ -2122,6 +2437,7 @@ EndSearch:
 
     Private Sub CGSnap_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGSnap.CheckedChanged
         gSnap = CGSnap.Checked
+        RefreshGridSnapToolbar()
         RefreshPanelAll()
     End Sub
 
@@ -2532,6 +2848,7 @@ EndSearch:
         'xStr = Split(pArgs(CurrentPlayer), vbCrLf)
         pArgs(CurrentPlayer).Path = Replace(xDOpen.FileName, My.Application.Info.DirectoryPath, "<apppath>")
         xArg = pArgs(CurrentPlayer)
+        RefreshPlayerSelector()
     End Sub
 
     Private Sub TBPlay_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPlay.Click, mnPlay.Click
@@ -3411,7 +3728,7 @@ StartCount:     If Not NTInput Then
 
     Private Sub TBPOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPOptions.Click, mnPOptions.Click
         Dim xDOp As New OpPlayer(CurrentPlayer)
-        xDOp.ShowDialog(Me)
+        If xDOp.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then RefreshPlayerSelector()
     End Sub
 
     Private Sub THGenre_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles _
@@ -3518,12 +3835,20 @@ StartCount:     If Not NTInput Then
         CalculateTotalPlayableNotes()
     End Sub
 
-    Private Sub TBWavIncrease_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBWavIncrease.Click
+    Private Sub SetWavIncreaseChecked(ByVal checked As Boolean)
+        TBWavIncrease.Checked = checked
+        mnWavIncrease.Checked = checked
+    End Sub
+
+    Private Sub TBWavIncrease_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBWavIncrease.Click, mnWavIncrease.Click
         Dim xUndo As UndoRedo.LinkedURCmd = Nothing
         Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
         Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
 
-        TBWavIncrease.Checked = Not sender.Checked
+        Dim xChecked As Boolean = If([Object].ReferenceEquals(sender, mnWavIncrease),
+                                     mnWavIncrease.Checked,
+                                     Not TBWavIncrease.Checked)
+        SetWavIncreaseChecked(xChecked)
         Me.RedoWavIncrease(TBWavIncrease.Checked, xUndo, xRedo)
         AddUndo(xUndo, xBaseRedo.Next)
     End Sub
@@ -3670,7 +3995,16 @@ StartCount:     If Not NTInput Then
         If xScroll.Value > xMaximum Then xScroll.Value = xMaximum
 
         xScroll.Maximum = xMaximum
+        ClampHorizontalScrollValue(xScroll)
+    End Sub
 
+    Private Sub SetHorizontalScrollLargeChange(xScroll As HScrollBar, xPanelWidth As Integer)
+        Dim xLargeChange As Integer = CInt(Math.Floor(Math.Max(0, xPanelWidth) / CDbl(gxWidth)))
+        xScroll.LargeChange = Math.Max(1, xLargeChange)
+        ClampHorizontalScrollValue(xScroll)
+    End Sub
+
+    Private Sub ClampHorizontalScrollValue(xScroll As HScrollBar)
         Dim xValueMax As Integer = xScroll.Maximum - xScroll.LargeChange + 1
         If xValueMax < xScroll.Minimum Then xValueMax = xScroll.Minimum
         If xScroll.Value > xValueMax Then xScroll.Value = xValueMax
@@ -3753,7 +4087,7 @@ StartCount:     If Not NTInput Then
 
         Dim xDiag As New OpGeneral(gWheel, gPgUpDn, MiddleButtonMoveMethod, xTE, 192.0R / BMSGridLimit,
             AutoSaveInterval, BeepWhileSaved, NewBMSUseBase62Definitions, BPMDefinitionMode, STOPDefinitionMode,
-            ShowMyO2Toolbox, AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, SkipClippedMeasure, LaneHighlight, UndoRedoMemoryLimitMB)
+            AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, SkipClippedMeasure, LaneHighlight, CInt(CGB.Value), UndoRedoMemoryLimitMB)
 
         If xDiag.ShowDialog() = Windows.Forms.DialogResult.OK Then
             With xDiag
@@ -3766,7 +4100,6 @@ StartCount:     If Not NTInput Then
                 BMSGridLimit = 192.0R / .zGridPartition
                 BeepWhileSaved = .cBeep.Checked
                 NewBMSUseBase62Definitions = .cNewBMSUseBase62.Checked
-                ShowMyO2Toolbox = .cMyO2Toolbox.Checked
                 BPMDefinitionMode = .cBpm1296.SelectedIndex
                 STOPDefinitionMode = .cStop1296.SelectedIndex
                 AutoFocusMouseEnter = .cMEnterFocus.Checked
@@ -3774,21 +4107,15 @@ StartCount:     If Not NTInput Then
                 ClickStopPreview = .cMStopPreview.Checked
                 SkipClippedMeasure = .cSkipClippedMeasure.Checked
                 LaneHighlight = .zLaneHighlight
+                CGB.Value = Math.Min(CGB.Maximum, Math.Max(CGB.Minimum, CDec(.zBgmLaneCount)))
                 UndoRedoMemoryLimitMB = .zUndoRedoMemoryLimitMB
                 NormalizeUndoRedoMemoryLimit()
                 EnforceUndoRedoHistoryLimit()
             End With
             If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval
             AutoSaveTimer.Enabled = AutoSaveInterval
-            UpdateMyO2ToolboxVisibility()
             RefreshPanelAll()
         End If
-    End Sub
-
-    Private Sub UpdateMyO2ToolboxVisibility()
-        mnMyO2.Visible = ShowMyO2Toolbox
-        ToolStripSeparator23.Visible = ShowMyO2Toolbox
-        TBMyO2.Visible = ShowMyO2Toolbox
     End Sub
 
     Private Sub POBLong_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBLong.Click
@@ -3976,7 +4303,7 @@ Jump2:
         RefreshPanelAll()
     End Sub
 
-    Private Sub TBMyO2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBMyO2.Click, mnMyO2.Click
+    Private Sub mnMyO2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnMyO2.Click
         Dim xDiag As New dgMyO2
         xDiag.Show()
     End Sub
@@ -5138,6 +5465,7 @@ Jump2:
 
     Private Sub CGDisableVertical_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGDisableVertical.CheckedChanged
         DisableVerticalMove = CGDisableVertical.Checked
+        RefreshDisableVerticalToolbar()
     End Sub
 
     Private Sub CBeatPreserve_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBeatPreserve.Click, CBeatMeasure.Click, CBeatCut.Click, CBeatScale.Click

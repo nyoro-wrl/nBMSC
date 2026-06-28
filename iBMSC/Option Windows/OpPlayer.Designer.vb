@@ -185,7 +185,7 @@ Partial Class OpPlayer
         Me.LPlayer.FormattingEnabled = True
         Me.LPlayer.IntegralHeight = False
         Me.LPlayer.ItemHeight = 15
-        Me.LPlayer.Items.AddRange(New Object() {"uBMplay.exe", "o2play.exe"})
+        Me.LPlayer.Items.AddRange(New Object() {"uBMplay", "o2play"})
         Me.LPlayer.Location = New System.Drawing.Point(12, 27)
         Me.LPlayer.Name = "LPlayer"
         Me.LPlayer.Size = New System.Drawing.Size(225, 55)

@@ -264,7 +264,17 @@ Namespace My.Resources
                 Return ResourceManager.GetString("O2Mania_Theme", resourceCulture)
             End Get
         End Property
-        
+
+        '''<summary>
+        '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        '''</summary>
+        Friend ReadOnly Property pgmbl() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("pgmbl", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+
         '''<summary>
         '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         '''</summary>
@@ -954,7 +964,27 @@ Namespace My.Resources
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property
-        
+
+        '''<summary>
+        '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        '''</summary>
+        Friend ReadOnly Property x16VerticalLock() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("x16VerticalLock", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+
+        '''<summary>
+        '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        '''</summary>
+        Friend ReadOnly Property x16VerticalLockN() As System.Drawing.Bitmap
+            Get
+                Dim obj As Object = ResourceManager.GetObject("x16VerticalLockN", resourceCulture)
+                Return CType(obj,System.Drawing.Bitmap)
+            End Get
+        End Property
+
         '''<summary>
         '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         '''</summary>

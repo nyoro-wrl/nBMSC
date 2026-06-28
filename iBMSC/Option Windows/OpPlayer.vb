@@ -195,8 +195,6 @@ Public Class OpPlayer
     'End Function
 
     Private Function GetFileName(ByVal s As String) As String
-        Dim fslash As Integer = InStrRev(s, "/")
-        Dim bslash As Integer = InStrRev(s, "\")
-        Return Mid(s, IIf(fslash > bslash, fslash, bslash) + 1)
+        Return MainWindow.PlayerDisplayName(s)
     End Function
 End Class

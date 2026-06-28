@@ -56,6 +56,7 @@
 			<ShowFileName amp="9">파일명 표시 (F)</ShowFileName>
 			<ChangePlaySide amp="0">스크래치를 오른쪽에 표시</ChangePlaySide>
 			<SyncSplitterScroll>분할 화면 간 스크롤 동기화</SyncSplitterScroll>
+			<SlashGrid>슬래시 키 Grid 값</SlashGrid>
 			<GeneralOptions amp="9">일반 옵션 (G)</GeneralOptions>
 			<VisualOptions amp="9">표시 옵션 (V)</VisualOptions>
 			<PlayerOptions amp="9">구동기 옵션 (P)</PlayerOptions>
@@ -228,6 +229,7 @@
 		<Grid>
 			<Title>격자</Title>
 			<Snap>격자에 맞추기(G)</Snap>
+			<NoSnap>격자에 맞추지 않기</NoSnap>
 			<BCols>BGM 최소 수</BCols>
 			<DisableVertical>수직위치 고정 (D)</DisableVertical>
 			<Scroll>세로 스크롤 잠금</Scroll>
@@ -409,6 +411,7 @@
 		<StopPreviewOnClick>편집 패널을 클릭하면 미리보기를 중지</StopPreviewOnClick>
 		<SkipClippedMeasure>잘려 보이는 마디를 건너뛰고 다음 마디부터 재생</SkipClippedMeasure>
 		<LaneHighlight>레인 하이라이트 표시</LaneHighlight>
+		<MinimumBGMLanes>BGM 레인 최소 수</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo 메모리 제한</UndoRedoMemoryLimit>
 	</GeneralOptions>
 	<Find>

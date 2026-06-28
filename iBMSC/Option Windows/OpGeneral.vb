@@ -9,6 +9,7 @@ Public Class OpGeneral
     Public zAutoSave As Integer
     Public zGridPartition As Integer
     Public zLaneHighlight As Integer
+    Public zBgmLaneCount As Integer
     Public zUndoRedoMemoryLimitMB As Integer
 
     'Dim lpfa() As String
@@ -50,6 +51,7 @@ Public Class OpGeneral
         zAutoSave = IIf(cAutoSave.Checked, 1, 0) * NAutoSave.Value * 60000
         zGridPartition = nGridPartition.Value
         zLaneHighlight = CInt(nLaneHighlight.Value)
+        zBgmLaneCount = CInt(nBgmLaneCount.Value)
         zUndoRedoMemoryLimitMB = CInt(nUndoRedoMemoryLimit.Value)
         Me.DialogResult = System.Windows.Forms.DialogResult.OK
         Me.Close()
@@ -62,8 +64,8 @@ Public Class OpGeneral
 
     Public Sub New(ByVal xMsWheel As Integer, ByVal xPgUpDn As Integer, ByVal xMiddleButton As Integer, ByVal xTextEncoding As Integer, ByVal xGridPartition As Integer, _
                    ByVal xAutoSave As Integer, ByVal xBeep As Boolean, ByVal xNewBase62 As Boolean, ByVal xBPMMode As Integer, ByVal xSTOPMode As Integer, _
-                   ByVal xShowMyO2 As Boolean, ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xSkipClippedMeasure As Boolean, ByVal xLaneHighlight As Integer, _
-                   ByVal xUndoRedoMemoryLimitMB As Integer)
+                   ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xSkipClippedMeasure As Boolean, ByVal xLaneHighlight As Integer, _
+                   ByVal xBgmLaneCount As Integer, ByVal xUndoRedoMemoryLimitMB As Integer)
         InitializeComponent()
 
         On Error Resume Next
@@ -99,7 +101,6 @@ Public Class OpGeneral
 
         cBeep.Checked = xBeep
         cNewBMSUseBase62.Checked = xNewBase62
-        cMyO2Toolbox.Checked = xShowMyO2
         cBpm1296.SelectedIndex = Math.Max(0, Math.Min(xBPMMode, cBpm1296.Items.Count - 1))
         cStop1296.SelectedIndex = Math.Max(0, Math.Min(xSTOPMode, cStop1296.Items.Count - 1))
         cMEnterFocus.Checked = xMFEnter
@@ -107,6 +108,7 @@ Public Class OpGeneral
         cMStopPreview.Checked = xMStopPreview
         cSkipClippedMeasure.Checked = xSkipClippedMeasure
         nLaneHighlight.Value = Math.Min(nLaneHighlight.Maximum, Math.Max(nLaneHighlight.Minimum, xLaneHighlight))
+        nBgmLaneCount.Value = Math.Min(nBgmLaneCount.Maximum, Math.Max(nBgmLaneCount.Minimum, xBgmLaneCount))
         nUndoRedoMemoryLimit.Value = Math.Min(nUndoRedoMemoryLimit.Maximum, Math.Max(nUndoRedoMemoryLimit.Minimum, xUndoRedoMemoryLimitMB))
     End Sub
 
@@ -133,7 +135,6 @@ Public Class OpGeneral
 
         cBeep.Text = Strings.fopGeneral.BeepWhileSaved
         cNewBMSUseBase62.Text = Strings.fopGeneral.NewBMSUseBase62
-        cMyO2Toolbox.Text = Strings.fopGeneral.MyO2Toolbox
         LabelBPMDefinitionMode.Text = Strings.fopGeneral.BPMDefinitionMode
         LabelSTOPDefinitionMode.Text = Strings.fopGeneral.STOPDefinitionMode
         cBpm1296.Items(0) = Strings.fopGeneral.DefinitionModeDefault
@@ -149,6 +150,7 @@ Public Class OpGeneral
         cMStopPreview.Text = Strings.fopGeneral.StopPreviewOnClick
         cSkipClippedMeasure.Text = Strings.fopGeneral.SkipClippedMeasure
         LabelLaneHighlight.Text = Strings.fopGeneral.LaneHighlight
+        LabelBgmLaneCount.Text = Strings.fopGeneral.MinimumBGMLanes
         LabelUndoRedoMemoryLimit.Text = Strings.fopGeneral.UndoRedoMemoryLimit
 
         Dim enc = System.Text.Encoding.Default

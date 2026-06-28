@@ -84,7 +84,6 @@ Partial Public Class MainWindow
             .WriteAttributeString("SyncSplitterScroll", SyncSplitterScroll)
             .WriteAttributeString("MiddleButtonMoveMethod", MiddleButtonMoveMethod)
             .WriteAttributeString("AutoSaveInterval", AutoSaveInterval)
-            .WriteAttributeString("ShowMyO2Toolbox", ShowMyO2Toolbox)
             .WriteAttributeString("PreviewOnClick", PreviewOnClick)
             '.WriteAttributeString("PreviewErrorCheck", PreviewErrorCheck)
             .WriteAttributeString("ClickStopPreview", ClickStopPreview)
@@ -358,13 +357,6 @@ Partial Public Class MainWindow
 
                 XMLLoadAttribute(.GetAttribute("AutoSaveInterval"), AutoSaveInterval)
                 If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval Else AutoSaveTimer.Enabled = False
-
-                If .GetAttribute("ShowMyO2Toolbox").Length > 0 Then
-                    XMLLoadAttribute(.GetAttribute("ShowMyO2Toolbox"), ShowMyO2Toolbox)
-                Else
-                    ShowMyO2Toolbox = False
-                End If
-                UpdateMyO2ToolboxVisibility()
 
                 XMLLoadAttribute(.GetAttribute("PreviewOnClick"), PreviewOnClick)
                 TBPreviewOnClick.Checked = PreviewOnClick
@@ -750,7 +742,9 @@ EndOfSub:
                     XMLLoadLocaleMenu(eOptions.Item("PreviewOnClick"), mnPreviewOnClick.Text)
                     XMLLoadLocaleMenu(eOptions.Item("ShowFileName"), mnShowFileName.Text)
                     XMLLoadLocaleMenu(eOptions.Item("ChangePlaySide"), mnChangePlaySide.Text)
+                    XMLLoadLocaleMenu(eOptions.Item("WavIncrease"), mnWavIncrease.Text)
                     XMLLoadLocaleMenu(eOptions.Item("SyncSplitterScroll"), mnSyncSplitterScroll.Text)
+                    XMLLoadLocaleMenu(eOptions.Item("SlashGrid"), mnSlashGrid.Text)
                     XMLLoadLocaleMenu(eOptions.Item("GeneralOptions"), mnGOptions.Text)
                     XMLLoadLocaleMenu(eOptions.Item("VisualOptions"), mnVOptions.Text)
                     XMLLoadLocaleMenu(eOptions.Item("PlayerOptions"), mnPOptions.Text)
@@ -788,7 +782,6 @@ EndOfSub:
                 XMLLoadLocale(eToolBar.Item("Find"), TBFind.Text)
                 XMLLoadLocale(eToolBar.Item("Stat"), TBStatistics.ToolTipText)
                 XMLLoadLocale(eToolBar.Item("Conversion"), POConvert.Text)
-                XMLLoadLocale(eToolBar.Item("MyO2"), TBMyO2.Text)
                 XMLLoadLocale(eToolBar.Item("ErrorCheck"), TBErrorCheck.Text)
                 XMLLoadLocale(eToolBar.Item("PreviewOnClick"), TBPreviewOnClick.Text)
                 XMLLoadLocale(eToolBar.Item("ShowFileName"), TBShowFileName.Text)
@@ -800,6 +793,7 @@ EndOfSub:
                 XMLLoadLocale(eToolBar.Item("Redo"), TBRedo.Text)
                 XMLLoadLocale(eToolBar.Item("NT"), TBNTInput.Text)
                 XMLLoadLocale(eToolBar.Item("WavIncrease"), TBWavIncrease.Text)
+                XMLLoadLocale(eToolBar.Item("WavIncrease"), mnWavIncrease.Text)
                 XMLLoadLocale(eToolBar.Item("TimeSelectionTool"), TBTimeSelect.Text)
                 XMLLoadLocale(eToolBar.Item("SelectTool"), TBSelect.Text)
                 XMLLoadLocale(eToolBar.Item("WriteTool"), TBWrite.Text)
@@ -974,8 +968,11 @@ EndOfSub:
                 If eGrid IsNot Nothing Then
                     XMLLoadLocale(eGrid.Item("Title"), POGridSwitch.Text)
                     XMLLoadLocale(eGrid.Item("Snap"), CGSnap.Text)
+                    XMLLoadLocale(eGrid.Item("NoSnap"), GridNoSnapText)
                     XMLLoadLocale(eGrid.Item("BCols"), Label1.Text)
                     XMLLoadLocale(eGrid.Item("DisableVertical"), CGDisableVertical.Text)
+                    RefreshDisableVerticalToolbar()
+                    RefreshGridSnapToolbar()
                     XMLLoadLocale(eGrid.Item("Scroll"), Label5.Text)
                     XMLLoadLocaleToolTipUniversal(eGrid.Item("LockLeft"), cVSLockL)
                     XMLLoadLocaleToolTipUniversal(eGrid.Item("LockMiddle"), cVSLock)
@@ -1168,7 +1165,6 @@ EndOfSub:
                 XMLLoadLocale(eGeneralOptions.Item("MaxGridPartition"), Strings.fopGeneral.MaxGridPartition)
                 XMLLoadLocale(eGeneralOptions.Item("BeepWhileSaved"), Strings.fopGeneral.BeepWhileSaved)
                 XMLLoadLocale(eGeneralOptions.Item("NewBMSUseBase62"), Strings.fopGeneral.NewBMSUseBase62)
-                XMLLoadLocale(eGeneralOptions.Item("MyO2Toolbox"), Strings.fopGeneral.MyO2Toolbox)
                 XMLLoadLocale(eGeneralOptions.Item("BPMDefinitionMode"), Strings.fopGeneral.BPMDefinitionMode)
                 XMLLoadLocale(eGeneralOptions.Item("STOPDefinitionMode"), Strings.fopGeneral.STOPDefinitionMode)
                 XMLLoadLocale(eGeneralOptions.Item("DefinitionModeDefault"), Strings.fopGeneral.DefinitionModeDefault)
@@ -1181,6 +1177,7 @@ EndOfSub:
                 XMLLoadLocale(eGeneralOptions.Item("StopPreviewOnClick"), Strings.fopGeneral.StopPreviewOnClick)
                 XMLLoadLocale(eGeneralOptions.Item("SkipClippedMeasure"), Strings.fopGeneral.SkipClippedMeasure)
                 XMLLoadLocale(eGeneralOptions.Item("LaneHighlight"), Strings.fopGeneral.LaneHighlight)
+                XMLLoadLocale(eGeneralOptions.Item("MinimumBGMLanes"), Strings.fopGeneral.MinimumBGMLanes)
                 XMLLoadLocale(eGeneralOptions.Item("UndoRedoMemoryLimit"), Strings.fopGeneral.UndoRedoMemoryLimit)
             End If
 

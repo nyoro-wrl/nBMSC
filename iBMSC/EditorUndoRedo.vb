@@ -143,7 +143,7 @@ Partial Public Class MainWindow
                     End If
                 Case UndoRedo.opWavAutoincFlag
                     Dim xcmd As UndoRedo.WavAutoincFlag = sCmd
-                    TBWavIncrease.Checked = xcmd.Checked
+                    SetWavIncreaseChecked(xcmd.Checked)
 
                 Case UndoRedo.opVoid
 

@@ -274,6 +274,7 @@ Partial Class MainWindow
         Me.mnPreviewOnClick = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnShowFileName = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnChangePlaySide = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnWavIncrease = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator20 = New System.Windows.Forms.ToolStripSeparator()
         Me.mnGOptions = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnVOptions = New System.Windows.Forms.ToolStripMenuItem()
@@ -317,7 +318,6 @@ Partial Class MainWindow
         Me.TBFind = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripSeparator24 = New System.Windows.Forms.ToolStripSeparator()
         Me.TBStatistics = New System.Windows.Forms.ToolStripButton()
-        Me.TBMyO2 = New System.Windows.Forms.ToolStripButton()
         Me.ToolStripSeparator4 = New System.Windows.Forms.ToolStripSeparator()
         Me.TBErrorCheck = New System.Windows.Forms.ToolStripButton()
         Me.TBPreviewOnClick = New System.Windows.Forms.ToolStripButton()
@@ -3198,7 +3198,6 @@ Partial Class MainWindow
         '
         Me.ToolStripSeparator23.Name = "ToolStripSeparator23"
         Me.ToolStripSeparator23.Size = New System.Drawing.Size(230, 6)
-        Me.ToolStripSeparator23.Visible = False
         '
         'mnMyO2
         '
@@ -3206,7 +3205,6 @@ Partial Class MainWindow
         Me.mnMyO2.Name = "mnMyO2"
         Me.mnMyO2.Size = New System.Drawing.Size(233, 22)
         Me.mnMyO2.Text = "MyO2 ToolBox (Chinese Only)"
-        Me.mnMyO2.Visible = False
         '
         'mnSys
         '
@@ -3376,7 +3374,7 @@ Partial Class MainWindow
         '
         'mnOptions
         '
-        Me.mnOptions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNTInput, Me.mnErrorCheck, Me.mnPreviewOnClick, Me.mnShowFileName, Me.mnChangePlaySide, Me.ToolStripSeparator20, Me.mnGOptions, Me.mnVOptions, Me.mnPOptions, Me.mnLanguage, Me.mnTheme})
+        Me.mnOptions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNTInput, Me.mnErrorCheck, Me.mnPreviewOnClick, Me.mnShowFileName, Me.mnChangePlaySide, Me.mnWavIncrease, Me.ToolStripSeparator20, Me.mnGOptions, Me.mnVOptions, Me.mnPOptions, Me.mnLanguage, Me.mnTheme})
         Me.mnOptions.Name = "mnOptions"
         Me.mnOptions.Size = New System.Drawing.Size(61, 19)
         Me.mnOptions.Text = "&Options"
@@ -3427,6 +3425,14 @@ Partial Class MainWindow
         Me.mnChangePlaySide.Name = "mnChangePlaySide"
         Me.mnChangePlaySide.Size = New System.Drawing.Size(229, 22)
         Me.mnChangePlaySide.Text = "&RightScratch Mode"
+        '
+        'mnWavIncrease
+        '
+        Me.mnWavIncrease.CheckOnClick = True
+        Me.mnWavIncrease.Image = CType(resources.GetObject("TBWavIncrease.Image"), System.Drawing.Image)
+        Me.mnWavIncrease.Name = "mnWavIncrease"
+        Me.mnWavIncrease.Size = New System.Drawing.Size(229, 22)
+        Me.mnWavIncrease.Text = "Autoincrease WAV when writing"
         '
         'ToolStripSeparator20
         '
@@ -3582,10 +3588,10 @@ Partial Class MainWindow
         Me.TBMain.AccessibleRole = System.Windows.Forms.AccessibleRole.ToolBar
         Me.TBMain.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.TBMain.Dock = System.Windows.Forms.DockStyle.None
-        Me.TBMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBNew, Me.TBOpen, Me.TBSave, Me.ToolStripSeparator1, Me.TBCut, Me.TBCopy, Me.TBPaste, Me.TBFind, Me.ToolStripSeparator24, Me.TBStatistics, Me.POConvert, Me.TBMyO2, Me.ToolStripSeparator4, Me.TBErrorCheck, Me.TBPreviewOnClick, Me.TBShowFileName, Me.TBChangePlaySide, Me.ToolStripSeparator8, Me.TBNTInput, Me.TBWavIncrease, Me.ToolStripSeparator2, Me.TBUndo, Me.TBRedo, Me.ToolStripSeparator5, Me.TBTimeSelect, Me.TBSelect, Me.TBWrite, Me.ToolStripSeparator3, Me.TBPlayB, Me.TBPlay, Me.TBStop, Me.TBPOptions, Me.ToolStripSeparator7, Me.TBVOptions, Me.TBGOptions, Me.TBLanguage, Me.TBTheme, Me.POBStorm})
+        Me.TBMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBSave, Me.ToolStripSeparator1, Me.TBTimeSelect, Me.TBSelect, Me.TBWrite, Me.ToolStripSeparator3, Me.TBPlayB, Me.TBPlay, Me.TBStop, Me.POBStorm})
         Me.TBMain.Location = New System.Drawing.Point(3, 23)
         Me.TBMain.Name = "TBMain"
-        Me.TBMain.Size = New System.Drawing.Size(805, 25)
+        Me.TBMain.Size = New System.Drawing.Size(276, 25)
         Me.TBMain.TabIndex = 64
         Me.TBMain.Text = "Main Toolbar"
         '
@@ -3753,16 +3759,6 @@ Partial Class MainWindow
         Me.TBStatistics.Size = New System.Drawing.Size(34, 22)
         Me.TBStatistics.Text = "0"
         Me.TBStatistics.ToolTipText = "Statistics (Ctrl+T)"
-        '
-        'TBMyO2
-        '
-        Me.TBMyO2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.TBMyO2.Image = Global.iBMSC.My.Resources.Resources.x16MyO2
-        Me.TBMyO2.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.TBMyO2.Name = "TBMyO2"
-        Me.TBMyO2.Size = New System.Drawing.Size(23, 22)
-        Me.TBMyO2.Text = "MyO2 ToolBox (Chinese Only)"
-        Me.TBMyO2.Visible = False
         '
         'ToolStripSeparator4
         '
@@ -4636,6 +4632,7 @@ Partial Class MainWindow
     Friend WithEvents mnPreviewOnClick As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnShowFileName As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnChangePlaySide As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnWavIncrease As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator20 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents mnGOptions As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnVOptions As System.Windows.Forms.ToolStripMenuItem
@@ -4775,7 +4772,6 @@ Partial Class MainWindow
     Friend WithEvents POConvert As System.Windows.Forms.ToolStripDropDownButton
     Friend WithEvents TBLanguage As System.Windows.Forms.ToolStripDropDownButton
     Friend WithEvents TBTheme As System.Windows.Forms.ToolStripDropDownButton
-    Friend WithEvents TBMyO2 As System.Windows.Forms.ToolStripButton
     Friend WithEvents ToolStripSeparator4 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents TBErrorCheck As System.Windows.Forms.ToolStripButton
     Friend WithEvents TBPreviewOnClick As System.Windows.Forms.ToolStripButton

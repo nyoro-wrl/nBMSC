@@ -53,6 +53,7 @@
 			<PreviewOnClick>单击播放Key音 (&amp;C)</PreviewOnClick>
 			<ShowFileName>Note上显示文件名 (&amp;F)</ShowFileName>
 			<SyncSplitterScroll>同步分割器间滚动</SyncSplitterScroll>
+			<SlashGrid>斜杠键 Grid 值</SlashGrid>
 			<GeneralOptions>常规设置 (&amp;G)</GeneralOptions>
 			<VisualOptions>外观设置 (&amp;V)</VisualOptions>
 			<PlayerOptions>播放器设置 (&amp;P)</PlayerOptions>
@@ -222,6 +223,7 @@
 		<Grid>
 			<Title>格线</Title>
 			<Snap>对齐至格线 (G)</Snap>
+			<NoSnap>不对齐至格线</NoSnap>
 			<BCols>BGM 列最小数量</BCols>
 			<DisableVertical>禁用垂直移动 (D)</DisableVertical>
 			<Scroll>分割面板滚动条锁定</Scroll>
@@ -387,6 +389,7 @@
 		<StopPreviewOnClick>鼠标单击编辑区域时停止播放预览</StopPreviewOnClick>
 		<SkipClippedMeasure>跳过显示不完整的小节，从下一小节开始播放</SkipClippedMeasure>
 		<LaneHighlight>轨道高亮显示</LaneHighlight>
+		<MinimumBGMLanes>BGM 轨道最小数量</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>撤销/重做历史内存上限</UndoRedoMemoryLimit>
 	</GeneralOptions>
 	<Find>

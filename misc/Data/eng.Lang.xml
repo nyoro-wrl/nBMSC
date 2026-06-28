@@ -56,6 +56,7 @@
 			<ShowFileName amp="5">Show File Name on Notes</ShowFileName>
 			<ChangePlaySide amp="0">RightScratch Mode</ChangePlaySide>
 			<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
+			<SlashGrid>Slash key grid value</SlashGrid>
 			<GeneralOptions amp="0">General Options</GeneralOptions>
 			<VisualOptions amp="0">Visual Options</VisualOptions>
 			<PlayerOptions amp="0">Player Options</PlayerOptions>
@@ -231,6 +232,7 @@
 		<Grid>
 			<Title>Grid</Title>
 			<Snap>Snap to grid (G)</Snap>
+			<NoSnap>Do not snap to grid</NoSnap>
 			<BCols>Minimum BGM Columns</BCols>
 			<DisableVertical>Disable vertical moves (D)</DisableVertical>
 			<Scroll>Vertical Scroll Lock</Scroll>
@@ -414,6 +416,7 @@
 		<StopPreviewOnClick>Stop preview if clicked on the editing panel</StopPreviewOnClick>
 		<SkipClippedMeasure>Skip clipped measure and play from next measure</SkipClippedMeasure>
 		<LaneHighlight>Lane highlight</LaneHighlight>
+		<MinimumBGMLanes>Minimum BGM lanes</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo memory limit</UndoRedoMemoryLimit>
 	</GeneralOptions>
 	<Find>

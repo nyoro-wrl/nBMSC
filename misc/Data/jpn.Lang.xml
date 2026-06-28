@@ -56,6 +56,7 @@
 			<ShowFileName amp="10">ファイル名を表示 (F)</ShowFileName>
 			<ChangePlaySide amp="12">スクラッチ位置の変更 (R)</ChangePlaySide>
 			<SyncSplitterScroll>スプリッタ間のスクロールを同期</SyncSplitterScroll>
+			<SlashGrid>スラッシュキーのGrid値</SlashGrid>
 			<GeneralOptions amp="9">一般オプション (G)</GeneralOptions>
 			<VisualOptions amp="9">表示オプション (V)</VisualOptions>
 			<PlayerOptions amp="10">再生ソフトの設定 (P)</PlayerOptions>
@@ -231,6 +232,7 @@
 		<Grid>
 			<Title>Grid</Title>
 			<Snap>Grid に合わせる (G)</Snap>
+			<NoSnap>グリッドに合わせない</NoSnap>
 			<BCols>BGM 列の最小数</BCols>
 			<DisableVertical>オブジェを縦移動させない (D)</DisableVertical>
 			<Scroll>縦スクロールロック</Scroll>
@@ -414,6 +416,7 @@
 		<StopPreviewOnClick>エディットパネル上をクリックするとプレビュー再生をストップ</StopPreviewOnClick>
 		<SkipClippedMeasure>見切れている小節を飛ばして次の小節から再生する</SkipClippedMeasure>
 		<LaneHighlight>レーンのハイライト表示</LaneHighlight>
+		<MinimumBGMLanes>BGMレーンの最小数</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo履歴メモリ上限</UndoRedoMemoryLimit>
 	</GeneralOptions>
 	<Find>

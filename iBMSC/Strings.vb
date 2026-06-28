@@ -173,7 +173,6 @@ Public Class Strings
         Public Shared MaxGridPartition As String = "Max Grid Partition in BMS"
         Public Shared BeepWhileSaved As String = "Beep while saved"
         Public Shared NewBMSUseBase62 As String = "Use base62 for new BMS"
-        Public Shared MyO2Toolbox As String = "MyO2 ToolBox"
         Public Shared BPMDefinitionMode As String = "BPM definitions"
         Public Shared STOPDefinitionMode As String = "STOP definitions"
         Public Shared DefinitionModeDefault As String = "Default (01-FF)"
@@ -186,6 +185,7 @@ Public Class Strings
         Public Shared StopPreviewOnClick As String = "Stop preview if clicked on the editing panel"
         Public Shared SkipClippedMeasure As String = "Skip clipped measure and play from next measure"
         Public Shared LaneHighlight As String = "Lane Highlight"
+        Public Shared MinimumBGMLanes As String = "Minimum BGM lanes"
         Public Shared UndoRedoMemoryLimit As String = "Undo/Redo memory limit"
     End Class
 
