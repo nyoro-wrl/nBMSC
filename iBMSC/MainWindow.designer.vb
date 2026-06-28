@@ -3074,7 +3074,7 @@ Partial Class MainWindow
         Me.mnNTInput.CheckState = System.Windows.Forms.CheckState.Checked
         Me.mnNTInput.Image = Global.iBMSC.My.Resources.Resources.x16NTInput
         Me.mnNTInput.Name = "mnNTInput"
-        Me.mnNTInput.ShortcutKeys = System.Windows.Forms.Keys.F8
+        Me.mnNTInput.ShortcutKeys = System.Windows.Forms.Keys.None
         Me.mnNTInput.Size = New System.Drawing.Size(229, 22)
         Me.mnNTInput.Text = "L&N Input Style - NT/BMSE"
         '

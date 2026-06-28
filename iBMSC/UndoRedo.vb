@@ -16,6 +16,7 @@ Public Class UndoRedo
     Public Const opNT As Byte = 18
     'Public Const opChangeVisibleColumns As Byte = 19
     Public Const opWavAutoincFlag As Byte = 20
+    Public Const opDefinitionChange As Byte = 21
 
     Public Const opNoOperation As Byte = 255
 
@@ -75,6 +76,7 @@ Public Class UndoRedo
             Case opNT : Return New NT(b)
                 'Case opChangeVisibleColumns : Return New ChangeVisibleColumns(b)
             Case opWavAutoincFlag : Return New WavAutoincFlag(b)
+            Case opDefinitionChange : Return New DefinitionChange(b)
             Case opNoOperation : Return New NoOperation(b)
             Case Else : Return Nothing
         End Select
@@ -545,6 +547,45 @@ Public Class UndoRedo
             Return opWavAutoincFlag
         End Function
 
+    End Class
+
+    Public Class DefinitionChange : Inherits LinkedURCmd
+        Public IsWav As Boolean = True
+        Public Index As Integer = 0
+        Public Value As String = ""
+
+        Public Sub New(ByVal isWav As Boolean, ByVal index As Integer, ByVal value As String)
+            Me.IsWav = isWav
+            Me.Index = index
+            Me.Value = If(value, "")
+        End Sub
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br As New BinaryReader(New MemoryStream(b))
+            br.ReadByte()
+            IsWav = br.ReadBoolean()
+            Index = br.ReadInt32()
+            Value = br.ReadString()
+        End Sub
+
+        Public Overrides Function toBytes() As Byte()
+            Dim ms As New MemoryStream()
+            Dim bw As New BinaryWriter(ms)
+            bw.Write(ofType())
+            bw.Write(IsWav)
+            bw.Write(Index)
+            bw.Write(Value)
+
+            Return ms.GetBuffer()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Return MyBase.EstimateBytes() + 8 + If(Value Is Nothing, 0, Value.Length * 2)
+        End Function
+
+        Public Overrides Function ofType() As Byte
+            Return opDefinitionChange
+        End Function
     End Class
 
 

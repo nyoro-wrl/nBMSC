@@ -578,11 +578,7 @@ EndOfSub:
 
     Private Sub XMLLoadLocaleMenu(ByVal n As XmlElement, ByRef target As String)
         If n Is Nothing Then Exit Sub
-        If n.HasAttribute("amp") Then
-            target = n.InnerText.Insert(Integer.Parse(n.GetAttribute("amp")), "&")
-        Else
-            target = n.InnerText
-        End If
+        target = RemoveMenuAccessKeys(n.InnerText)
     End Sub
 
     Private Sub XMLLoadLocale(ByVal n As XmlElement, ByRef target As String)
@@ -1212,6 +1208,7 @@ EndOfSub:
                 XMLLoadLocale(eFileAssociation.Item("ViewCode"), Strings.FileAssociation.ViewCode)
             End If
 
+            RefreshMenuShortcutDisplay()
             DispLang = Path.Replace(My.Application.Info.DirectoryPath & "\", "")
 
         Catch ex As Exception

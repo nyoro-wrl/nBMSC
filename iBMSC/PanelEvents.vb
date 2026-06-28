@@ -11,7 +11,12 @@ Partial Public Class MainWindow
 
         If e.KeyCode = 18 Then Exit Sub
 
-        If IsMoveKey(e.KeyCode) Then
+        If HandleGlobalShortcutFromPreview(e.KeyCode,
+                                           My.Computer.Keyboard.CtrlKeyDown,
+                                           My.Computer.Keyboard.ShiftKeyDown,
+                                           My.Computer.Keyboard.AltKeyDown) Then Return
+
+        If IsMoveKey(e.KeyCode) AndAlso Not My.Computer.Keyboard.ShiftKeyDown Then
             BeginKeyMove(e.KeyCode)
         Else
             EndKeyMove()
@@ -28,6 +33,11 @@ Partial Public Class MainWindow
 
         Select Case e.KeyCode
             Case Keys.Up
+                If My.Computer.Keyboard.ShiftKeyDown Then
+                    AdjustSelectedLongNoteEnds(e.KeyCode)
+                    Exit Select
+                End If
+
                 Dim xVPosition As Double = 192 / gDivide
                 If My.Computer.Keyboard.CtrlKeyDown Then xVPosition = 1
 
@@ -63,6 +73,11 @@ Partial Public Class MainWindow
                 RefreshPanelAll()
 
             Case Keys.Down
+                If My.Computer.Keyboard.ShiftKeyDown Then
+                    AdjustSelectedLongNoteEnds(e.KeyCode)
+                    Exit Select
+                End If
+
                 Dim xVPosition As Double = -192 / gDivide
                 If My.Computer.Keyboard.CtrlKeyDown Then xVPosition = -1
 
@@ -163,10 +178,10 @@ Partial Public Class MainWindow
                 If xPageDownScroll IsNot Nothing Then xPageDownScroll.Value = IIf(xPageDownScroll.Value + gPgUpDn < 0, xPageDownScroll.Value + gPgUpDn, 0)
 
             Case Keys.Oemcomma
-                IncreaseGridDivide()
+                MoveGridDivide(1)
 
             Case Keys.OemPeriod
-                DecreaseGridDivide()
+                MoveGridDivide(-1)
 
             Case Keys.OemQuestion
                 'Dim xTempSwap As Integer = gSlash
@@ -199,7 +214,7 @@ Partial Public Class MainWindow
             Case Keys.S
                 If Not My.Computer.Keyboard.CtrlKeyDown Then POBNormal_Click(Nothing, Nothing)
 
-            Case Keys.R
+            Case Keys.M
                 If Not My.Computer.Keyboard.CtrlKeyDown Then POBMirror_Click(Nothing, Nothing)
 
             Case Keys.D
@@ -411,12 +426,47 @@ Partial Public Class MainWindow
         Return SplitPanes(panelIndex).VScroll
     End Function
 
-    Private Sub IncreaseGridDivide()
-        If gDivide * 2 <= CGDivide.Maximum Then CGDivide.Value = gDivide * 2
+    Private Sub MoveGridDivide(ByVal direction As Integer)
+        If TBGridDivide IsNot Nothing AndAlso MoveGridComboValue(TBGridDivide, direction) Then Return
+
+        Dim xValue As Decimal = CGDivide.Value + direction
+        xValue = Math.Min(CGDivide.Maximum, Math.Max(CGDivide.Minimum, xValue))
+        CGDivide.Value = xValue
     End Sub
 
-    Private Sub DecreaseGridDivide()
-        If gDivide \ 2 >= CGDivide.Minimum Then CGDivide.Value = gDivide \ 2
+    Private Sub AdjustSelectedLongNoteEnds(ByVal keyCode As Keys)
+        If Not NTInput Then Return
+
+        Dim xDelta As Double = If(My.Computer.Keyboard.CtrlKeyDown, 1, 192 / gDivide)
+        If keyCode = Keys.Down Then xDelta = -xDelta
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected Then Continue For
+            If IsColumnNumeric(Notes(xI1).ColumnIndex) Then Continue For
+
+            Dim xLength As Double = Notes(xI1).Length + xDelta
+            Dim xMaxLength As Double = Math.Max(0, GetMaxVPosition() - 1 - Notes(xI1).VPosition)
+            xLength = Math.Max(0, xLength)
+            xLength = Math.Min(xMaxLength, xLength)
+            If xLength = Notes(xI1).Length Then Continue For
+
+            RedoLongNoteModify(Notes(xI1), Notes(xI1).VPosition, xLength, xUndo, xRedo)
+            Notes(xI1).Length = xLength
+            Notes(xI1).LongNote = xLength <> 0
+        Next
+
+        If xUndo Is Nothing Then Return
+
+        AddUndo(xUndo, xBaseRedo.Next)
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
+        CalculateGreatestVPosition()
+        RefreshPanelAll()
     End Sub
 
     Private Sub HandleGridWidthMouseWheel(ByVal delta As Integer)

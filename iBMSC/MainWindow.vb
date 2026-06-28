@@ -290,6 +290,10 @@ Public Class MainWindow
     Dim SyncingPanelScroll As Boolean = False
     Dim PanelFocus As Integer = MainPanelIndex
     Dim spMouseOver As Integer = MainPanelIndex
+    Private Const PreviewGlobalShortcutSuppressMilliseconds As Double = 1000.0R
+    Private PreviewGlobalShortcutKey As Keys = Keys.None
+    Private PreviewGlobalShortcutModifiers As Integer = 0
+    Private PreviewGlobalShortcutTime As DateTime = DateTime.MinValue
 
     Dim AutoFocusMouseEnter As Boolean = False
     Dim FirstClickDisabled As Boolean = True
@@ -334,6 +338,9 @@ Public Class MainWindow
     Private EditorContextEditSeparator As ToolStripSeparator
     Private EditorContextConvertSeparator As ToolStripSeparator
     Private EditorContextModifySeparator As ToolStripSeparator
+    Private DefinitionContextMenu As ContextMenuStrip
+    Private DefinitionContextDelete As ToolStripMenuItem
+    Private DefinitionContextList As ListBox
 
     Private Class EditorScrollBar
         Inherits Control
@@ -692,12 +699,15 @@ Public Class MainWindow
     Public Sub New()
         InitializeComponent()
         InitializeEditorContextMenu()
+        InitializeDefinitionContextMenu()
         InitializeHeaderWheelBlockers()
         InitializePlayerSelector()
         InitializeGridToolbar()
         InitializeOptionsTabs()
         InitializeOptionsMenuItems()
         InitializeSplitterControls()
+        ReorderConversionMenu()
+        RefreshMenuShortcutDisplay()
         InitializeSplitPanes()
         ApplyToolbarLayoutRules()
         Audio.Initialize()
@@ -825,12 +835,88 @@ Public Class MainWindow
     End Sub
 
     Private Sub CopyMenuItem(ByVal xTarget As ToolStripMenuItem, ByVal xSource As ToolStripMenuItem, Optional ByVal xCopyImage As Boolean = False)
-        xTarget.Text = xSource.Text
+        xTarget.Text = RemoveMenuAccessKeys(xSource.Text)
         xTarget.Image = Nothing
         If xCopyImage Then xTarget.Image = xSource.Image
         xTarget.ShortcutKeys = xSource.ShortcutKeys
         xTarget.ShortcutKeyDisplayString = xSource.ShortcutKeyDisplayString
         xTarget.ShowShortcutKeys = xSource.ShowShortcutKeys
+    End Sub
+
+    Private Function RemoveMenuAccessKeys(ByVal text As String) As String
+        If text Is Nothing Then Return ""
+
+        Dim xBuilder As New System.Text.StringBuilder()
+        Dim i As Integer = 0
+        Do While i < text.Length
+            If text(i) = "&"c Then
+                If i + 1 < text.Length AndAlso text(i + 1) = "&"c Then
+                    xBuilder.Append("&"c)
+                    i += 2
+                Else
+                    i += 1
+                End If
+            Else
+                xBuilder.Append(text(i))
+                i += 1
+            End If
+        Loop
+
+        Dim xText As String = xBuilder.ToString()
+        Return System.Text.RegularExpressions.Regex.Replace(xText, "\s\([A-Za-z0-9]\)(?=\.{3}|$)", "")
+    End Function
+
+    Private Sub RemoveMenuAccessKeys(ByVal items As ToolStripItemCollection)
+        If items Is Nothing Then Return
+
+        For Each item As ToolStripItem In items
+            item.Text = RemoveMenuAccessKeys(item.Text)
+
+            Dim xDropDownItem As ToolStripDropDownItem = TryCast(item, ToolStripDropDownItem)
+            If xDropDownItem IsNot Nothing Then RemoveMenuAccessKeys(xDropDownItem.DropDownItems)
+        Next
+    End Sub
+
+    Private Sub RefreshMenuShortcutDisplay()
+        RemoveMenuAccessKeys(mnMain.Items)
+        RemoveMenuAccessKeys(Menu1.Items)
+        RemoveMenuAccessKeys(cmnConversion.Items)
+        RemoveMenuAccessKeys(cmnLanguage.Items)
+        RemoveMenuAccessKeys(cmnTheme.Items)
+        If EditorContextMenu IsNot Nothing Then RemoveMenuAccessKeys(EditorContextMenu.Items)
+        If DefinitionContextDelete IsNot Nothing Then DefinitionContextDelete.Text = RemoveMenuAccessKeys(mnDelete.Text)
+
+        mnNTInput.ShortcutKeys = Keys.None
+        mnNTInput.ShortcutKeyDisplayString = ""
+        POBLong.ShortcutKeyDisplayString = "L"
+        POBShort.ShortcutKeyDisplayString = "S"
+        POBMirror.ShortcutKeyDisplayString = "M"
+        If mnSAddSplitter IsNot Nothing Then mnSAddSplitter.ShortcutKeyDisplayString = "Ctrl++"
+        If mnSRemoveSplitter IsNot Nothing Then mnSRemoveSplitter.ShortcutKeyDisplayString = "Ctrl+-"
+        If mnSyncSplitterScroll IsNot Nothing Then mnSyncSplitterScroll.ShortcutKeyDisplayString = "Ctrl+\"
+        If mnSlashGrid IsNot Nothing Then mnSlashGrid.ShortcutKeyDisplayString = "/"
+
+        If TBAddSplitter IsNot Nothing Then TBAddSplitter.ToolTipText = TBAddSplitter.Text & " (Ctrl++)"
+        If TBRemoveSplitter IsNot Nothing Then TBRemoveSplitter.ToolTipText = TBRemoveSplitter.Text & " (Ctrl+-)"
+        If TBSyncSplitterScroll IsNot Nothing Then TBSyncSplitterScroll.ToolTipText = TBSyncSplitterScroll.Text & " (Ctrl+\)"
+    End Sub
+
+    Private Sub ReorderConversionMenu()
+        cmnConversion.Items.Clear()
+        cmnConversion.Items.AddRange(New ToolStripItem() {
+            POBHidden,
+            POBLandmine,
+            POBVisible,
+            POBHiddenVisible,
+            POBNormalLandmine,
+            ToolStripSeparator11,
+            POBModify,
+            POBMirror,
+            ToolStripSeparator10,
+            POBLong,
+            POBShort,
+            POBLongShort
+        })
     End Sub
 
     Private Function HasSelectedNotes() As Boolean
@@ -927,6 +1013,83 @@ Public Class MainWindow
 
         Return False
     End Function
+
+    Private Sub InitializeDefinitionContextMenu()
+        DefinitionContextMenu = New ContextMenuStrip(components)
+        DefinitionContextDelete = New ToolStripMenuItem With {
+            .Name = "DefinitionContextDelete",
+            .Text = RemoveMenuAccessKeys(mnDelete.Text)
+        }
+        DefinitionContextMenu.Items.Add(DefinitionContextDelete)
+
+        LWAV.ContextMenuStrip = DefinitionContextMenu
+        LBMP.ContextMenuStrip = DefinitionContextMenu
+        AddHandler DefinitionContextMenu.Opening, AddressOf DefinitionContextMenu_Opening
+        AddHandler DefinitionContextDelete.Click, AddressOf DefinitionContextDelete_Click
+        AddHandler LWAV.MouseDown, AddressOf DefinitionList_MouseDown
+        AddHandler LBMP.MouseDown, AddressOf DefinitionList_MouseDown
+    End Sub
+
+    Private Sub DefinitionContextMenu_Opening(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs)
+        DefinitionContextList = TryCast(DefinitionContextMenu.SourceControl, ListBox)
+        DefinitionContextDelete.Text = RemoveMenuAccessKeys(mnDelete.Text)
+        DefinitionContextDelete.Enabled = DefinitionContextList IsNot Nothing AndAlso DefinitionContextList.SelectedIndices.Count > 0
+    End Sub
+
+    Private Sub DefinitionList_MouseDown(ByVal sender As Object, ByVal e As MouseEventArgs)
+        If e.Button <> MouseButtons.Right Then Return
+
+        Dim xList As ListBox = DirectCast(sender, ListBox)
+        Dim xIndex As Integer = xList.IndexFromPoint(e.Location)
+        If xIndex < 0 Then Return
+
+        If Not xList.SelectedIndices.Contains(xIndex) Then
+            xList.ClearSelected()
+            xList.SelectedIndex = xIndex
+        End If
+    End Sub
+
+    Private Sub DefinitionContextDelete_Click(ByVal sender As Object, ByVal e As EventArgs)
+        If Object.ReferenceEquals(DefinitionContextList, LWAV) Then
+            ClearSelectedWavDefinitions()
+        ElseIf Object.ReferenceEquals(DefinitionContextList, LBMP) Then
+            ClearSelectedBmpDefinitions()
+        End If
+    End Sub
+
+    Private Sub ClearSelectedWavDefinitions()
+        If LWAV.SelectedIndices.Count = 0 Then Return
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        Dim xChanged As Boolean = False
+
+        Dim xIndices(LWAV.SelectedIndices.Count - 1) As Integer
+        LWAV.SelectedIndices.CopyTo(xIndices, 0)
+        For Each xIndex As Integer In xIndices
+            If SetDefinitionValueWithUndo(True, xIndex + 1, "", xUndo, xRedo) Then xChanged = True
+        Next
+
+        If xChanged Then AddUndo(xUndo, xBaseRedo.Next)
+    End Sub
+
+    Private Sub ClearSelectedBmpDefinitions()
+        If LBMP.SelectedIndices.Count = 0 Then Return
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        Dim xChanged As Boolean = False
+
+        Dim xIndices(LBMP.SelectedIndices.Count - 1) As Integer
+        LBMP.SelectedIndices.CopyTo(xIndices, 0)
+        For Each xIndex As Integer In xIndices
+            If SetDefinitionValueWithUndo(False, xIndex + 1, "", xUndo, xRedo) Then xChanged = True
+        Next
+
+        If xChanged Then AddUndo(xUndo, xBaseRedo.Next)
+    End Sub
 
     Private Sub InitializeOptionsMenuItems()
         mnSlashGrid = New ToolStripMenuItem With {
@@ -1063,7 +1226,7 @@ Public Class MainWindow
     End Sub
 
     Private Sub InitializeGridToolbar()
-        TBGridDivide = CreateGridCombo("TBGridDivide", 47, New String() {"1", "2", "3", "4", "6", "8", "12", "16", "24", "32", "48", "64", "96", "192"})
+        TBGridDivide = CreateGridCombo("TBGridDivide", 47, GridDivideValueTexts())
         TBGridSub = CreateGridCombo("TBGridSub", 47, New String() {"1", "2", "3", "4", "6", "8", "12", "16"})
         TBGridHeight = CreateGridCombo("TBGridHeight", 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
         TBGridWidth = CreateGridCombo("TBGridWidth", 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
@@ -1129,6 +1292,9 @@ Public Class MainWindow
 
     Private Sub RefreshGridToolbar()
         If TBGridDivide Is Nothing Then Return
+        If UpdatingGridToolbar Then Return
+
+        RefreshGridDivideItems()
 
         UpdatingGridToolbar = True
         TBGridDivide.Text = CInt(CGDivide.Value).ToString()
@@ -1140,6 +1306,76 @@ Public Class MainWindow
         TBGridHeight.ToolTipText = TBGridHeight.Text
         TBGridWidth.ToolTipText = TBGridWidth.Text
         UpdatingGridToolbar = False
+    End Sub
+
+    Private Function GridPartitionLimit() As Integer
+        If BMSGridLimit <= 0 Then Return CInt(CGDivide.Maximum)
+
+        Dim xLimit As Integer = CInt(Math.Round(192.0R / BMSGridLimit))
+        Return Math.Max(CInt(CGDivide.Minimum), xLimit)
+    End Function
+
+    Private Function GridDivideValueTexts() As String()
+        Dim xValues As New List(Of Integer)
+        Dim xLimit As Integer = GridPartitionLimit()
+
+        xValues.Add(1)
+        AddDoublingGridDivideValues(xValues, 2, xLimit)
+        AddDoublingGridDivideValues(xValues, 3, xLimit)
+        xValues.Sort()
+
+        Dim xTexts(xValues.Count - 1) As String
+        For i As Integer = 0 To xValues.Count - 1
+            xTexts(i) = xValues(i).ToString()
+        Next
+
+        Return xTexts
+    End Function
+
+    Private Sub AddDoublingGridDivideValues(ByVal values As List(Of Integer), ByVal value As Integer, ByVal limit As Integer)
+        Do While value <= limit
+            values.Add(value)
+            If value > Integer.MaxValue \ 2 Then Exit Do
+            value *= 2
+        Loop
+    End Sub
+
+    Private Sub RefreshGridDivideItems()
+        Dim xWasUpdating As Boolean = UpdatingGridToolbar
+        UpdatingGridToolbar = True
+        Try
+            Dim xLimit As Integer = GridPartitionLimit()
+
+            If CGDivide.Value > xLimit Then CGDivide.Value = xLimit
+            If CGSub.Value > xLimit Then CGSub.Value = xLimit
+            CGDivide.Maximum = xLimit
+            CGSub.Maximum = xLimit
+            If gSlash > xLimit Then gSlash = xLimit
+
+            ReplaceGridComboItems(TBGridDivide, GridDivideValueTexts())
+        Finally
+            UpdatingGridToolbar = xWasUpdating
+        End Try
+    End Sub
+
+    Private Sub ReplaceGridComboItems(ByVal item As ToolStripComboBox, ByVal values() As String)
+        If item Is Nothing Then Return
+
+        Dim xText As String = item.Text
+        If item.Items.Count = values.Length Then
+            Dim xSame As Boolean = True
+            For i As Integer = 0 To values.Length - 1
+                If item.Items(i).ToString() <> values(i) Then
+                    xSame = False
+                    Exit For
+                End If
+            Next
+            If xSame Then Return
+        End If
+
+        item.Items.Clear()
+        item.Items.AddRange(values)
+        item.Text = xText
     End Sub
 
     Private Function GridScaleText(ByVal value As Decimal) As String
@@ -1248,6 +1484,13 @@ Public Class MainWindow
             Return False
         End If
 
+        Return MoveGridComboValue(item, direction)
+    End Function
+
+    Private Function MoveGridComboValue(ByVal item As ToolStripComboBox, ByVal direction As Integer) As Boolean
+        If item Is Nothing Then Return False
+
+        Dim text As String = item.Text
         Dim value As Decimal
         If Not TryGridComboValue(item, text, value) Then
             Return False
@@ -1392,13 +1635,6 @@ Public Class MainWindow
 
         If mnSys.DropDownItems.Contains(mnSLSplitter) Then mnSys.DropDownItems.Remove(mnSLSplitter)
         If mnSys.DropDownItems.Contains(mnSRSplitter) Then mnSys.DropDownItems.Remove(mnSRSplitter)
-
-        Dim menuIndex As Integer = mnOptions.DropDownItems.IndexOf(mnChangePlaySide)
-        If menuIndex >= 0 Then
-            mnOptions.DropDownItems.Insert(menuIndex + 1, mnSyncSplitterScroll)
-        Else
-            mnOptions.DropDownItems.Add(mnSyncSplitterScroll)
-        End If
 
         ToolStripSeparatorSplitter = New ToolStripSeparator With {
             .Name = "ToolStripSeparatorSplitter"
@@ -2223,11 +2459,96 @@ Public Class MainWindow
     End Sub
 
     Private Sub Form1_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
+        If HandleGlobalShortcut(e) Then Return
+
         Select Case e.KeyCode
             Case Keys.F11
                 setFullScreen(Not isFullScreen)
         End Select
     End Sub
+
+    Private Function HandleGlobalShortcut(ByVal e As KeyEventArgs) As Boolean
+        If ConsumePreviewGlobalShortcut(e.KeyCode, e.Control, e.Shift, e.Alt) Then
+            e.SuppressKeyPress = True
+            Return True
+        End If
+
+        If Not HandleGlobalShortcut(e.KeyCode, e.Control, e.Shift, e.Alt) Then Return False
+
+        e.SuppressKeyPress = True
+        Return True
+    End Function
+
+    Private Function ShortcutModifierMask(ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Integer
+        Dim xMask As Integer = 0
+        If ctrl Then xMask = xMask Or 1
+        If shift Then xMask = xMask Or 2
+        If alt Then xMask = xMask Or 4
+        Return xMask
+    End Function
+
+    Private Sub RememberPreviewGlobalShortcut(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean)
+        PreviewGlobalShortcutKey = keyCode
+        PreviewGlobalShortcutModifiers = ShortcutModifierMask(ctrl, shift, alt)
+        PreviewGlobalShortcutTime = DateTime.UtcNow
+    End Sub
+
+    Private Sub ClearPreviewGlobalShortcut()
+        PreviewGlobalShortcutKey = Keys.None
+        PreviewGlobalShortcutModifiers = 0
+        PreviewGlobalShortcutTime = DateTime.MinValue
+    End Sub
+
+    Private Function ConsumePreviewGlobalShortcut(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Boolean
+        If PreviewGlobalShortcutKey = Keys.None Then Return False
+
+        If PreviewGlobalShortcutKey <> keyCode OrElse
+           PreviewGlobalShortcutModifiers <> ShortcutModifierMask(ctrl, shift, alt) OrElse
+           (DateTime.UtcNow - PreviewGlobalShortcutTime).TotalMilliseconds > PreviewGlobalShortcutSuppressMilliseconds Then
+            ClearPreviewGlobalShortcut()
+            Return False
+        End If
+
+        ClearPreviewGlobalShortcut()
+        Return True
+    End Function
+
+    Private Function IsGlobalShortcutKey(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Boolean
+        If Not ctrl OrElse alt Then Return False
+
+        Select Case keyCode
+            Case Keys.Oemplus, Keys.Add, Keys.OemMinus, Keys.Subtract
+                Return True
+            Case Keys.Oem5, Keys.Oem102
+                Return Not shift
+        End Select
+
+        Return False
+    End Function
+
+    Private Function HandleGlobalShortcutFromPreview(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Boolean
+        If Not HandleGlobalShortcut(keyCode, ctrl, shift, alt) Then Return False
+
+        RememberPreviewGlobalShortcut(keyCode, ctrl, shift, alt)
+        Return True
+    End Function
+
+    Private Function HandleGlobalShortcut(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Boolean
+        If Not IsGlobalShortcutKey(keyCode, ctrl, shift, alt) Then Return False
+
+        Select Case keyCode
+            Case Keys.Oemplus, Keys.Add
+                AddRightSplitPane()
+            Case Keys.OemMinus, Keys.Subtract
+                RemoveRightSplitPane()
+            Case Keys.Oem5, Keys.Oem102
+                SetSplitterScrollSync(Not SyncSplitterScroll)
+            Case Else
+                Return False
+        End Select
+
+        Return True
+    End Function
 
     Private Sub Form1_KeyUp(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyUp
         If e.KeyCode = KeyMoveKey Then EndKeyMove()
@@ -2419,6 +2740,7 @@ Public Class MainWindow
         If My.Computer.FileSystem.FileExists(xThemePath) Then
             LoadSettings(xThemePath)
             ChangePlaySideSkin(False)
+            RefreshGridToolbar()
         End If
     End Sub
 
@@ -2712,6 +3034,52 @@ EndSearch:
 
         LBMP.Items.Item(xIndex - 1) = DefinitionLabel(xIndex) & ": " & hBMP(xIndex)
     End Sub
+
+    Private Function DefinitionValue(ByVal isWav As Boolean, ByVal index As Integer) As String
+        If isWav Then
+            If index < 0 OrElse index > UBound(hWAV) Then Return ""
+            Return hWAV(index)
+        End If
+
+        If index < 0 OrElse index > UBound(hBMP) Then Return ""
+        Return hBMP(index)
+    End Function
+
+    Private Sub SetDefinitionValue(ByVal isWav As Boolean, ByVal index As Integer, ByVal value As String)
+        If value Is Nothing Then value = ""
+
+        If isWav Then
+            If index < 0 OrElse index > UBound(hWAV) Then Return
+
+            hWAV(index) = value
+            If index = 0 Then
+                If THLandMine.Text <> value Then THLandMine.Text = value
+            Else
+                RefreshWAVItem(index)
+            End If
+            Return
+        End If
+
+        If index < 0 OrElse index > UBound(hBMP) Then Return
+
+        hBMP(index) = value
+        If index = 0 Then
+            If THMissBMP.Text <> value Then THMissBMP.Text = value
+        Else
+            RefreshBMPItem(index)
+        End If
+    End Sub
+
+    Private Function SetDefinitionValueWithUndo(ByVal isWav As Boolean,
+                                                ByVal index As Integer,
+                                                ByVal value As String,
+                                                ByRef undo As UndoRedo.LinkedURCmd,
+                                                ByRef redo As UndoRedo.LinkedURCmd) As Boolean
+        If Not RedoDefinitionChange(isWav, index, value, undo, redo) Then Return False
+
+        SetDefinitionValue(isWav, index, value)
+        Return True
+    End Function
 
     ''' <summary>
     ''' True if pressed cancel. False elsewise.
@@ -3304,17 +3672,19 @@ EndSearch:
 
         If xDWAV.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
         InitPath = ExcludeFileName(xDWAV.FileName)
-        hWAV(LWAV.SelectedIndex + 1) = GetBMSRefPath(xDWAV.FileName)
-        RefreshWAVItem(LWAV.SelectedIndex + 1)
-        If IsSaved Then SetIsSaved(False)
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        If SetDefinitionValueWithUndo(True, LWAV.SelectedIndex + 1, GetBMSRefPath(xDWAV.FileName), xUndo, xRedo) Then
+            AddUndo(xUndo, xBaseRedo.Next)
+        End If
     End Sub
 
     Private Sub LWAV_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles LWAV.KeyDown
         Select Case e.KeyCode
             Case Keys.Delete
-                hWAV(LWAV.SelectedIndex + 1) = ""
-                RefreshWAVItem(LWAV.SelectedIndex + 1)
-                If IsSaved Then SetIsSaved(False)
+                ClearSelectedWavDefinitions()
         End Select
     End Sub
 
@@ -3337,17 +3707,19 @@ EndSearch:
 
         If xDBMP.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
         InitPath = ExcludeFileName(xDBMP.FileName)
-        hBMP(LBMP.SelectedIndex + 1) = GetBMSRefPath(xDBMP.FileName)
-        RefreshBMPItem(LBMP.SelectedIndex + 1)
-        If IsSaved Then SetIsSaved(False)
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        If SetDefinitionValueWithUndo(False, LBMP.SelectedIndex + 1, GetBMSRefPath(xDBMP.FileName), xUndo, xRedo) Then
+            AddUndo(xUndo, xBaseRedo.Next)
+        End If
     End Sub
 
     Private Sub LBMP_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles LBMP.KeyDown
         Select Case e.KeyCode
             Case Keys.Delete
-                hBMP(LBMP.SelectedIndex + 1) = ""
-                RefreshBMPItem(LBMP.SelectedIndex + 1)
-                If IsSaved Then SetIsSaved(False)
+                ClearSelectedBmpDefinitions()
         End Select
     End Sub
 
@@ -4268,13 +4640,17 @@ StartCount:     If Not NTInput Then
             End If
         End If
 
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        Dim xChanged As Boolean = False
+
         'Dim xI2 As Integer = 0
         For xI1 As Integer = 0 To UBound(xPath)
             'If xI2 > UBound(xIndices) Then Exit For
             'hWAV(xIndices(xI2) + 1) = GetFileName(xPath(xI1))
             'LWAV.Items.Item(xIndices(xI2)) = C10to36(xIndices(xI2) + 1) & ": " & GetFileName(xPath(xI1))
-            hWAV(xIndices(xI1) + 1) = GetBMSRefPath(xPath(xI1))
-            RefreshWAVItem(xIndices(xI1) + 1)
+            If SetDefinitionValueWithUndo(True, xIndices(xI1) + 1, GetBMSRefPath(xPath(xI1)), xUndo, xRedo) Then xChanged = True
             'xI2 += 1
         Next
 
@@ -4283,7 +4659,7 @@ StartCount:     If Not NTInput Then
             LWAV.SelectedIndices.Add(xIndices(xI1))
         Next
 
-        If IsSaved Then SetIsSaved(False)
+        If xChanged Then AddUndo(xUndo, xBaseRedo.Next)
         RefreshPanelAll()
     End Sub
 
@@ -4366,13 +4742,17 @@ StartCount:     If Not NTInput Then
             End If
         End If
 
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        Dim xChanged As Boolean = False
+
         'Dim xI2 As Integer = 0
         For xI1 As Integer = 0 To UBound(xPath)
             'If xI2 > UBound(xIndices) Then Exit For
             'hBMP(xIndices(xI2) + 1) = GetFileName(xPath(xI1))
             'LBMP.Items.Item(xIndices(xI2)) = C10to36(xIndices(xI2) + 1) & ": " & GetFileName(xPath(xI1))
-            hBMP(xIndices(xI1) + 1) = GetBMSRefPath(xPath(xI1))
-            RefreshBMPItem(xIndices(xI1) + 1)
+            If SetDefinitionValueWithUndo(False, xIndices(xI1) + 1, GetBMSRefPath(xPath(xI1)), xUndo, xRedo) Then xChanged = True
             'xI2 += 1
         Next
 
@@ -4381,7 +4761,7 @@ StartCount:     If Not NTInput Then
             LBMP.SelectedIndices.Add(xIndices(xI1))
         Next
 
-        If IsSaved Then SetIsSaved(False)
+        If xChanged Then AddUndo(xUndo, xBaseRedo.Next)
         RefreshPanelAll()
     End Sub
 
@@ -4828,6 +5208,7 @@ StartCount:     If Not NTInput Then
             End With
             If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval
             AutoSaveTimer.Enabled = AutoSaveInterval
+            RefreshGridToolbar()
             RefreshPanelAll()
         End If
     End Sub

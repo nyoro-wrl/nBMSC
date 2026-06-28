@@ -72,6 +72,7 @@ Partial Public Class MainWindow
                             If NTInput Then
                                 .VPosition = xCmd.NVPosition
                                 .Length = xCmd.NLongNote
+                                .LongNote = xCmd.NLongNote <> 0
                             Else
                                 .LongNote = xCmd.NLongNote
                             End If
@@ -153,6 +154,10 @@ Partial Public Class MainWindow
                 Case UndoRedo.opWavAutoincFlag
                     Dim xcmd As UndoRedo.WavAutoincFlag = sCmd
                     SetWavIncreaseChecked(xcmd.Checked)
+
+                Case UndoRedo.opDefinitionChange
+                    Dim xCmd As UndoRedo.DefinitionChange = sCmd
+                    SetDefinitionValue(xCmd.IsWav, xCmd.Index, xCmd.Value)
 
                 Case UndoRedo.opVoid
 
@@ -520,6 +525,7 @@ Partial Public Class MainWindow
         Dim n = note
         n.VPosition = nVPos
         n.Length = nLong
+        n.LongNote = nLong <> 0
 
         Dim xUndo As New UndoRedo.LongNoteModify(n, note.VPosition, note.Length)
         Dim xRedo As New UndoRedo.LongNoteModify(note, nVPos, n.Length)
@@ -633,4 +639,23 @@ Partial Public Class MainWindow
         If BaseUndo IsNot Nothing Then BaseRedo.Next = xRedo
         BaseRedo = xRedo
     End Sub
+
+    Private Function RedoDefinitionChange(ByVal isWav As Boolean,
+                                          ByVal index As Integer,
+                                          ByVal value As String,
+                                          ByRef BaseUndo As UndoRedo.LinkedURCmd,
+                                          ByRef BaseRedo As UndoRedo.LinkedURCmd) As Boolean
+        If value Is Nothing Then value = ""
+
+        Dim xCurrent As String = DefinitionValue(isWav, index)
+        If xCurrent = value Then Return False
+
+        Dim xUndo As New UndoRedo.DefinitionChange(isWav, index, xCurrent)
+        Dim xRedo As New UndoRedo.DefinitionChange(isWav, index, value)
+        xUndo.Next = BaseUndo
+        BaseUndo = xUndo
+        If BaseRedo IsNot Nothing Then BaseRedo.Next = xRedo
+        BaseRedo = xRedo
+        Return True
+    End Function
 End Class
