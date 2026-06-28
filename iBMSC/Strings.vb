@@ -20,6 +20,7 @@ Public Class Strings
         Public Shared PromptEnter As String = "Please enter a label."
         Public Shared PromptEnterNumeric As String = "Please enter a value."
         Public Shared PromptEnterMeasure As String = "Please enter a measure (0-999)."
+        Public Shared GoToMeasureTitle As String = "Enter Measure"
         Public Shared PromptEnterBPM As String = "Please enter a BPM value."
         Public Shared PromptEnterSTOP As String = "Please enter a STOP value."
         Public Shared PromptEnterSCROLL As String = "Please enter a SCROLL value."

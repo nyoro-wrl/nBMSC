@@ -39,6 +39,7 @@
 			<Paste>粘贴 (&amp;P)</Paste>
 			<Delete>删除 (&amp;L)</Delete>
 			<SelectAll>全选 (&amp;A)</SelectAll>
+			<GoToMeasure>跳转到小节 (&amp;G)...</GoToMeasure>
 			<Find>查找 / 删除 / 替换 (&amp;F)</Find>
 			<Stat>统计 (&amp;A)</Stat>
 			<TimeSelectionTool>时间选择工具 (&amp;I)</TimeSelectionTool>
@@ -226,7 +227,7 @@
 		</Header>
 		<Grid>
 			<Title>格线</Title>
-			<Snap>对齐至格线 (G)</Snap>
+			<Snap>网格吸附 (G)</Snap>
 			<NoSnap>不对齐至格线</NoSnap>
 			<BCols>BGM 列最小数量</BCols>
 			<DisableVertical>禁用垂直移动 (D)</DisableVertical>
@@ -255,6 +256,8 @@
 		<SaveOnExit2>就算你用任务管理器你还是得告诉我你要保存不 -_,-</SaveOnExit2>
 		<PromptEnter>请输入一个标签。</PromptEnter>
 		<PromptEnterNumeric>请输入一个值。</PromptEnterNumeric>
+		<PromptEnterMeasure>请输入小节号 (0-999)。</PromptEnterMeasure>
+		<GoToMeasureTitle>跳转到小节</GoToMeasureTitle>
 		<PromptEnterBPM>请输入变速值。</PromptEnterBPM>
 		<PromptEnterSTOP>请输入STOP值。</PromptEnterSTOP>
 		<PromptSlashValue>当按下“/”键时，更改格线为：</PromptSlashValue>

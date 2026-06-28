@@ -38,6 +38,7 @@
 			<Paste amp="6">붙여넣기 (P)</Paste>
 			<Delete amp="4">삭제 (D)</Delete>
 			<SelectAll amp="7">모두 선택 (A)</SelectAll>
+			<GoToMeasure>마디로 이동 (&amp;G)...</GoToMeasure>
 			<Find amp="14">찾기 / 삭제 / 교체 (F)</Find>
 			<Stat amp="4">통계 (T)</Stat>
 			<TimeSelectionTool amp="11">시간 편집 모드 (I)</TimeSelectionTool>
@@ -232,7 +233,7 @@
 		</Header>
 		<Grid>
 			<Title>격자</Title>
-			<Snap>격자에 맞추기(G)</Snap>
+			<Snap>격자 스냅(G)</Snap>
 			<NoSnap>격자에 맞추지 않기</NoSnap>
 			<BCols>BGM 최소 수</BCols>
 			<DisableVertical>수직위치 고정 (D)</DisableVertical>
@@ -264,6 +265,8 @@
 		<SaveOnExit2>작업관리자에서 종료해도 저장할 것인지 묻기</SaveOnExit2>
 		<PromptEnter>설정할 번호를 입력하세요.</PromptEnter>
 		<PromptEnterNumeric>값을 입력하세요.</PromptEnterNumeric>
+		<PromptEnterMeasure>마디 번호를 입력하세요 (0-999).</PromptEnterMeasure>
+		<GoToMeasureTitle>마디로 이동</GoToMeasureTitle>
 		<PromptEnterBPM>BPM을 입력하세요.</PromptEnterBPM>
 		<PromptEnterSTOP>STOP 시간을 입력하세요.</PromptEnterSTOP>
 		<PromptSlashValue>슬래시키("/")를 누르면 격자를 이렇게 설정합니다.：</PromptSlashValue>

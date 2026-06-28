@@ -6621,7 +6621,7 @@ case2:              Dim xI0 As Integer
     End Sub
 
     Private Sub mnGotoMeasure_Click(sender As Object, e As EventArgs) Handles mnGotoMeasure.Click
-        Dim s = InputBox(Strings.Messages.PromptEnterMeasure, "Enter Measure")
+        Dim s = InputBox(Strings.Messages.PromptEnterMeasure, Strings.Messages.GoToMeasureTitle)
 
         Dim i As Integer
         If Int32.TryParse(s, i) Then

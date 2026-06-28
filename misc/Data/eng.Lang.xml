@@ -38,6 +38,7 @@
 			<Paste amp="0">Paste</Paste>
 			<Delete amp="2">Delete</Delete>
 			<SelectAll amp="7">Select All</SelectAll>
+			<GoToMeasure>&amp;Go To Measure...</GoToMeasure>
 			<Find amp="0">Find / Delete / Replace</Find>
 			<Stat amp="2">Statistics</Stat>
 			<TimeSelectionTool amp="1">Time Selection Tool</TimeSelectionTool>
@@ -235,7 +236,7 @@
 		</Header>
 		<Grid>
 			<Title>Grid</Title>
-			<Snap>Snap to grid (G)</Snap>
+			<Snap>Grid Snap (G)</Snap>
 			<NoSnap>Do not snap to grid</NoSnap>
 			<BCols>Minimum BGM Columns</BCols>
 			<DisableVertical>Disable vertical moves (D)</DisableVertical>
@@ -267,6 +268,8 @@
 		<SaveOnExit2>You still need to tell me if you want to save changes even though you are closing the application with task manager. -_,-</SaveOnExit2>
 		<PromptEnter>Please enter a label.</PromptEnter>
 		<PromptEnterNumeric>Please enter a value.</PromptEnterNumeric>
+		<PromptEnterMeasure>Please enter a measure (0-999).</PromptEnterMeasure>
+		<GoToMeasureTitle>Enter Measure</GoToMeasureTitle>
 		<PromptEnterBPM>Please enter a BPM value.</PromptEnterBPM>
 		<PromptEnterSTOP>Please enter a STOP value.</PromptEnterSTOP>
 		<PromptEnterSTOP>Please enter a SCROLL value.</PromptEnterSTOP>

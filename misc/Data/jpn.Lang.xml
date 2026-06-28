@@ -38,6 +38,7 @@
 			<Paste amp="6">貼り付け (P)</Paste>
 			<Delete amp="4">削除 (D)</Delete>
 			<SelectAll amp="7">すべて選択 (A)</SelectAll>
+			<GoToMeasure>指定小節へ移動 (&amp;G)...</GoToMeasure>
 			<Find amp="14">検索 / 削除 / 置換 (F)</Find>
 			<Stat amp="4">統計 (T)</Stat>
 			<TimeSelectionTool amp="11">時間選択モード (I)</TimeSelectionTool>
@@ -235,7 +236,7 @@
 		</Header>
 		<Grid>
 			<Title>Grid</Title>
-			<Snap>Grid に合わせる (G)</Snap>
+			<Snap>グリッドスナップ (G)</Snap>
 			<NoSnap>グリッドに合わせない</NoSnap>
 			<BCols>BGM 列の最小数</BCols>
 			<DisableVertical>オブジェを縦移動させない (D)</DisableVertical>
@@ -267,6 +268,8 @@
 		<SaveOnExit2>タスクマネージャーから終了する場合も、保存するか確認する。</SaveOnExit2>
 		<PromptEnter>定義番号を入力してください。</PromptEnter>
 		<PromptEnterNumeric>値を入力してください。</PromptEnterNumeric>
+		<PromptEnterMeasure>小節番号を入力してください (0-999)。</PromptEnterMeasure>
+		<GoToMeasureTitle>小節へ移動</GoToMeasureTitle>
 		<PromptEnterBPM>曲のテンポを入力してください。</PromptEnterBPM>
 		<PromptEnterSTOP>停止時間を入力してください。</PromptEnterSTOP>
 		<PromptEnterSCROLL>スクロール速度を入力してください。</PromptEnterSCROLL>
