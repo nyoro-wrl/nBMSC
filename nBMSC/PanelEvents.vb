@@ -725,6 +725,8 @@ Partial Public Class MainWindow
             End If
         End If
 
+        If TBWrite.Checked Then Return
+
         ShowEditorContextMenu(TryCast(sender, Control), e, xVS, xHeight)
     End Sub
 

@@ -1073,10 +1073,10 @@ Partial Class MainWindow
         Me.POWAVPart2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.POWAVPart2.ColumnCount = 1
         Me.POWAVPart2.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
-        Me.POWAVPart2.Controls.Add(Me.CWAVBase62, 0, 0)
-        Me.POWAVPart2.Controls.Add(Me.CWAVMultiSelect, 0, 1)
-        Me.POWAVPart2.Controls.Add(Me.CWAVChangeLabel, 0, 2)
-        Me.POWAVPart2.Controls.Add(Me.CWAVEmptyfill, 0, 3)
+        Me.POWAVPart2.Controls.Add(Me.CWAVMultiSelect, 0, 0)
+        Me.POWAVPart2.Controls.Add(Me.CWAVChangeLabel, 0, 1)
+        Me.POWAVPart2.Controls.Add(Me.CWAVEmptyfill, 0, 2)
+        Me.POWAVPart2.Controls.Add(Me.CWAVBase62, 0, 3)
         Me.POWAVPart2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.POWAVPart2.Location = New System.Drawing.Point(0, 55)
         Me.POWAVPart2.Margin = New System.Windows.Forms.Padding(0)
@@ -1092,11 +1092,11 @@ Partial Class MainWindow
         'CWAVBase62
         '
         Me.CWAVBase62.AutoSize = True
-        Me.CWAVBase62.Location = New System.Drawing.Point(3, 0)
+        Me.CWAVBase62.Location = New System.Drawing.Point(3, 57)
         Me.CWAVBase62.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
         Me.CWAVBase62.Name = "CWAVBase62"
         Me.CWAVBase62.Size = New System.Drawing.Size(123, 19)
-        Me.CWAVBase62.TabIndex = 0
+        Me.CWAVBase62.TabIndex = 3
         Me.CWAVBase62.Text = "Extend to base62"
         Me.CWAVBase62.UseVisualStyleBackColor = True
         '
@@ -1105,11 +1105,11 @@ Partial Class MainWindow
         Me.CWAVMultiSelect.AutoSize = True
         Me.CWAVMultiSelect.Checked = True
         Me.CWAVMultiSelect.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.CWAVMultiSelect.Location = New System.Drawing.Point(3, 19)
+        Me.CWAVMultiSelect.Location = New System.Drawing.Point(3, 0)
         Me.CWAVMultiSelect.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
         Me.CWAVMultiSelect.Name = "CWAVMultiSelect"
         Me.CWAVMultiSelect.Size = New System.Drawing.Size(154, 19)
-        Me.CWAVMultiSelect.TabIndex = 1
+        Me.CWAVMultiSelect.TabIndex = 0
         Me.CWAVMultiSelect.Text = "Allow Multiple Selection"
         Me.CWAVMultiSelect.UseVisualStyleBackColor = True
         Me.CWAVMultiSelect.Visible = False
@@ -1119,11 +1119,11 @@ Partial Class MainWindow
         Me.CWAVChangeLabel.AutoSize = True
         Me.CWAVChangeLabel.Checked = True
         Me.CWAVChangeLabel.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.CWAVChangeLabel.Location = New System.Drawing.Point(3, 38)
+        Me.CWAVChangeLabel.Location = New System.Drawing.Point(3, 19)
         Me.CWAVChangeLabel.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
         Me.CWAVChangeLabel.Name = "CWAVChangeLabel"
         Me.CWAVChangeLabel.Size = New System.Drawing.Size(154, 19)
-        Me.CWAVChangeLabel.TabIndex = 2
+        Me.CWAVChangeLabel.TabIndex = 1
         Me.CWAVChangeLabel.Text = "Synchronize Note Labels"
         Me.CWAVChangeLabel.UseVisualStyleBackColor = True
         '
@@ -1132,11 +1132,11 @@ Partial Class MainWindow
         Me.CWAVEmptyfill.AutoSize = True
         Me.CWAVEmptyfill.Checked = True
         Me.CWAVEmptyfill.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.CWAVEmptyfill.Location = New System.Drawing.Point(3, 57)
+        Me.CWAVEmptyfill.Location = New System.Drawing.Point(3, 38)
         Me.CWAVEmptyfill.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
         Me.CWAVEmptyfill.Name = "CWAVEmptyfill"
         Me.CWAVEmptyfill.Size = New System.Drawing.Size(154, 19)
-        Me.CWAVEmptyfill.TabIndex = 3
+        Me.CWAVEmptyfill.TabIndex = 2
         Me.CWAVEmptyfill.Text = "Fill Empty Definition First"
         Me.CWAVEmptyfill.UseVisualStyleBackColor = True
         '
