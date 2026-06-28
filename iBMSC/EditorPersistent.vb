@@ -901,7 +901,7 @@ EndOfSub:
 
                 Dim eHeader As XmlElement = eOptionsPanel.Item("Header")
                 If eHeader IsNot Nothing Then
-                    XMLLoadLocale(eHeader.Item("Header"), POHeaderSwitch.Text)
+                    XMLLoadLocale(eHeader.Item("Header"), POHeaderTabButton.Text)
                     XMLLoadLocale(eHeader.Item("Title"), Label3.Text)
                     XMLLoadLocale(eHeader.Item("Artist"), Label4.Text)
                     XMLLoadLocale(eHeader.Item("Genre"), Label2.Text)
@@ -965,7 +965,7 @@ EndOfSub:
 
                 Dim eWaveForm As XmlElement = eOptionsPanel.Item("WaveForm")
                 If eWaveForm IsNot Nothing Then
-                    XMLLoadLocale(eWaveForm.Item("Title"), POWaveFormSwitch.Text)
+                    XMLLoadLocale(eWaveForm.Item("Title"), POWaveFormTabButton.Text)
                     XMLLoadLocaleToolTipUniversal(eWaveForm.Item("Load"), BWLoad)
                     XMLLoadLocaleToolTipUniversal(eWaveForm.Item("Clear"), BWClear)
                     XMLLoadLocaleToolTipUniversal(eWaveForm.Item("Lock"), BWLock)
@@ -973,26 +973,19 @@ EndOfSub:
 
                 Dim eWAV As XmlElement = eOptionsPanel.Item("WAV")
                 If eWAV IsNot Nothing Then
-                    XMLLoadLocale(eWAV.Item("Title"), POWAVSwitch.Text)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("MoveUp"), BBMPUp)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("MoveDown"), BBMPDown)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("Browse"), BBMPBrowse)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("Remove"), BBMPRemove)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("MoveUp"), BWAVUp)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("MoveDown"), BWAVDown)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("Browse"), BWAVBrowse)
-                    XMLLoadLocaleToolTipUniversal(eWAV.Item("Remove"), BWAVRemove)
+                    XMLLoadLocale(eWAV.Item("Title"), POWAVTabButton.Text)
                 End If
 
                 Dim eBMP As XmlElement = eOptionsPanel.Item("BMP")
                 If eBMP IsNot Nothing Then
-                    XMLLoadLocale(eBMP.Item("Title"), POBMPSwitch.Text)
+                    XMLLoadLocale(eBMP.Item("Title"), POBMPTabButton.Text)
                 End If
 
-                XMLLoadLocale(eOptionsPanel.Item("Beat"), POBeatSwitch.Text)
+                XMLLoadLocale(eOptionsPanel.Item("Beat"), POBeatTabButton.Text)
                 XMLLoadLocale(eOptionsPanel.Item("Beat.Apply"), BBeatApply.Text)
                 XMLLoadLocale(eOptionsPanel.Item("Beat.Apply"), BBeatApplyV.Text)
-                XMLLoadLocale(eOptionsPanel.Item("Expansion"), POExpansionSwitch.Text)
+                XMLLoadLocale(eOptionsPanel.Item("Expansion"), POHeaderExpansionSeparatorLabel.Text)
+                SyncOptionsTabTitles()
             End If
 
             Dim eMessages As XmlElement = Root.Item("Messages")

@@ -830,18 +830,7 @@ Public Class MainWindow
         End Try
     End Sub
 
-    Private Sub OptionsTabSwitch_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles POHeaderSwitch.TextChanged, POWAVSwitch.TextChanged, POBMPSwitch.TextChanged, POBeatSwitch.TextChanged, POWaveFormSwitch.TextChanged
-        If Not OptionsTabsInitialized Then Return
-        SyncOptionsTabTitles()
-    End Sub
-
     Private Sub SyncOptionsTabTitles()
-        POHeaderTabButton.Text = POHeaderSwitch.Text
-        POWAVTabButton.Text = POWAVSwitch.Text
-        POBMPTabButton.Text = POBMPSwitch.Text
-        POBeatTabButton.Text = POBeatSwitch.Text
-        POWaveFormTabButton.Text = POWaveFormSwitch.Text
-
         ApplyOptionsTabButtonSizes()
 
         For Each xButton As Button In GetOptionsTabButtons()
@@ -3707,10 +3696,6 @@ StartCount:     If Not NTInput Then
         Return stop_contrib + bpm_contrib
     End Function
 
-    Private Sub POBStorm_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBStorm.Click
-
-    End Sub
-
     Private Sub POBMirror_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles POBMirror.Click
         Dim xI1 As Integer
         Dim xUndo As UndoRedo.LinkedURCmd = Nothing
@@ -5350,320 +5335,6 @@ Jump2:
         If Not IsInitializing AndAlso IsSaved Then SetIsSaved(False)
     End Sub
 
-    Private Sub BWAVUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BWAVUp.Click
-        If LWAV.SelectedIndex = -1 Then Return
-
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
-        Dim xIndices(LWAV.SelectedIndices.Count - 1) As Integer
-        LWAV.SelectedIndices.CopyTo(xIndices, 0)
-
-        Dim xS As Integer
-        For xS = 0 To DefinitionLastListIndex()
-            If Array.IndexOf(xIndices, xS) = -1 Then Exit For
-        Next
-
-        Dim xStr As String = ""
-        Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To DefinitionLastListIndex()
-            xIndex = Array.IndexOf(xIndices, xI1)
-            If xIndex <> -1 Then
-                xStr = hWAV(xI1 + 1)
-                hWAV(xI1 + 1) = hWAV(xI1)
-                hWAV(xI1) = xStr
-
-                RefreshWAVItem(xI1 + 1)
-                RefreshWAVItem(xI1)
-
-                If Not WAVChangeLabel Then GoTo 1100
-
-                Dim xL1 As String = DefinitionLabel(xI1)
-                Dim xL2 As String = DefinitionLabel(xI1 + 1)
-                For xI2 As Integer = 1 To UBound(Notes)
-                    If Not IsColumnSound(Notes(xI2).ColumnIndex) Then Continue For
-
-                    If DefinitionLabel(Notes(xI2).Value \ 10000) = xL1 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 10000
-
-                    ElseIf DefinitionLabel(Notes(xI2).Value \ 10000) = xL2 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000
-
-                    End If
-                Next
-
-1100:           xIndices(xIndex) += -1
-            End If
-        Next
-
-        LWAV.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LWAV.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        AddUndo(xUndo, xBaseRedo.Next)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
-    Private Sub BWAVDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BWAVDown.Click
-        If LWAV.SelectedIndex = -1 Then Return
-
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
-        Dim xIndices(LWAV.SelectedIndices.Count - 1) As Integer
-        LWAV.SelectedIndices.CopyTo(xIndices, 0)
-
-        Dim xS As Integer
-        For xS = DefinitionLastListIndex() To 0 Step -1
-            If Array.IndexOf(xIndices, xS) = -1 Then Exit For
-        Next
-
-        Dim xStr As String = ""
-        Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To 0 Step -1
-            xIndex = Array.IndexOf(xIndices, xI1)
-            If xIndex <> -1 Then
-                xStr = hWAV(xI1 + 1)
-                hWAV(xI1 + 1) = hWAV(xI1 + 2)
-                hWAV(xI1 + 2) = xStr
-
-                RefreshWAVItem(xI1 + 1)
-                RefreshWAVItem(xI1 + 2)
-
-                If Not WAVChangeLabel Then GoTo 1100
-
-                Dim xL1 As String = DefinitionLabel(xI1 + 2)
-                Dim xL2 As String = DefinitionLabel(xI1 + 1)
-                For xI2 As Integer = 1 To UBound(Notes)
-                    If Not IsColumnSound(Notes(xI2).ColumnIndex) Then Continue For
-
-                    If DefinitionLabel(Notes(xI2).Value \ 10000) = xL1 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 10000
-
-                    ElseIf DefinitionLabel(Notes(xI2).Value \ 10000) = xL2 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 20000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 20000
-
-                    End If
-                Next
-
-1100:           xIndices(xIndex) += 1
-            End If
-        Next
-
-        LWAV.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LWAV.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        AddUndo(xUndo, xBaseRedo.Next)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
-    Private Sub BWAVBrowse_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BWAVBrowse.Click
-        Dim xDWAV As New OpenFileDialog
-        xDWAV.DefaultExt = "wav"
-        xDWAV.Filter = Strings.FileType._wave & "|*.wav;*.ogg;*.mp3;*.flac|" &
-                       Strings.FileType.WAV & "|*.wav|" &
-                       Strings.FileType.OGG & "|*.ogg|" &
-                       Strings.FileType.MP3 & "|*.mp3|" &
-                       Strings.FileType.FLAC & "|*.flac|" &
-                       Strings.FileType._all & "|*.*"
-        xDWAV.InitialDirectory = IIf(ExcludeFileName(FileName) = "", InitPath, ExcludeFileName(FileName))
-        xDWAV.Multiselect = WAVMultiSelect
-
-        If xDWAV.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
-        InitPath = ExcludeFileName(xDWAV.FileName)
-
-        AddToPOWAV(xDWAV.FileNames)
-    End Sub
-
-    Private Sub BWAVRemove_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BWAVRemove.Click
-        Dim xIndices(LWAV.SelectedIndices.Count - 1) As Integer
-        LWAV.SelectedIndices.CopyTo(xIndices, 0)
-        For xI1 As Integer = 0 To UBound(xIndices)
-            hWAV(xIndices(xI1) + 1) = ""
-            RefreshWAVItem(xIndices(xI1) + 1)
-        Next
-
-        LWAV.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LWAV.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        If IsSaved Then SetIsSaved(False)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
-    Private Sub BBMPUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BBMPUp.Click
-        If LBMP.SelectedIndex = -1 Then Return
-
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
-        Dim xIndices(LBMP.SelectedIndices.Count - 1) As Integer
-        LBMP.SelectedIndices.CopyTo(xIndices, 0)
-
-        Dim xS As Integer
-        For xS = 0 To DefinitionLastListIndex()
-            If Array.IndexOf(xIndices, xS) = -1 Then Exit For
-        Next
-
-        Dim xStr As String = ""
-        Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To DefinitionLastListIndex()
-            xIndex = Array.IndexOf(xIndices, xI1)
-            If xIndex <> -1 Then
-                xStr = hBMP(xI1 + 1)
-                hBMP(xI1 + 1) = hBMP(xI1)
-                hBMP(xI1) = xStr
-
-                RefreshBMPItem(xI1 + 1)
-                RefreshBMPItem(xI1)
-
-                If Not WAVChangeLabel Then GoTo 1101
-
-                Dim xL1 As String = DefinitionLabel(xI1)
-                Dim xL2 As String = DefinitionLabel(xI1 + 1)
-                For xI2 As Integer = 1 To UBound(Notes)
-                    If Not IsColumnImage(Notes(xI2).ColumnIndex) Then Continue For
-
-                    If DefinitionLabel(Notes(xI2).Value \ 10000) = xL1 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 10000
-
-                    ElseIf DefinitionLabel(Notes(xI2).Value \ 10000) = xL2 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000
-
-                    End If
-                Next
-
-1101:           xIndices(xIndex) += -1
-            End If
-        Next
-
-        LBMP.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LBMP.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        AddUndo(xUndo, xBaseRedo.Next)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
-    Private Sub BBMPDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BBMPDown.Click
-        If LBMP.SelectedIndex = -1 Then Return
-
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
-        Dim xIndices(LBMP.SelectedIndices.Count - 1) As Integer
-        LBMP.SelectedIndices.CopyTo(xIndices, 0)
-
-        Dim xS As Integer
-        For xS = DefinitionLastListIndex() To 0 Step -1
-            If Array.IndexOf(xIndices, xS) = -1 Then Exit For
-        Next
-
-        Dim xStr As String = ""
-        Dim xIndex As Integer = -1
-        For xI1 As Integer = xS To 0 Step -1
-            xIndex = Array.IndexOf(xIndices, xI1)
-            If xIndex <> -1 Then
-                xStr = hBMP(xI1 + 1)
-                hBMP(xI1 + 1) = hBMP(xI1 + 2)
-                hBMP(xI1 + 2) = xStr
-
-                RefreshBMPItem(xI1 + 1)
-                RefreshBMPItem(xI1 + 2)
-
-                If Not WAVChangeLabel Then GoTo 1100
-
-                Dim xL1 As String = DefinitionLabel(xI1 + 2)
-                Dim xL2 As String = DefinitionLabel(xI1 + 1)
-                For xI2 As Integer = 1 To UBound(Notes)
-                    If Not IsColumnImage(Notes(xI2).ColumnIndex) Then Continue For
-
-                    If DefinitionLabel(Notes(xI2).Value \ 10000) = xL1 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 10000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 10000
-
-                    ElseIf DefinitionLabel(Notes(xI2).Value \ 10000) = xL2 Then
-                        Me.RedoRelabelNote(Notes(xI2), xI1 * 10000 + 20000, xUndo, xRedo)
-                        Notes(xI2).Value = xI1 * 10000 + 20000
-
-                    End If
-                Next
-
-1100:           xIndices(xIndex) += 1
-            End If
-        Next
-
-        LBMP.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LBMP.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        AddUndo(xUndo, xBaseRedo.Next)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
-    Private Sub BBMPBrowse_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BBMPBrowse.Click
-        Dim xDBMP As New OpenFileDialog
-        xDBMP.DefaultExt = "bmp"
-        xDBMP.Filter = Strings.FileType._image & "|*.bmp;*.png;*.jpg;*.jpeg;.gif|" &
-                       Strings.FileType._movie & "|*.mpg;*.m1v;*.m2v;*.avi;*.mp4;*.m4v;*.wmv;*.webm|" &
-                       Strings.FileType.BMP & "|*.bmp|" &
-                       Strings.FileType.PNG & "|*.png|" &
-                       Strings.FileType.JPG & "|*.jpg;*.jpeg|" &
-                       Strings.FileType.GIF & "|*.gif|" &
-                       Strings.FileType.MP4 & "|*.mp4;*.m4v|" &
-                       Strings.FileType.AVI & "|*.avi|" &
-                       Strings.FileType.MPG & "|*.mpg;*.m1v;*.m2v|" &
-                       Strings.FileType.WMV & "|*.wmv|" &
-                       Strings.FileType.WEBM & "|*.webm|" &
-                       Strings.FileType._all & "|*.*"
-        xDBMP.InitialDirectory = IIf(ExcludeFileName(FileName) = "", InitPath, ExcludeFileName(FileName))
-        xDBMP.Multiselect = WAVMultiSelect
-
-        If xDBMP.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
-        InitPath = ExcludeFileName(xDBMP.FileName)
-
-        AddToPOBMP(xDBMP.FileNames)
-    End Sub
-
-    Private Sub BBMPRemove_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BBMPRemove.Click
-        Dim xIndices(LBMP.SelectedIndices.Count - 1) As Integer
-        LBMP.SelectedIndices.CopyTo(xIndices, 0)
-        For xI1 As Integer = 0 To UBound(xIndices)
-            hBMP(xIndices(xI1) + 1) = ""
-            RefreshBMPItem(xIndices(xI1) + 1)
-        Next
-
-        LBMP.SelectedIndices.Clear()
-        For xI1 As Integer = 0 To UBound(xIndices)
-            LBMP.SelectedIndices.Add(xIndices(xI1))
-        Next
-
-        If IsSaved Then SetIsSaved(False)
-        RefreshPanelAll()
-        POStatusRefresh()
-    End Sub
-
     Private Sub mnMain_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles mnMain.MouseDown ', TBMain.MouseDown  ', pttl.MouseDown, pIsSaved.MouseDown
         If e.Button = Windows.Forms.MouseButtons.Left Then
             ReleaseCapture()
@@ -6625,14 +6296,10 @@ case2:              Dim xI0 As Integer
             Dim Target As Panel = Nothing
 
             If Object.ReferenceEquals(sender, Nothing) Then : Exit Sub
-            ElseIf Object.ReferenceEquals(sender, POHeaderSwitch) Then : Target = POHeaderInner
             ElseIf Object.ReferenceEquals(sender, POGridSwitch) Then : Target = POGridInner
-            ElseIf Object.ReferenceEquals(sender, POWaveFormSwitch) Then : Target = POWaveFormInner
-            ElseIf Object.ReferenceEquals(sender, POWAVSwitch) Then : Target = POWAVInner
-            ElseIf Object.ReferenceEquals(sender, POBMPSwitch) Then : Target = POBMPInner
-            ElseIf Object.ReferenceEquals(sender, POBeatSwitch) Then : Target = POBeatInner
-            ElseIf Object.ReferenceEquals(sender, POExpansionSwitch) Then : Target = POExpansionInner
             End If
+
+            If Target Is Nothing Then Return
 
             If Source.Checked Then
                 Target.Visible = True
@@ -6650,16 +6317,12 @@ case2:              Dim xI0 As Integer
         Try
             Dim Source As CheckBox = CType(sender, CheckBox)
             Dim Target As Panel = Nothing
-            'Dim TargetParent As Panel = Nothing
 
             If Object.ReferenceEquals(sender, Nothing) Then : Exit Sub
-            ElseIf Object.ReferenceEquals(sender, POHeaderExpander) Then : Target = POHeaderPart2 ' : TargetParent = POHeaderInner
-            ElseIf Object.ReferenceEquals(sender, POGridExpander) Then : Target = POGridPart2 ' : TargetParent = POGridInner
-            ElseIf Object.ReferenceEquals(sender, POWaveFormExpander) Then : Target = POWaveFormPart2 ' : TargetParent = POWaveFormInner
-            ElseIf Object.ReferenceEquals(sender, POWAVExpander) Then : Target = POWAVPart2 ' : TargetParent = POWaveFormInner
-            ElseIf Object.ReferenceEquals(sender, POBMPExpander) Then : Target = POBMPPart2 ' : TargetParent = POWaveFormInner
-            ElseIf Object.ReferenceEquals(sender, POBeatExpander) Then : Target = POBeatPart2 ' : TargetParent = POWaveFormInner
+            ElseIf Object.ReferenceEquals(sender, POGridExpander) Then : Target = POGridPart2
             End If
+
+            If Target Is Nothing Then Return
 
             If Source.Checked Then
                 Target.Visible = True
