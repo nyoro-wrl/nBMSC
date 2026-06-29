@@ -67,7 +67,7 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\App.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
@@ -129,14 +129,14 @@
     <Import Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audio.vb" />
-    <Compile Include="BMS.vb" />
-    <Compile Include="BMSONFormat.vb" />
-    <Compile Include="ChartIO.vb">
+    <Compile Include="Core\Audio.vb" />
+    <Compile Include="Core\BMS.vb" />
+    <Compile Include="Core\BMSONFormat.vb" />
+    <Compile Include="Editor\ChartIO.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Column.vb" />
-    <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="Core\Column.vb" />
+    <Compile Include="Application\ApplicationEvents.vb" />
     <Compile Include="Dialogs\ColorPicker.designer.vb">
       <DependentUpon>ColorPicker.vb</DependentUpon>
     </Compile>
@@ -179,42 +179,42 @@
     <Compile Include="Dialogs\SplashScreen1.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditorColumns.vb">
+    <Compile Include="Editor\EditorColumns.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditorRecent.vb">
+    <Compile Include="Editor\EditorRecent.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditorUndoRedo.vb">
+    <Compile Include="Editor\EditorUndoRedo.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Extensions.vb" />
-    <Compile Include="MainWindow.designer.vb">
+    <Compile Include="Support\Extensions.vb" />
+    <Compile Include="Editor\MainWindow.designer.vb">
       <DependentUpon>MainWindow.vb</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.vb">
+    <Compile Include="Editor\MainWindow.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditorPersistent.vb">
+    <Compile Include="Editor\EditorPersistent.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MyO2.vb">
+    <Compile Include="Editor\MyO2.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PanelDraw.vb">
+    <Compile Include="Editor\PanelDraw.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PanelEvents.vb">
+    <Compile Include="Editor\PanelEvents.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PanelKeyStates.vb" />
-    <Compile Include="TimeSelectionOps.vb">
+    <Compile Include="Editor\PanelKeyStates.vb" />
+    <Compile Include="Editor\TimeSelectionOps.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Utilities.vb" />
-    <Compile Include="Option Windows\Note.vb" />
-    <Compile Include="Strings.vb" />
-    <Compile Include="UpdateChecker.vb" />
+    <Compile Include="Core\Utilities.vb" />
+    <Compile Include="Options\Note.vb" />
+    <Compile Include="Support\Strings.vb" />
+    <Compile Include="Support\UpdateChecker.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -231,30 +231,30 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Option Windows\OpGeneral.designer.vb">
+    <Compile Include="Options\OpGeneral.designer.vb">
       <DependentUpon>OpGeneral.vb</DependentUpon>
     </Compile>
-    <Compile Include="Option Windows\OpGeneral.vb">
+    <Compile Include="Options\OpGeneral.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Option Windows\OpPlayer.designer.vb">
+    <Compile Include="Options\OpPlayer.designer.vb">
       <DependentUpon>OpPlayer.vb</DependentUpon>
     </Compile>
-    <Compile Include="Option Windows\OpPlayer.vb">
+    <Compile Include="Options\OpPlayer.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Option Windows\OpVisual.designer.vb">
+    <Compile Include="Options\OpVisual.designer.vb">
       <DependentUpon>OpVisual.vb</DependentUpon>
     </Compile>
-    <Compile Include="Option Windows\OpVisual.vb">
+    <Compile Include="Options\OpVisual.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UndoRedo.vb" />
-    <Compile Include="VisualSettings.vb" />
-    <Compile Include="Waveform.vb">
+    <Compile Include="Core\UndoRedo.vb" />
+    <Compile Include="Core\VisualSettings.vb" />
+    <Compile Include="Editor\Waveform.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="XMLUtil.vb" />
+    <Compile Include="Support\XMLUtil.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\ColorPicker.resx">
@@ -281,7 +281,7 @@
     <EmbeddedResource Include="Dialogs\SplashScreen1.resx">
       <DependentUpon>SplashScreen1.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainWindow.resx">
+    <EmbeddedResource Include="Editor\MainWindow.resx">
       <DependentUpon>MainWindow.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
@@ -290,13 +290,13 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Option Windows\OpGeneral.resx">
+    <EmbeddedResource Include="Options\OpGeneral.resx">
       <DependentUpon>OpGeneral.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Option Windows\OpPlayer.resx">
+    <EmbeddedResource Include="Options\OpPlayer.resx">
       <DependentUpon>OpPlayer.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Option Windows\OpVisual.resx">
+    <EmbeddedResource Include="Options\OpVisual.resx">
       <DependentUpon>OpVisual.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
@@ -327,11 +327,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Icon.ico" />
+    <Content Include="Resources\Icons\App.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ItemGroup>
-    <DataFiles Include="..\misc\Data\**\*.*" />
+    <DataFiles Include="..\data\**\*.*" />
   </ItemGroup>
   <Target Name="EmbedReleaseAssemblies" AfterTargets="ResolveReferences" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>

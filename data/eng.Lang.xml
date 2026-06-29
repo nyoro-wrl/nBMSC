@@ -1,0 +1,480 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<iBMSC.Locale Name="English by Doaz">
+	<Font Size="9">
+		<Family>Segoe UI</Family>
+		<Family>Tahoma</Family>
+	</Font>
+	<MonoFont Size="9">
+		<Family>Consolas</Family>
+		<Family>Courier New</Family>
+	</MonoFont>
+	<OK>OK</OK>
+	<Cancel>Cancel</Cancel>
+	<None>None</None>
+	<Menu>
+		<File>
+			<Title>File</Title>
+			<New>New</New>
+			<Open>Open</Open>
+			<ImportSM>Import from .SM file</ImportSM>
+			<ImportNBMSC>Import from .NBMSC file</ImportNBMSC>
+			<Save>Save</Save>
+			<SaveAs>Save As...</SaveAs>
+			<ExportNBMSC>Export .NBMSC file</ExportNBMSC>
+			<ExportBMSON>Export .BMSON file</ExportBMSON>
+			<Recent0>Recent #0</Recent0>
+			<Recent1>Recent #1</Recent1>
+			<Recent2>Recent #2</Recent2>
+			<Recent3>Recent #3</Recent3>
+			<Recent4>Recent #4</Recent4>
+			<Quit>Quit</Quit>
+		</File>
+		<Edit>
+			<Title>Edit</Title>
+			<Undo>Undo</Undo>
+			<Redo>Redo</Redo>
+			<Cut>Cut</Cut>
+			<Copy>Copy</Copy>
+			<Paste>Paste</Paste>
+			<Delete>Delete</Delete>
+			<SelectAll>Select All</SelectAll>
+			<GoToMeasure>Go To Measure...</GoToMeasure>
+			<Find>Find / Delete / Replace</Find>
+			<Stat>Statistics</Stat>
+			<TimeSelectionTool>Time Selection Tool</TimeSelectionTool>
+			<SelectTool>Select Tool</SelectTool>
+			<WriteTool>Write Tool</WriteTool>
+			<MyO2>MyO2 ToolBox (Chinese Only)</MyO2>
+		</Edit>
+		<View>
+			<Title>View</Title>
+		</View>
+		<Options>
+			<Title>Options</Title>
+			<NT>LN Input Style - NT/BMSE</NT>
+			<ErrorCheck>Error Check</ErrorCheck>
+			<PreviewOnClick>Preview on Click</PreviewOnClick>
+			<ShowFileName>Show File Name on Notes</ShowFileName>
+			<ChangePlaySide>RightScratch Mode</ChangePlaySide>
+			<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
+			<SlashGrid>Slash key grid value</SlashGrid>
+			<GeneralOptions>General Options</GeneralOptions>
+			<VisualOptions>Visual Options</VisualOptions>
+			<PlayerOptions>Player Options</PlayerOptions>
+			<Language>Language</Language>
+			<Theme>Theme</Theme>
+		</Options>
+		<Conversion>Conversions</Conversion>
+		<Preview>
+			<Title>Preview</Title>
+			<PlayBegin>Play from beginning</PlayBegin>
+			<PlayHere>Play from here</PlayHere>
+			<PlayStop>Stop</PlayStop>
+		</Preview>
+		<Help>
+			<Title>Help</Title>
+			<CheckUpdates>Check Updates</CheckUpdates>
+			<CheckUpdatesOnStartup>Check Updates on Startup</CheckUpdatesOnStartup>
+		</Help>
+	</Menu>
+	<ToolBar>
+		<New>New (Ctrl+N)</New>
+		<Open>Open (Ctrl+O)</Open>
+		<Save>Save (Ctrl+S)</Save>
+		<Cut>Cut (Ctrl+X)</Cut>
+		<Copy>Copy (Ctrl+C)</Copy>
+		<Paste>Paste (Ctrl+V)</Paste>
+		<Find>Find / Delete / Replace (Ctrl+F)</Find>
+		<Stat>Statistics (Ctrl+T)</Stat>
+		<Conversion>Convert Notes</Conversion>
+		<MyO2>MyO2 ToolBox (Chinese Only)</MyO2>
+		<ErrorCheck>Error Check</ErrorCheck>
+		<PreviewOnClick>Preview On Click</PreviewOnClick>
+		<ShowFileName>Show File Name on Notes</ShowFileName>
+		<ChangePlaySide>RightScratch Mode</ChangePlaySide>
+		<LeftSplitter>Left Splitter</LeftSplitter>
+		<RightSplitter>Right Splitter</RightSplitter>
+		<AddSplitter>Add Splitter</AddSplitter>
+		<RemoveSplitter>Remove Splitter</RemoveSplitter>
+		<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
+		<Undo>Undo (Ctrl+Z)</Undo>
+		<Redo>Redo (Ctrl+Y)</Redo>
+		<NT>LongNote Input Style - NoteTool/BMSE</NT>
+		<WavIncrease>Auto advance WAV number</WavIncrease>
+		<TimeSelectionTool>Time Selection Tool (F1)</TimeSelectionTool>
+		<SelectTool>Select Tool (F2)</SelectTool>
+		<WriteTool>Write Tool (F3)</WriteTool>
+		<PlayBegin>Play from beginning (F5)</PlayBegin>
+		<PlayHere>Play from here (F6)</PlayHere>
+		<PlayStop>Stop (F7)</PlayStop>
+		<PlayerOptions>Player Options</PlayerOptions>
+		<VisualOptions>Visual Options</VisualOptions>
+		<GeneralOptions>General Options</GeneralOptions>
+		<Language>Language</Language>
+		<Theme>Theme</Theme>
+	</ToolBar>
+	<StatusBar>
+		<ColumnCaption>Column Caption</ColumnCaption>
+		<NoteIndex>Note Index</NoteIndex>
+		<MeasureIndex>Measure Index</MeasureIndex>
+		<GridResolution>Grid Resolution</GridResolution>
+		<ReducedResolution>Reduced Resolution</ReducedResolution>
+		<MeasureResolution>Measure Resolution</MeasureResolution>
+		<AbsolutePosition>Absolute Position</AbsolutePosition>
+		<Length>Length</Length>
+		<LongNote>LongNote</LongNote>
+		<Hidden>Hidden</Hidden>
+		<LandMine>LandMine</LandMine>
+		<Error>Error</Error>
+		<SelStart>Selection Start Position</SelStart>
+		<SelLength>Selection Length</SelLength>
+		<SelSplit>Selection Split Position</SelSplit>
+		<Reverse>Reverse Selection</Reverse>
+		<ByMultiple>By Multiple</ByMultiple>
+		<ByValue>By Value</ByValue>
+	</StatusBar>
+	<SubMenu>
+		<ShowHide>
+			<ToolTip>Show / Hide</ToolTip>
+			<Menu>Main Menu</Menu>
+			<ToolBar>ToolBar</ToolBar>
+			<OptionsPanel>Options Panel</OptionsPanel>
+			<StatusBar>Status Bar</StatusBar>
+			<LSplit>Left Splitter</LSplit>
+			<RSplit>Right Splitter</RSplit>
+			<AddSplitter>Add Splitter</AddSplitter>
+			<RemoveSplitter>Remove Splitter</RemoveSplitter>
+			<CloseSplitter>Close Splitter</CloseSplitter>
+			<Grid>Grid</Grid>
+			<Sub>Sub</Sub>
+			<BG>BackGround</BG>
+			<MeasureIndex>Measure Index</MeasureIndex>
+			<MeasureLine>Measure Line</MeasureLine>
+			<Vertical>Vertical Line</Vertical>
+			<ColumnCaption>Column Caption</ColumnCaption>
+			<BPM>BPM</BPM>
+			<STOP>STOP</STOP>
+			<SCROLL>SCROLL</SCROLL>
+			<BLP>BGA / Layer / Poor</BLP>
+		</ShowHide>
+		<InsertMeasure>
+			<Insert>Insert Measure</Insert>
+			<Remove>Remove Measure</Remove>
+		</InsertMeasure>
+		<Language>
+			<Default>(Default)</Default>
+			<Refresh>Refresh</Refresh>
+		</Language>
+		<Theme>
+			<Default>(Default)</Default>
+			<Save>Save Theme</Save>
+			<Refresh>Refresh</Refresh>
+			<LoadComptability>Load Theme File from iBMSC 2.x</LoadComptability>
+		</Theme>
+		<Convert>
+			<Long>→ Long Note</Long>
+			<Short>→ Short Note</Short>
+			<LongShort>Long Note ↔ Short Note</LongShort>
+			<Hidden>→ Hidden Note</Hidden>
+			<Landmine>→ LandMine Note</Landmine>
+			<Visible>→ Normal Note</Visible>
+			<HiddenVisible>Normal Note ↔ Hidden Note</HiddenVisible>
+			<NormalLandmine>Normal Note ↔ LandMine Note</NormalLandmine>
+			<Relabel>Modify Labels</Relabel>
+			<Mirror>Mirror</Mirror>
+		</Convert>
+		<WAV>
+			<Base62>Extend to base62</Base62>
+			<MultiSelection>Allow Multiple Selection</MultiSelection>
+			<Synchronize>Synchronize Note Labels</Synchronize>
+			<Emptyfill>Fill Empty Definition First</Emptyfill>
+		</WAV>
+		<Beat>
+			<Absolute>Preserve absolute position</Absolute>
+			<Measure>Preserve measure position</Measure>
+			<Cut>Preserve measure position and cut overflow</Cut>
+			<Scale>Scale to measure length</Scale>
+		</Beat>
+	</SubMenu>
+	<OptionsPanel>
+		<Header>
+			<Header>Header</Header>
+			<Title>Title</Title>
+			<Artist>Artist</Artist>
+			<Genre>Genre</Genre>
+			<BPM>BPM</BPM>
+			<Player>Player</Player>
+			<Rank>Rank</Rank>
+			<PlayLevel>Play Level</PlayLevel>
+			<SubTitle>SubTitle</SubTitle>
+			<SubArtist>SubArtist</SubArtist>
+			<StageFile>Stage File</StageFile>
+			<Banner>Banner</Banner>
+			<BackBMP>Back BMP</BackBMP>
+			<Difficulty>Difficulty</Difficulty>
+			<ExRank>DefExRank</ExRank>
+			<Total>Total</Total>
+			<Comment>Comment</Comment>
+			<LnObj>LnObj</LnObj>
+			<LandMine>#WAV00</LandMine>
+			<MissBMP>#BMP00</MissBMP>
+			<Preview>Preview</Preview>
+			<LnMode>LN Mode</LnMode>
+			<Player1>1 - Single Play</Player1>
+			<Player2>2 - Couple Play</Player2>
+			<Player3>3 - Double Play</Player3>
+			<Rank0>0 - Very Hard</Rank0>
+			<Rank1>1 - Hard</Rank1>
+			<Rank2>2 - Normal</Rank2>
+			<Rank3>3 - Easy</Rank3>
+			<Rank4>4 - Very Easy</Rank4>
+			<Difficulty0>None</Difficulty0>
+			<Difficulty1>1 - EZ / Beginner</Difficulty1>
+			<Difficulty2>2 - NM / Normal</Difficulty2>
+			<Difficulty3>3 - HD / Hyper</Difficulty3>
+			<Difficulty4>4 - MX / Another</Difficulty4>
+			<Difficulty5>5 - SC / Insane</Difficulty5>
+		</Header>
+		<Grid>
+			<Title>Grid</Title>
+			<Snap>Grid Snap</Snap>
+			<BCols>Minimum BGM Columns</BCols>
+			<DisableVertical>Disable vertical moves</DisableVertical>
+		</Grid>
+		<WaveForm>
+			<Title>WaveForm</Title>
+			<Load>Load WaveForm</Load>
+			<Clear>Clear WaveForm</Clear>
+			<Lock>Lock to BGM</Lock>
+		</WaveForm>
+		<WAV>
+			<Title>#WAV</Title>
+			<MoveUp>Move Up</MoveUp>
+			<MoveDown>Move Down</MoveDown>
+			<Browse>Browse</Browse>
+			<Remove>Remove</Remove>
+		</WAV>
+		<BMP>
+			<Title>#BMP</Title>
+		</BMP>
+		<Beat>Beat</Beat>
+		<Beat.Apply>Apply</Beat.Apply>
+		<Expansion>Expansion Code</Expansion>
+	</OptionsPanel>
+	<Messages>
+		<Err>Error</Err>
+		<SaveOnExit>Do you want to save changes?</SaveOnExit>
+		<SaveOnExit1>You should tell me if you want to save changes before closing the computer. -_,-</SaveOnExit1>
+		<SaveOnExit2>You still need to tell me if you want to save changes even though you are closing the application with task manager. -_,-</SaveOnExit2>
+		<PromptEnter>Please enter a label.</PromptEnter>
+		<PromptEnterNumeric>Please enter a value.</PromptEnterNumeric>
+		<PromptEnterMeasure>Please enter a measure (0-999).</PromptEnterMeasure>
+		<GoToMeasureTitle>Enter Measure</GoToMeasureTitle>
+		<PromptEnterBPM>Please enter a BPM value.</PromptEnterBPM>
+		<PromptEnterSTOP>Please enter a STOP value.</PromptEnterSTOP>
+		<PromptEnterSTOP>Please enter a SCROLL value.</PromptEnterSTOP>
+		<PromptSlashValue>When the slash key ("/") is pressed, change grid division to:</PromptSlashValue>
+		<InvalidLabel>Invalid label.</InvalidLabel>
+		<CannotFind>Cannot find file {}.</CannotFind>
+		<PleaseRespecifyPath>Please respecify path.</PleaseRespecifyPath>
+		<PlayerNotFound>Player not found</PlayerNotFound>
+		<PreviewDelError>There must exist at least one player.</PreviewDelError>
+		<NegativeFactorError>Factor must be greater than zero.</NegativeFactorError>
+		<NegativeDivisorError>Divisor must be greater than zero.</NegativeDivisorError>
+		<PreferencePostpone>The preference will take effect on the next start-up of the program.</PreferencePostpone>
+		<EraserObsolete>The eraser tool has been replaced by right-clicking on the note.</EraserObsolete>
+		<SaveWarning>Warning:</SaveWarning>
+		<NoteOverlapError>Note overlapping detected. Increasing Maximum Grid Partition will resolve this.</NoteOverlapError>
+		<BPMOverflowError>Numbers of multi-byte BPMs has exceeded supported maximum:</BPMOverflowError>
+		<STOPOverflowError>Numbers of STOPs has exceeded supported maximum:</STOPOverflowError>
+		<SCROLLOverflowError>Numbers of SCROLLs has exceeded supported maximum:</SCROLLOverflowError>
+		<SavedFileWillContainErrors>The saved file will contain errors.</SavedFileWillContainErrors>
+		<FileAssociationPrompt>Do you want to set nBMSC as default program to all {} files?</FileAssociationPrompt>
+		<FileAssociationError>Error changing file type association:</FileAssociationError>
+		<RestoreDefaultSettings>Restore default settings?</RestoreDefaultSettings>
+		<RestoreAutosavedFile>{} autosaved file(s) have been found. Do you want to recover these files?</RestoreAutosavedFile>
+		<UpdateCheckTitle>Check Updates</UpdateCheckTitle>
+		<UpdateAvailable>A new version is available.
+Current: {0}
+Latest: {1}</UpdateAvailable>
+		<UpdateLatest>You are using the latest version.
+Current: {0}
+Latest: {1}</UpdateLatest>
+		<UpdateCheckFailed>Failed to check updates.
+{0}</UpdateCheckFailed>
+		<UpdateVersionUnsupported>Could not compare versions.
+Current: {0}
+Latest release: {1}
+Open the release page?</UpdateVersionUnsupported>
+		<UpdateOpenRelease>Open Release</UpdateOpenRelease>
+		<UpdateLater>Later</UpdateLater>
+		<UpdateSkipVersion>Skip This Version</UpdateSkipVersion>
+	</Messages>
+	<FileType>
+		<_all>All files (*.*)</_all>
+		<_bms>Supported BMS Format (*.bms, *.bme, *.bml, *.pms, *.txt)</_bms>
+		<BMS>Be-Music Script (*.bms)</BMS>
+		<BME>Be-Music Extended Format (*.bme)</BME>
+		<BML>Be-Music Longnote Format (*.bml)</BML>
+		<PMS>Po-Mu Script (*.pms)</PMS>
+		<TXT>Text document (*.txt)</TXT>
+		<SM>StepMania Script (*.sm)</SM>
+		<NBMSC>nBMSC Binary Format (*.nbmsc)</NBMSC>
+		<XML>Extensible Markup Language (*.xml)</XML>
+		<THEME_XML>iBMSC Theme File (*.Theme.xml)</THEME_XML>
+		<TH>iBMSC 2.x Theme File (*.Theme.xml)</TH>
+		<_audio>Supported Audio Format (*.wav, *.ogg, *.mp3, *.flac, *.mid)</_audio>
+		<_wave>Supported Wave Audio Format (*.wav, *.ogg, *.mp3, *.flac)</_wave>
+		<WAV>Waveform Audio (*.wav)</WAV>
+		<OGG>Ogg Vorbis Audio (*.ogg)</OGG>
+		<MP3>MPEG Layer-3 Audio (*.mp3)</MP3>
+		<FLAC>Free Lossless Audio (*.flac)</FLAC>
+		<MID>MIDI (*.mid)</MID>
+		<_image>Supported Image Format (*.png, *.bmp, *.jpg, *.gif)</_image>
+		<_movie>Supported Movie Format (*.mpg, *.avi, *.mp4, *.wmv, *.webm)</_movie>
+		<BMP>Windows bitmap image (*.bmp)</BMP>
+		<PNG>Portable Network Graphic (*.png)</PNG>
+		<JPG>Joint Photographic Experts Group (*.jpg)</JPG>
+		<GIF>Graphics Interchange Format (*.gif)</GIF>
+		<MPG>Moving Picture Experts Group (*.mpg)</MPG>
+		<AVI>Audio Video Interleave (*.avi)</AVI>
+		<MP4>MPEG phase 4 (*.mp4)</MP4>
+		<WMV>Windows Media Video (*.wmv)</WMV>
+		<WEBM>WebM (*.webm)</WEBM>
+		<EXE>Executable file (*.exe)</EXE>
+	</FileType>
+	<Statistics>
+		<Title>Statistics</Title>
+		<lBPM>BPM</lBPM>
+		<lSTOP>STOP</lSTOP>
+		<lSCROLL>SCROLL</lSCROLL>
+		<lA>A1-A8</lA>
+		<lD>D1-D8</lD>
+		<lBGM>BGM</lBGM>
+		<lTotal>Total</lTotal>
+		<lShort>Short</lShort>
+		<lLong>Long</lLong>
+		<lLnObj>LnObj</lLnObj>
+		<lHidden>Hidden</lHidden>
+		<lLandMine>LandMine</lLandMine>
+		<lErrors>Errors</lErrors>
+	</Statistics>
+	<PlayerOptions>
+		<Title>Player Arguments Options</Title>
+		<Add>Add</Add>
+		<Remove>Remove</Remove>
+		<Path>Path</Path>
+		<PlayFromBeginning>Play from beginning</PlayFromBeginning>
+		<PlayFromHere>Play from current measure</PlayFromHere>
+		<StopPlaying>Stop</StopPlaying>
+		<References>References (case-sensitive):</References>
+		<DirectoryOfApp>Directory of the application</DirectoryOfApp>
+		<CurrMeasure>Current measure</CurrMeasure>
+		<FileName>File Name</FileName>
+		<RestoreDefault>Restore Default</RestoreDefault>
+	</PlayerOptions>
+	<VisualOptions>
+		<Title>Visual Options</Title>
+		<Width>Width</Width>
+		<Caption>Caption</Caption>
+		<Note>Note</Note>
+		<Label>Label</Label>
+		<LongNote>Long Note</LongNote>
+		<LongNoteLabel>Long Note Label</LongNoteLabel>
+		<Bg>Bg</Bg>
+		<ColumnCaption>Column Caption</ColumnCaption>
+		<ColumnCaptionFont>Column Caption Font</ColumnCaptionFont>
+		<Background>Background</Background>
+		<Grid>Grid</Grid>
+		<SubGrid>Sub</SubGrid>
+		<VerticalLine>Vertical Line</VerticalLine>
+		<MeasureBarLine>Measure BarLine</MeasureBarLine>
+		<BGMWaveform>BGM Waveform</BGMWaveform>
+		<NoteHeight>Note Height</NoteHeight>
+		<NoteLabel>Note Label</NoteLabel>
+		<MeasureLabel>Measure Label</MeasureLabel>
+		<LabelVerticalShift>Note Label Vertical Shift</LabelVerticalShift>
+		<LabelHorizontalShift>Note Label Horizontal Shift</LabelHorizontalShift>
+		<LongNoteLabelHorizontalShift>LongNote Label Horizontal Shift</LongNoteLabelHorizontalShift>
+		<HiddenNoteOpacity>Hidden Note Opacity</HiddenNoteOpacity>
+		<NoteBorderOnMouseOver>Note Border on MouseOver</NoteBorderOnMouseOver>
+		<NoteBorderOnSelection>Note Border on Selection</NoteBorderOnSelection>
+		<NoteBorderOnAdjustingLength>Note Border on Adjusting Length</NoteBorderOnAdjustingLength>
+		<SelectionBoxBorder>Selection Box Border</SelectionBoxBorder>
+		<TSCursor>Time Selection Cursor</TSCursor>
+		<TSSplitter>Time Selection Splitter</TSSplitter>
+		<TSCursorSensitivity>Time Selection Cursor Sensitivity</TSCursorSensitivity>
+		<TSMouseOverBorder>Time Selection MouseOver Border</TSMouseOverBorder>
+		<TSFill>Time Selection Fill</TSFill>
+		<TSBPM>Time Selection BPM</TSBPM>
+		<TSBPMFont>Time Selection BPM Font</TSBPMFont>
+		<MiddleSensitivity>Middle Button Release Sensitivity</MiddleSensitivity>
+	</VisualOptions>
+	<GeneralOptions>
+		<Title>General Options</Title>
+		<MouseWheel>Mouse Wheel</MouseWheel>
+		<TextEncoding>Text Encoding</TextEncoding>
+		<PageUpDown>PageUp / PageDown</PageUpDown>
+		<MiddleButton>Mouse Middle Button</MiddleButton>
+		<MiddleButtonAuto>Click and Auto Scroll</MiddleButtonAuto>
+		<MiddleButtonDrag>Click and Drag</MiddleButtonDrag>
+		<AssociateFileType>Associate Filetype</AssociateFileType>
+		<MaxGridPartition>Max Grid Partition in BMS</MaxGridPartition>
+		<BeepWhileSaved>Beep while saved</BeepWhileSaved>
+		<NewBMSUseBase62>Use base62 for new BMS</NewBMSUseBase62>
+		<MyO2Toolbox>MyO2 ToolBox</MyO2Toolbox>
+		<BPMDefinitionMode>BPM definitions</BPMDefinitionMode>
+		<STOPDefinitionMode>STOP definitions</STOPDefinitionMode>
+		<DefinitionModeDefault>Default (01-FF)</DefinitionModeDefault>
+		<DefinitionModeBase36>36 base (01-ZZ)</DefinitionModeBase36>
+		<DefinitionModeBase62>62 base (01-zz)</DefinitionModeBase62>
+		<AutoFocusOnMouseEnter>Automatically set focus to editing panel on mouse enter</AutoFocusOnMouseEnter>
+		<DisableFirstClick>Disable first click if the editing panel is not focused</DisableFirstClick>
+		<AutoSave>AutoSave</AutoSave>
+		<minutes>minutes</minutes>
+		<StopPreviewOnClick>Stop preview if clicked on the editing panel</StopPreviewOnClick>
+		<SkipClippedMeasure>Skip clipped measure and play from next measure</SkipClippedMeasure>
+		<LaneHighlight>Lane highlight</LaneHighlight>
+		<MinimumBGMLanes>Minimum BGM lanes</MinimumBGMLanes>
+		<UndoRedoMemoryLimit>Undo/Redo memory limit</UndoRedoMemoryLimit>
+	</GeneralOptions>
+	<Find>
+		<NoteRange>Note Range</NoteRange>
+		<MeasureRange>Measure Range</MeasureRange>
+		<LabelRange>Label Range</LabelRange>
+		<ValueRange>Value Range</ValueRange>
+		<to>to</to>
+		<Selected>Selected</Selected>
+		<UnSelected>Unselected</UnSelected>
+		<ShortNote>Short</ShortNote>
+		<LongNote>Long</LongNote>
+		<Hidden>Hidden</Hidden>
+		<Visible>Visible</Visible>
+		<Column>Column</Column>
+		<SelectAll>Select All</SelectAll>
+		<SelectInverse>Select Inverse</SelectInverse>
+		<UnselectAll>Unselect All</UnselectAll>
+		<Operation>Operation</Operation>
+		<ReplaceWithLabel>Replace with Label:</ReplaceWithLabel>
+		<ReplaceWithValue>Replace with Value:</ReplaceWithValue>
+		<Select>Select</Select>
+		<Unselect>Unselect</Unselect>
+		<Delete>Delete</Delete>
+		<Close>Close</Close>
+	</Find>
+	<ImportSM>
+		<Title>Import *.SM file</Title>
+		<Difficulty>Difficulty</Difficulty>
+		<Note>Please note that bg musics and STOP values will not be imported.</Note>
+	</ImportSM>
+	<FileAssociation>
+		<BMS>Be-Music Script</BMS>
+		<BME>Be-Music Extended Format</BME>
+		<BML>Be-Music Longnote Format</BML>
+		<PMS>Po-Mu Script</PMS>
+		<NBMSC>nBMSC Binary Format</NBMSC>
+		<Open>Open</Open>
+		<Preview>Preview</Preview>
+		<ViewCode>View Code</ViewCode>
+	</FileAssociation>
+</iBMSC.Locale>
