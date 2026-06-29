@@ -2067,6 +2067,7 @@ Public Class MainWindow
                         .Landmine = CBool(Val(xStrSub(5)))
                         .Selected = xSelected
                     End With
+                    NormalizeNoteType(Notes(UBound(Notes)))
                 End If
             Next
 
@@ -2110,6 +2111,7 @@ Public Class MainWindow
                         .Landmine = CBool(Val(xStrSub(5)))
                         .Selected = xSelected
                     End With
+                    NormalizeNoteType(Notes(UBound(Notes)))
                 End If
             Next
 
@@ -4834,6 +4836,10 @@ StartCount:     If Not NTInput Then
         RefreshPanelAll()
     End Sub
 
+    Private Sub NormalizeNoteType(ByRef note As Note)
+        If note.Landmine Then note.Hidden = False
+    End Sub
+
     Private Sub ConvertBMSE2NT()
         ReDim SelectedNotes(-1)
         SortByVPositionInsertion()
@@ -4873,6 +4879,7 @@ StartCount:     If Not NTInput Then
 
         For i = 0 To xUbound
             Notes(i).LongNote = False
+            NormalizeNoteType(Notes(i))
         Next
 
         SortByVPositionInsertion()
@@ -4884,6 +4891,10 @@ StartCount:     If Not NTInput Then
         ReDim SelectedNotes(-1)
         Dim xK(0) As Note
         xK(0) = Notes(0)
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            NormalizeNoteType(Notes(xI1))
+        Next
 
         For xI1 As Integer = 1 To UBound(Notes)
             ReDim Preserve xK(UBound(xK) + 1)
@@ -5287,12 +5298,16 @@ StartCount:     If Not NTInput Then
         For xI1 As Integer = 1 To UBound(Notes)
             If Not Notes(xI1).Selected Then Continue For
 
-            Me.RedoHiddenNoteModify(Notes(xI1), True, True, xUndo, xRedo)
-            Notes(xI1).Hidden = True
+            Dim noteAfterModification = Notes(xI1)
+            noteAfterModification.Hidden = True
+            noteAfterModification.Landmine = False
+            Me.RedoChangeNote(Notes(xI1), noteAfterModification, xUndo, xRedo)
+            Notes(xI1) = noteAfterModification
         Next
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()
         UpdatePairing()
+        CalculateTotalPlayableNotes()
         RefreshPanelAll()
     End Sub
 
@@ -5304,12 +5319,16 @@ StartCount:     If Not NTInput Then
         For xI1 As Integer = 1 To UBound(Notes)
             If Not Notes(xI1).Selected Then Continue For
 
-            Me.RedoHiddenNoteModify(Notes(xI1), False, True, xUndo, xRedo)
-            Notes(xI1).Hidden = False
+            Dim noteAfterModification = Notes(xI1)
+            noteAfterModification.Hidden = False
+            noteAfterModification.Landmine = False
+            Me.RedoChangeNote(Notes(xI1), noteAfterModification, xUndo, xRedo)
+            Notes(xI1) = noteAfterModification
         Next
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()
         UpdatePairing()
+        CalculateTotalPlayableNotes()
         RefreshPanelAll()
     End Sub
 
@@ -5321,12 +5340,16 @@ StartCount:     If Not NTInput Then
         For xI1 As Integer = 1 To UBound(Notes)
             If Not Notes(xI1).Selected Then Continue For
 
-            Me.RedoHiddenNoteModify(Notes(xI1), Not Notes(xI1).Hidden, True, xUndo, xRedo)
-            Notes(xI1).Hidden = Not Notes(xI1).Hidden
+            Dim noteAfterModification = Notes(xI1)
+            noteAfterModification.Hidden = Not noteAfterModification.Hidden
+            noteAfterModification.Landmine = False
+            Me.RedoChangeNote(Notes(xI1), noteAfterModification, xUndo, xRedo)
+            Notes(xI1) = noteAfterModification
         Next
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()
         UpdatePairing()
+        CalculateTotalPlayableNotes()
         RefreshPanelAll()
     End Sub
 
@@ -5338,8 +5361,11 @@ StartCount:     If Not NTInput Then
         For xI1 As Integer = 1 To UBound(Notes)
             If Not Notes(xI1).Selected Then Continue For
 
-            Me.RedoLandmineNoteModify(Notes(xI1), True, True, xUndo, xRedo)
-            Notes(xI1).Landmine = True
+            Dim noteAfterModification = Notes(xI1)
+            noteAfterModification.Hidden = False
+            noteAfterModification.Landmine = True
+            Me.RedoChangeNote(Notes(xI1), noteAfterModification, xUndo, xRedo)
+            Notes(xI1) = noteAfterModification
         Next
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()
@@ -5356,8 +5382,11 @@ StartCount:     If Not NTInput Then
         For xI1 As Integer = 1 To UBound(Notes)
             If Not Notes(xI1).Selected Then Continue For
 
-            Me.RedoLandmineNoteModify(Notes(xI1), Not Notes(xI1).Landmine, True, xUndo, xRedo)
-            Notes(xI1).Landmine = Not Notes(xI1).Landmine
+            Dim noteAfterModification = Notes(xI1)
+            noteAfterModification.Hidden = False
+            noteAfterModification.Landmine = Not noteAfterModification.Landmine
+            Me.RedoChangeNote(Notes(xI1), noteAfterModification, xUndo, xRedo)
+            Notes(xI1) = noteAfterModification
         Next
         AddUndo(xUndo, xBaseRedo.Next)
         SortByVPositionInsertion()

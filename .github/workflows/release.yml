@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'nBMSC/My Project/AssemblyInfo.vb'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $assemblyInfo = Get-Content -Encoding UTF8 -Raw 'nBMSC/My Project/AssemblyInfo.vb'
+          if ($assemblyInfo -notmatch '<Assembly:\s*AssemblyVersion\("([^"]+)"\)>') {
+            throw 'AssemblyVersion was not found.'
+          }
+
+          $version = $Matches[1]
+          $tag = $version
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Check tag
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+          $existingTag = git ls-remote --tags origin "refs/tags/$tag"
+          if ($existingTag) {
+            throw "Tag $tag already exists."
+          }
+
+      - name: Find MSBuild
+        id: msbuild
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) {
+            throw 'MSBuild was not found.'
+          }
+
+          "path=$msbuild" >> $env:GITHUB_OUTPUT
+
+      - name: Build
+        shell: pwsh
+        run: |
+          & '${{ steps.msbuild.outputs.path }}' nBMSC.sln /t:Rebuild /p:Configuration=Release
+
+      - name: Package
+        id: package
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $stageRoot = Join-Path $env:RUNNER_TEMP 'release-package'
+          $packageRoot = Join-Path $stageRoot 'nBMSC'
+          $zipPath = Join-Path $PWD "nBMSC-$version.zip"
+
+          if (Test-Path $stageRoot) {
+            Remove-Item -LiteralPath $stageRoot -Recurse -Force
+          }
+
+          if (Test-Path $zipPath) {
+            Remove-Item -LiteralPath $zipPath
+          }
+
+          New-Item -ItemType Directory -Path $packageRoot | Out-Null
+          Copy-Item -Path 'nBMSC/bin/Release/*' -Destination $packageRoot -Recurse
+          Compress-Archive -Path $packageRoot -DestinationPath $zipPath
+          "asset=$zipPath" >> $env:GITHUB_OUTPUT
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+          $asset = '${{ steps.package.outputs.asset }}'
+          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --generate-notes
