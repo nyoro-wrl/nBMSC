@@ -320,8 +320,8 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 		<SM>Step Mania files (*.sm)</SM>
 		<NBMSC>nBMSC files (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
-		<THEME_XML>iBMSC テーマ (*.Theme.xml)</THEME_XML>
-		<TH>iBMSC 2.x テーマファイル (*.Theme.xml)</TH>
+		<THEME_XML>iBMSC テーマ (*.xml)</THEME_XML>
+		<TH>iBMSC 2.x テーマファイル (*.th)</TH>
 		<_audio>使用可能な音楽ファイル (*.wav, *.ogg, *.mp3, *.flac, *.mid)</_audio>
 		<_wave>使用可能な Wave ファイル (*.wav, *.ogg, *.mp3, *.flac)</_wave>
 		<WAV>Wave サウンド (*.wav)</WAV>

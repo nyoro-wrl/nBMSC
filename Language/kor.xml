@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <iBMSC.Locale Name="한국어 by MusicGameLAB">
 	<Font Size="9">
 		<Family>맑은 고딕</Family>
@@ -314,8 +314,8 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<SM>Step Mania files (*.sm)</SM>
 		<NBMSC>nBMSC 바이너리 포맷 (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
-		<THEME_XML>iBMSC 테마 (*.Theme.xml)</THEME_XML>
-		<TH>iBMSC 2.x 테마 파일 (*.Theme.xml)</TH>
+		<THEME_XML>iBMSC 테마 (*.xml)</THEME_XML>
+		<TH>iBMSC 2.x 테마 파일 (*.th)</TH>
 		<_audio>사용 가능한 오디오파일(*.wav, *.ogg, *.mp3, *.mid)</_audio>
 		<_wave>사용 가능한 음원 파일(*.wav, *.ogg, *.mp3)</_wave>
 		<WAV>Waveform Audio (*.wav)</WAV>

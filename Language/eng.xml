@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <iBMSC.Locale Name="English by Doaz">
 	<Font Size="9">
 		<Family>Segoe UI</Family>
@@ -320,8 +320,8 @@ Open the release page?</UpdateVersionUnsupported>
 		<SM>StepMania Script (*.sm)</SM>
 		<NBMSC>nBMSC Binary Format (*.nbmsc)</NBMSC>
 		<XML>Extensible Markup Language (*.xml)</XML>
-		<THEME_XML>iBMSC Theme File (*.Theme.xml)</THEME_XML>
-		<TH>iBMSC 2.x Theme File (*.Theme.xml)</TH>
+		<THEME_XML>iBMSC Theme File (*.xml)</THEME_XML>
+		<TH>iBMSC 2.x Theme File (*.th)</TH>
 		<_audio>Supported Audio Format (*.wav, *.ogg, *.mp3, *.flac, *.mid)</_audio>
 		<_wave>Supported Wave Audio Format (*.wav, *.ogg, *.mp3, *.flac)</_wave>
 		<WAV>Waveform Audio (*.wav)</WAV>

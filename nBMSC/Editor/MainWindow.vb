@@ -2915,8 +2915,7 @@ Public Class MainWindow
     End Sub
 
     Private Sub LoadInitialPreferences()
-        Dim xDataPath As String = My.Application.Info.DirectoryPath & "\Data"
-        Dim xLangPath As String = xDataPath & "\jpn.Lang.xml"
+        Dim xLangPath As String = My.Application.Info.DirectoryPath & "\Language\jpn.xml"
 
         If My.Computer.FileSystem.FileExists(xLangPath) Then
             LoadLocale(xLangPath)
@@ -5293,8 +5292,9 @@ StartCount:     If Not NTInput Then
             End Try
         Next
 
-        If Not Directory.Exists(My.Application.Info.DirectoryPath & "\Data") Then My.Computer.FileSystem.CreateDirectory(My.Application.Info.DirectoryPath & "\Data")
-        Dim xFileNames() As FileInfo = My.Computer.FileSystem.GetDirectoryInfo(My.Application.Info.DirectoryPath & "\Data").GetFiles("*.Lang.xml")
+        Dim xLangPath As String = My.Application.Info.DirectoryPath & "\Language"
+        If Not Directory.Exists(xLangPath) Then My.Computer.FileSystem.CreateDirectory(xLangPath)
+        Dim xFileNames() As FileInfo = My.Computer.FileSystem.GetDirectoryInfo(xLangPath).GetFiles("*.xml")
 
         For Each xStr As FileInfo In xFileNames
             LoadLocaleXML(xStr)
@@ -6071,7 +6071,7 @@ Jump2:
     End Sub
 
     Private Sub TBThemeDef_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBThemeDef.Click
-        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Data\7k.Theme.xml"
+        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Theme\7k.xml"
 
         If Not My.Computer.FileSystem.FileExists(xThemePath) Then Return
 
@@ -6082,10 +6082,13 @@ Jump2:
     End Sub
 
     Private Sub TBThemeSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBThemeSave.Click
+        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Theme"
+        If Not Directory.Exists(xThemePath) Then My.Computer.FileSystem.CreateDirectory(xThemePath)
+
         Dim xDiag As New SaveFileDialog
-        xDiag.Filter = Strings.FileType.THEME_XML & "|*.Theme.xml"
-        xDiag.DefaultExt = "Theme.xml"
-        xDiag.InitialDirectory = My.Application.Info.DirectoryPath & "\Data"
+        xDiag.Filter = Strings.FileType.THEME_XML & "|*.xml"
+        xDiag.DefaultExt = "xml"
+        xDiag.InitialDirectory = xThemePath
         If xDiag.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
 
         Me.SaveSettings(xDiag.FileName, True)
@@ -6101,10 +6104,12 @@ Jump2:
             End Try
         Next
 
-        If Not Directory.Exists(My.Application.Info.DirectoryPath & "\Data") Then My.Computer.FileSystem.CreateDirectory(My.Application.Info.DirectoryPath & "\Data")
-        Dim xFileNames() As FileInfo = My.Computer.FileSystem.GetDirectoryInfo(My.Application.Info.DirectoryPath & "\Data").GetFiles("*.Theme.xml")
+        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Theme"
+        If Not Directory.Exists(xThemePath) Then My.Computer.FileSystem.CreateDirectory(xThemePath)
+        Dim xFileNames() As FileInfo = My.Computer.FileSystem.GetDirectoryInfo(xThemePath).GetFiles("*.xml")
         For Each xStr As FileInfo In xFileNames
             cmnTheme.Items.Add(xStr.Name, Nothing, AddressOf LoadTheme)
+            cmnTheme.Items(cmnTheme.Items.Count - 1).ToolTipText = xStr.FullName
         Next
     End Sub
 

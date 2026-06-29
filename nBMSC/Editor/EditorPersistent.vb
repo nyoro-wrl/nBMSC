@@ -1376,10 +1376,10 @@ EndOfSub:
     End Sub
 
     Private Sub LoadTheme(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        'If Not File.Exists(My.Application.Info.DirectoryPath & "\Data\" & sender.Text) Then Exit Sub
+        Dim xThemePath As String = sender.ToolTipText
         'SaveTheme = True
-        'LoadCFF(My.Computer.FileSystem.ReadAllText(My.Application.Info.DirectoryPath & "\Theme\" & sender.Text, System.Text.Encoding.Unicode))
-        LoadSettings(My.Application.Info.DirectoryPath & "\Data\" & sender.Text)
+        'LoadCFF(My.Computer.FileSystem.ReadAllText(xThemePath, System.Text.Encoding.Unicode))
+        LoadSettings(xThemePath)
         ChangePlaySideSkin(False)
         RefreshPanelAll()
     End Sub

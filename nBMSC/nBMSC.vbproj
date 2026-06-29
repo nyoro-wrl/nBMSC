@@ -316,7 +316,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ItemGroup>
-    <DataFiles Include="..\data\**\*.*" />
+    <ThemeFiles Include="..\Theme\**\*.*" />
+    <LanguageFiles Include="..\Language\**\*.*" />
   </ItemGroup>
   <Target Name="EmbedReleaseAssemblies" AfterTargets="ResolveReferences" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
@@ -326,11 +327,14 @@
       <EmbeddedResource Include="@(EmbeddedAssemblyFiles)" />
     </ItemGroup>
   </Target>
-  <Target Name="CopyDataFiles" AfterTargets="Build">
-    <MakeDir Directories="$(TargetDir)Data" />
-    <Copy SourceFiles="@(DataFiles)" DestinationFiles="@(DataFiles->'$(TargetDir)Data\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  <Target Name="CopySupportFiles" AfterTargets="Build">
+    <RemoveDir Directories="$(TargetDir)Data" Condition="Exists('$(TargetDir)Data')" />
+    <MakeDir Directories="$(TargetDir)Theme" />
+    <MakeDir Directories="$(TargetDir)Language" />
+    <Copy SourceFiles="@(ThemeFiles)" DestinationFiles="@(ThemeFiles->'$(TargetDir)Theme\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(LanguageFiles)" DestinationFiles="@(LanguageFiles->'$(TargetDir)Language\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
-  <Target Name="CleanReleaseFiles" AfterTargets="CopyDataFiles" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <Target Name="CleanReleaseFiles" AfterTargets="CopySupportFiles" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ItemGroup>
       <ReleaseExtraFiles Include="$(TargetDir)*.xml;$(TargetDir)*.pdb;@(ReferenceCopyLocalPaths->'$(TargetDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
     </ItemGroup>
