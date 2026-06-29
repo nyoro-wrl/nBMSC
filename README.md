@@ -3,9 +3,6 @@
 nBMSC is an improved version of µBMSC designed to balance convenience and simplicity.
 It supports Base62 definitions.
 
-See README.md.old for the original µBMSC README.
-See README.md.old2 for the README from iBMSC, the earlier upstream project.
-
 # Changes
 
 - Base62 definition support
@@ -25,3 +22,8 @@ See README.md.old2 for the README from iBMSC, the earlier upstream project.
   - Added landmine note conversion
   - Rebuilt the splitter behavior to make it easier to use
 - Other minor adjustments
+
+# Requests
+
+- For requests and feedback, please use [GitHub Issues](https://github.com/nyoro-wrl/nBMSC/issues) or contact [@nyoro_wrl](https://x.com/nyoro_wrl).
+- ご要望は [GitHub Issues](https://github.com/nyoro-wrl/nBMSC/issues) または [@nyoro_wrl](https://x.com/nyoro_wrl) までお願いします。
