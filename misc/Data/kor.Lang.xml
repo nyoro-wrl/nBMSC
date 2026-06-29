@@ -13,70 +13,69 @@
 	<None>None</None>
 	<Menu>
 		<File>
-			<Title amp="6">파일 (F)</Title>
-			<New amp="4">새로 만들기 (N)</New>
-			<Open amp="4">열기 (O)</Open>
-			<ImportSM amp="2">.SM 에서 가져오기</ImportSM>
-			<ImportNBMSC amp="1">.NBMSC 에서 가져오기</ImportNBMSC>
-			<Save amp="4">저장 (S)</Save>
-			<SaveAs amp="10">다른 이름으로 저장 (A)</SaveAs>
-			<ExportNBMSC amp="18">.NBMSC 형식으로 내보내기 (E)</ExportNBMSC>
-			<ExportBMSON amp="18">.BMSON 형식으로 내보내기 (B)</ExportBMSON>
+			<Title>파일</Title>
+			<New>새로 만들기</New>
+			<Open>열기</Open>
+			<ImportSM>.SM 에서 가져오기</ImportSM>
+			<ImportNBMSC>.NBMSC 에서 가져오기</ImportNBMSC>
+			<Save>저장</Save>
+			<SaveAs>다른 이름으로 저장</SaveAs>
+			<ExportNBMSC>.NBMSC 형식으로 내보내기</ExportNBMSC>
+			<ExportBMSON>.BMSON 형식으로 내보내기</ExportBMSON>
 			<Recent0>최근 사용된 파일 #0</Recent0>
 			<Recent1>최근 사용된 파일 #1</Recent1>
 			<Recent2>최근 사용된 파일 #2</Recent2>
 			<Recent3>최근 사용된 파일 #3</Recent3>
 			<Recent4>최근 사용된 파일 #4</Recent4>
-			<Quit amp="4">종료 (X)</Quit>
+			<Quit>종료</Quit>
 		</File>
 		<Edit>
-			<Title amp="4">편집 (E)</Title>
-			<Undo amp="6">실행취소 (U)</Undo>
-			<Redo amp="6">다시실행 (R)</Redo>
-			<Cut amp="6">잘라내기 (T)</Cut>
-			<Copy amp="5">복사 (C)</Copy>
-			<Paste amp="6">붙여넣기 (P)</Paste>
-			<Delete amp="4">삭제 (D)</Delete>
-			<SelectAll amp="7">모두 선택 (A)</SelectAll>
-			<GoToMeasure>마디로 이동 (&amp;G)...</GoToMeasure>
-			<Find amp="14">찾기 / 삭제 / 교체 (F)</Find>
-			<Stat amp="4">통계 (T)</Stat>
-			<TimeSelectionTool amp="11">시간 편집 모드 (I)</TimeSelectionTool>
-			<SelectTool amp="7">선택 모드 (S)</SelectTool>
-			<WriteTool amp="7">쓰기 모드 (W)</WriteTool>
+			<Title>편집</Title>
+			<Undo>실행취소</Undo>
+			<Redo>다시실행</Redo>
+			<Cut>잘라내기</Cut>
+			<Copy>복사</Copy>
+			<Paste>붙여넣기</Paste>
+			<Delete>삭제</Delete>
+			<SelectAll>모두 선택</SelectAll>
+			<GoToMeasure>마디로 이동...</GoToMeasure>
+			<Find>찾기 / 삭제 / 교체</Find>
+			<Stat>통계</Stat>
+			<TimeSelectionTool>시간 편집 모드</TimeSelectionTool>
+			<SelectTool>선택 모드</SelectTool>
+			<WriteTool>쓰기 모드</WriteTool>
 			<MyO2>MyO2 툴박스 (중국어 전용)</MyO2>
 		</Edit>
 		<View>
-			<Title amp="0">보기 (V)</Title>
+			<Title>보기</Title>
 		</View>
 		<Options>
-			<Title amp="4">설정 (O)</Title>
-			<NT amp="1">롱노트 입력모드 - NT/BMSE</NT>
-			<ErrorCheck amp="9">오류 검색 (E)</ErrorCheck>
-			<PreviewOnClick amp="17">노트 클릭하여 음원 미리듣기 (C)</PreviewOnClick>
-			<ShowFileName amp="9">파일명 표시 (F)</ShowFileName>
-			<ChangePlaySide amp="0">스크래치를 오른쪽에 표시</ChangePlaySide>
+			<Title>설정</Title>
+			<NT>롱노트 입력모드 - NT/BMSE</NT>
+			<ErrorCheck>오류 검색</ErrorCheck>
+			<PreviewOnClick>노트 클릭하여 음원 미리듣기</PreviewOnClick>
+			<ShowFileName>파일명 표시</ShowFileName>
+			<ChangePlaySide>스크래치를 오른쪽에 표시</ChangePlaySide>
 			<SyncSplitterScroll>분할 화면 간 스크롤 동기화</SyncSplitterScroll>
 			<SlashGrid>슬래시 키 Grid 값</SlashGrid>
-			<GeneralOptions amp="9">일반 옵션 (G)</GeneralOptions>
-			<VisualOptions amp="9">표시 옵션 (V)</VisualOptions>
-			<PlayerOptions amp="9">구동기 옵션 (P)</PlayerOptions>
-			<Language amp="4">언어 (L)</Language>
-			<Theme amp="5">테마 (T)</Theme>
+			<GeneralOptions>일반 옵션</GeneralOptions>
+			<VisualOptions>표시 옵션</VisualOptions>
+			<PlayerOptions>구동기 옵션</PlayerOptions>
+			<Language>언어</Language>
+			<Theme>테마</Theme>
 		</Options>
-		<Conversion amp="4">변환 (C)</Conversion>
+		<Conversion>변환</Conversion>
 		<Preview>
-			<Title amp="7">프리뷰 (P)</Title>
-			<PlayBegin amp="8">처음부터 재생 (B)</PlayBegin>
-			<PlayHere amp="10">지금부터 재생 (P)</PlayHere>
-			<PlayStop amp="4">정지 (S)</PlayStop>
+			<Title>프리뷰</Title>
+			<PlayBegin>처음부터 재생</PlayBegin>
+			<PlayHere>지금부터 재생</PlayHere>
+			<PlayStop>정지</PlayStop>
 		</Preview>
-		<About>
-			<Title amp="0">정보 (A)</Title>
-			<About amp="0">nBMSC 에 대해서... (A)</About>
-			<CheckUpdates amp="6">업데이트 확인 (C)</CheckUpdates>
-			<CheckUpdatesC>업데이트 확인 (중국어)</CheckUpdatesC>
-		</About>
+		<Help>
+			<Title>도움말</Title>
+			<CheckUpdates>업데이트 확인</CheckUpdates>
+			<CheckUpdatesOnStartup>시작할 때 업데이트 확인</CheckUpdatesOnStartup>
+		</Help>
 	</Menu>
 	<ToolBar>
 		<New>새로 만들기 (Ctrl+N)</New>
@@ -113,7 +112,6 @@
 		<GeneralOptions>일반 옵션</GeneralOptions>
 		<Language>언어</Language>
 		<Theme>테마</Theme>
-		<About>nBMSC에 대해서... </About>
 	</ToolBar>
 	<StatusBar>
 		<ColumnCaption>열 머리</ColumnCaption>
@@ -171,16 +169,16 @@
 			<LoadComptability>iBMSC 2.x 의 테마를 새로고침</LoadComptability>
 		</Theme>
 		<Convert>
-			<Long amp="7">롱노트화 (L)</Long>
-			<Short amp="9">일반노트화 (S)</Short>
+			<Long>롱노트화</Long>
+			<Short>일반노트화</Short>
 			<LongShort>롱노트↔일반노트</LongShort>
-			<Hidden amp="9">노트숨기기 (H)</Hidden>
+			<Hidden>노트숨기기</Hidden>
 			<Landmine>지뢰노트</Landmine>
-			<Visible amp="9">일반노트 (V)</Visible>
+			<Visible>일반노트</Visible>
 			<HiddenVisible>일반노트 ↔ 노트숨기기</HiddenVisible>
 			<NormalLandmine>일반노트 ↔ 지뢰노트</NormalLandmine>
-			<Relabel amp="10">노트번호 변경 (M)</Relabel>
-			<Mirror amp="5">좌우반전 (R)</Mirror>
+			<Relabel>노트번호 변경</Relabel>
+			<Mirror>좌우반전</Mirror>
 		</Convert>
 		<WAV>
 			<Base62>62진수로 확장</Base62>
@@ -235,9 +233,9 @@
 		</Header>
 		<Grid>
 			<Title>격자</Title>
-			<Snap>격자 스냅(G)</Snap>
+			<Snap>격자 스냅</Snap>
 			<BCols>BGM 최소 수</BCols>
-			<DisableVertical>수직위치 고정 (D)</DisableVertical>
+			<DisableVertical>수직위치 고정</DisableVertical>
 		</Grid>
 		<WaveForm>
 			<Title>BGM</Title>
@@ -289,6 +287,22 @@
 		<FileAssociationError>관련 변경 오류 : </FileAssociationError>
 		<RestoreDefaultSettings>설정을 초기화 하시겠습니까? : </RestoreDefaultSettings>
 		<RestoreAutosavedFile>{} 자동으로 저장된 파일이 있습니다. 이걸로 되돌리시겠습니까?</RestoreAutosavedFile>
+		<UpdateCheckTitle>업데이트 확인</UpdateCheckTitle>
+		<UpdateAvailable>새 버전이 있습니다.
+현재: {0}
+최신: {1}</UpdateAvailable>
+		<UpdateLatest>최신 버전을 사용 중입니다.
+현재: {0}
+최신: {1}</UpdateLatest>
+		<UpdateCheckFailed>업데이트를 확인할 수 없습니다.
+{0}</UpdateCheckFailed>
+		<UpdateVersionUnsupported>버전을 비교할 수 없습니다.
+현재: {0}
+최신 Release: {1}
+Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
+		<UpdateOpenRelease>Release 열기</UpdateOpenRelease>
+		<UpdateLater>나중에</UpdateLater>
+		<UpdateSkipVersion>이 버전 건너뛰기</UpdateSkipVersion>
 	</Messages>
 	<FileType>
 		<_all>모든 파일 (*.*)</_all>

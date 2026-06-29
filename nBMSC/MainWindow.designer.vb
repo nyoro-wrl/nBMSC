@@ -277,6 +277,9 @@ Partial Class MainWindow
         Me.mnPlayB = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnPlay = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnStop = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnHelp = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnUpdate = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnUpdateStartup = New System.Windows.Forms.ToolStripMenuItem()
         Me.POConvert = New System.Windows.Forms.ToolStripDropDownButton()
         Me.TBMain = New System.Windows.Forms.ToolStrip()
         Me.TBNew = New System.Windows.Forms.ToolStripButton()
@@ -2617,7 +2620,7 @@ Partial Class MainWindow
         Me.mnMain.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.mnMain.Dock = System.Windows.Forms.DockStyle.None
         Me.mnMain.GripMargin = New System.Windows.Forms.Padding(2)
-        Me.mnMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnFile, Me.mnEdit, Me.mnSys, Me.mnOptions, Me.mnConversion, Me.mnPreview})
+        Me.mnMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnFile, Me.mnEdit, Me.mnSys, Me.mnOptions, Me.mnConversion, Me.mnPreview, Me.mnHelp})
         Me.mnMain.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow
         Me.mnMain.Location = New System.Drawing.Point(0, 0)
         Me.mnMain.Name = "mnMain"
@@ -3274,6 +3277,28 @@ Partial Class MainWindow
         Me.mnStop.ShortcutKeys = System.Windows.Forms.Keys.F7
         Me.mnStop.Size = New System.Drawing.Size(201, 22)
         Me.mnStop.Text = "&Stop"
+        '
+        'mnHelp
+        '
+        Me.mnHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnUpdate, Me.mnUpdateStartup})
+        Me.mnHelp.Name = "mnHelp"
+        Me.mnHelp.Size = New System.Drawing.Size(44, 19)
+        Me.mnHelp.Text = "Help"
+        '
+        'mnUpdate
+        '
+        Me.mnUpdate.Name = "mnUpdate"
+        Me.mnUpdate.Size = New System.Drawing.Size(209, 22)
+        Me.mnUpdate.Text = "Check Updates"
+        '
+        'mnUpdateStartup
+        '
+        Me.mnUpdateStartup.Checked = True
+        Me.mnUpdateStartup.CheckOnClick = True
+        Me.mnUpdateStartup.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.mnUpdateStartup.Name = "mnUpdateStartup"
+        Me.mnUpdateStartup.Size = New System.Drawing.Size(209, 22)
+        Me.mnUpdateStartup.Text = "Check Updates on Startup"
         '
         'POConvert
         '
@@ -4322,6 +4347,9 @@ Partial Class MainWindow
     Friend WithEvents mnPlayB As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnPlay As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnStop As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnHelp As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnUpdate As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnUpdateStartup As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnTimeSelect As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnSelect As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnWrite As System.Windows.Forms.ToolStripMenuItem

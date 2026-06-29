@@ -63,16 +63,6 @@ Namespace My.Resources
         '''<summary>
         '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         '''</summary>
-        Friend ReadOnly Property About0() As System.Drawing.Bitmap
-            Get
-                Dim obj As Object = ResourceManager.GetObject("About0", resourceCulture)
-                Return CType(obj,System.Drawing.Bitmap)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
-        '''</summary>
         Friend ReadOnly Property Collapse() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("Collapse", resourceCulture)
@@ -391,16 +381,6 @@ Namespace My.Resources
         Friend ReadOnly Property WAVWidth() As System.Drawing.Bitmap
             Get
                 Dim obj As Object = ResourceManager.GetObject("WAVWidth", resourceCulture)
-                Return CType(obj,System.Drawing.Bitmap)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
-        '''</summary>
-        Friend ReadOnly Property x16About() As System.Drawing.Bitmap
-            Get
-                Dim obj As Object = ResourceManager.GetObject("x16About", resourceCulture)
                 Return CType(obj,System.Drawing.Bitmap)
             End Get
         End Property

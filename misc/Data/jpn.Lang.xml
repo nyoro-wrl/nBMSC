@@ -13,70 +13,69 @@
 	<None>None</None>
 	<Menu>
 		<File>
-			<Title amp="6">ファイル (F)</Title>
-			<New amp="4">新規 (N)</New>
-			<Open amp="4">開く (O)</Open>
-			<ImportSM amp="2">.SM ファイルからインポート</ImportSM>
-			<ImportNBMSC amp="1">.NBMSC ファイルからインポート</ImportNBMSC>
-			<Save amp="4">保存 (S)</Save>
-			<SaveAs amp="10">名前をつけて保存 (A)</SaveAs>
-			<ExportNBMSC amp="18">.NBMSC 形式にエクスポート (E)</ExportNBMSC>
-			<ExportBMSON amp="18">.BMSON 形式にエクスポート (B)</ExportBMSON>
+			<Title>ファイル</Title>
+			<New>新規</New>
+			<Open>開く</Open>
+			<ImportSM>.SM ファイルからインポート</ImportSM>
+			<ImportNBMSC>.NBMSC ファイルからインポート</ImportNBMSC>
+			<Save>保存</Save>
+			<SaveAs>名前をつけて保存</SaveAs>
+			<ExportNBMSC>.NBMSC 形式にエクスポート</ExportNBMSC>
+			<ExportBMSON>.BMSON 形式にエクスポート</ExportBMSON>
 			<Recent0>最近使ったファイル #0</Recent0>
 			<Recent1>最近使ったファイル #1</Recent1>
 			<Recent2>最近使ったファイル #2</Recent2>
 			<Recent3>最近使ったファイル #3</Recent3>
 			<Recent4>最近使ったファイル #4</Recent4>
-			<Quit amp="4">終了 (X)</Quit>
+			<Quit>終了</Quit>
 		</File>
 		<Edit>
-			<Title amp="4">編集 (E)</Title>
-			<Undo amp="6">元に戻す (U)</Undo>
-			<Redo amp="6">やり直し (R)</Redo>
-			<Cut amp="6">切り取り (T)</Cut>
-			<Copy amp="5">コピー (C)</Copy>
-			<Paste amp="6">貼り付け (P)</Paste>
-			<Delete amp="4">削除 (D)</Delete>
-			<SelectAll amp="7">すべて選択 (A)</SelectAll>
-			<GoToMeasure>指定小節へ移動 (&amp;G)...</GoToMeasure>
-			<Find amp="14">検索 / 削除 / 置換 (F)</Find>
-			<Stat amp="4">統計 (T)</Stat>
-			<TimeSelectionTool amp="11">時間選択モード (I)</TimeSelectionTool>
-			<SelectTool amp="7">選択モード (S)</SelectTool>
-			<WriteTool amp="7">書込モード (W)</WriteTool>
+			<Title>編集</Title>
+			<Undo>元に戻す</Undo>
+			<Redo>やり直し</Redo>
+			<Cut>切り取り</Cut>
+			<Copy>コピー</Copy>
+			<Paste>貼り付け</Paste>
+			<Delete>削除</Delete>
+			<SelectAll>すべて選択</SelectAll>
+			<GoToMeasure>指定小節へ移動...</GoToMeasure>
+			<Find>検索 / 削除 / 置換</Find>
+			<Stat>統計</Stat>
+			<TimeSelectionTool>時間選択モード</TimeSelectionTool>
+			<SelectTool>選択モード</SelectTool>
+			<WriteTool>書込モード</WriteTool>
 			<MyO2>MyO2 ツールボックス (中国語のみ)</MyO2>
 		</Edit>
 		<View>
-			<Title amp="4">表示 (V)</Title>
+			<Title>表示</Title>
 		</View>
 		<Options>
-			<Title amp="7">オプション (O)</Title>
-			<NT amp="1">LN 入力モード - NT/BMSE</NT>
-			<ErrorCheck amp="9">エラーチェック (E)</ErrorCheck>
-			<PreviewOnClick amp="15">クリック時に音声プレビュー (C)</PreviewOnClick>
-			<ShowFileName amp="10">ファイル名を表示 (F)</ShowFileName>
-			<ChangePlaySide amp="12">スクラッチ位置の変更 (R)</ChangePlaySide>
+			<Title>オプション</Title>
+			<NT>LN 入力モード - NT/BMSE</NT>
+			<ErrorCheck>エラーチェック</ErrorCheck>
+			<PreviewOnClick>クリック時に音声プレビュー</PreviewOnClick>
+			<ShowFileName>ファイル名を表示</ShowFileName>
+			<ChangePlaySide>スクラッチ位置の変更</ChangePlaySide>
 			<SyncSplitterScroll>スプリッタ間のスクロールを同期</SyncSplitterScroll>
 			<SlashGrid>スラッシュキーのGrid値</SlashGrid>
-			<GeneralOptions amp="9">一般オプション (G)</GeneralOptions>
-			<VisualOptions amp="9">表示オプション (V)</VisualOptions>
-			<PlayerOptions amp="10">再生ソフトの設定 (P)</PlayerOptions>
-			<Language amp="4">言語 (L)</Language>
-			<Theme amp="5">テーマ (T)</Theme>
+			<GeneralOptions>一般オプション</GeneralOptions>
+			<VisualOptions>表示オプション</VisualOptions>
+			<PlayerOptions>再生ソフトの設定</PlayerOptions>
+			<Language>言語</Language>
+			<Theme>テーマ</Theme>
 		</Options>
-		<Conversion amp="4">置換 (C)</Conversion>
+		<Conversion>置換</Conversion>
 		<Preview>
-			<Title amp="7">プレビュー (P)</Title>
-			<PlayBegin amp="8">最初から再生 (B)</PlayBegin>
-			<PlayHere amp="10">現在位置から再生 (P)</PlayHere>
-			<PlayStop amp="4">停止 (S)</PlayStop>
+			<Title>プレビュー</Title>
+			<PlayBegin>最初から再生</PlayBegin>
+			<PlayHere>現在位置から再生</PlayHere>
+			<PlayStop>停止</PlayStop>
 		</Preview>
-		<About>
-			<Title amp="7">About (A)</Title>
-			<About amp="12">nBMSC について (A)</About>
-			<CheckUpdates amp="9">更新を確認する (C)</CheckUpdates>
-			<CheckUpdatesC>更新を確認する（中国語）</CheckUpdatesC>
-		</About>
+		<Help>
+			<Title>ヘルプ</Title>
+			<CheckUpdates>更新を確認</CheckUpdates>
+			<CheckUpdatesOnStartup>起動時に更新を確認</CheckUpdatesOnStartup>
+		</Help>
 	</Menu>
 	<ToolBar>
 		<New>新規 (Ctrl+N)</New>
@@ -113,7 +112,6 @@
 		<GeneralOptions>一般オプション</GeneralOptions>
 		<Language>言語</Language>
 		<Theme>テーマ</Theme>
-		<About>nBMSC について</About>
 	</ToolBar>
 	<StatusBar>
 		<ColumnCaption>列の見出し</ColumnCaption>
@@ -173,16 +171,16 @@
 			<LoadComptability>iBMSC 2.x のテーマを読み込む</LoadComptability>
 		</Theme>
 		<Convert>
-			<Long amp="10">→ ロングノート (L)</Long>
-			<Short amp="12">→ ノーマルオブジェ (S)</Short>
+			<Long>→ ロングノート</Long>
+			<Short>→ ノーマルオブジェ</Short>
 			<LongShort>ロングノート ←→ ノーマルオブジェ</LongShort>
-			<Hidden amp="11">→ 不可視オブジェ (H)</Hidden>
+			<Hidden>→ 不可視オブジェ</Hidden>
 			<Landmine>→ 地雷オブジェ</Landmine>
-			<Visible amp="10">→ 通常オブジェ (V)</Visible>
+			<Visible>→ 通常オブジェ</Visible>
 			<HiddenVisible>通常オブジェ ←→ 不可視オブジェ</HiddenVisible>
 			<NormalLandmine>通常オブジェ ←→ 地雷オブジェ</NormalLandmine>
-			<Relabel amp="10">オブジェ番号変更 (M)</Relabel>
-			<Mirror amp="5">ミラー (R)</Mirror>
+			<Relabel>オブジェ番号変更</Relabel>
+			<Mirror>ミラー</Mirror>
 		</Convert>
 		<WAV>
 			<Base62>62進数に拡張</Base62>
@@ -238,9 +236,9 @@
 		</Header>
 		<Grid>
 			<Title>Grid</Title>
-			<Snap>グリッドスナップ (G)</Snap>
+			<Snap>グリッドスナップ</Snap>
 			<BCols>BGM 列の最小数</BCols>
-			<DisableVertical>オブジェを縦移動させない (D)</DisableVertical>
+			<DisableVertical>オブジェを縦移動させない</DisableVertical>
 		</Grid>
 		<WaveForm>
 			<Title>BGM波形</Title>
@@ -294,6 +292,22 @@
 		<FileAssociationError>関連づけ変更エラー：</FileAssociationError>
 		<RestoreDefaultSettings>設定を初期化しますか？</RestoreDefaultSettings>
 		<RestoreAutosavedFile>{} 自動保存のファイルが見つかりました。復元しますか？</RestoreAutosavedFile>
+		<UpdateCheckTitle>更新を確認</UpdateCheckTitle>
+		<UpdateAvailable>新しいバージョンがあります。
+現在: {0}
+最新: {1}</UpdateAvailable>
+		<UpdateLatest>最新版を使用しています。
+現在: {0}
+最新: {1}</UpdateLatest>
+		<UpdateCheckFailed>更新を確認できませんでした。
+{0}</UpdateCheckFailed>
+		<UpdateVersionUnsupported>バージョンを比較できませんでした。
+現在: {0}
+最新 Release: {1}
+Release ページを開きますか？</UpdateVersionUnsupported>
+		<UpdateOpenRelease>ダウンロード</UpdateOpenRelease>
+		<UpdateLater>後で</UpdateLater>
+		<UpdateSkipVersion>スキップ</UpdateSkipVersion>
 	</Messages>
 	<FileType>
 		<_all>すべてのファイル (*.*)</_all>

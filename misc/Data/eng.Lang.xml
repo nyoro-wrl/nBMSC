@@ -13,70 +13,69 @@
 	<None>None</None>
 	<Menu>
 		<File>
-			<Title amp="0">File</Title>
-			<New amp="0">New</New>
-			<Open amp="0">Open</Open>
-			<ImportSM amp="14">Import from .SM file</ImportSM>
-			<ImportNBMSC amp="13">Import from .NBMSC file</ImportNBMSC>
-			<Save amp="0">Save</Save>
-			<SaveAs amp="5">Save As...</SaveAs>
-			<ExportNBMSC amp="0">Export .NBMSC file</ExportNBMSC>
-			<ExportBMSON amp="8">Export .BMSON file</ExportBMSON>
+			<Title>File</Title>
+			<New>New</New>
+			<Open>Open</Open>
+			<ImportSM>Import from .SM file</ImportSM>
+			<ImportNBMSC>Import from .NBMSC file</ImportNBMSC>
+			<Save>Save</Save>
+			<SaveAs>Save As...</SaveAs>
+			<ExportNBMSC>Export .NBMSC file</ExportNBMSC>
+			<ExportBMSON>Export .BMSON file</ExportBMSON>
 			<Recent0>Recent #0</Recent0>
 			<Recent1>Recent #1</Recent1>
 			<Recent2>Recent #2</Recent2>
 			<Recent3>Recent #3</Recent3>
 			<Recent4>Recent #4</Recent4>
-			<Quit amp="0">Quit</Quit>
+			<Quit>Quit</Quit>
 		</File>
 		<Edit>
-			<Title amp="0">Edit</Title>
-			<Undo amp="0">Undo</Undo>
-			<Redo amp="0">Redo</Redo>
-			<Cut amp="2">Cut</Cut>
-			<Copy amp="0">Copy</Copy>
-			<Paste amp="0">Paste</Paste>
-			<Delete amp="2">Delete</Delete>
-			<SelectAll amp="7">Select All</SelectAll>
-			<GoToMeasure>&amp;Go To Measure...</GoToMeasure>
-			<Find amp="0">Find / Delete / Replace</Find>
-			<Stat amp="2">Statistics</Stat>
-			<TimeSelectionTool amp="1">Time Selection Tool</TimeSelectionTool>
-			<SelectTool amp="0">Select Tool</SelectTool>
-			<WriteTool amp="0">Write Tool</WriteTool>
+			<Title>Edit</Title>
+			<Undo>Undo</Undo>
+			<Redo>Redo</Redo>
+			<Cut>Cut</Cut>
+			<Copy>Copy</Copy>
+			<Paste>Paste</Paste>
+			<Delete>Delete</Delete>
+			<SelectAll>Select All</SelectAll>
+			<GoToMeasure>Go To Measure...</GoToMeasure>
+			<Find>Find / Delete / Replace</Find>
+			<Stat>Statistics</Stat>
+			<TimeSelectionTool>Time Selection Tool</TimeSelectionTool>
+			<SelectTool>Select Tool</SelectTool>
+			<WriteTool>Write Tool</WriteTool>
 			<MyO2>MyO2 ToolBox (Chinese Only)</MyO2>
 		</Edit>
 		<View>
-			<Title amp="0">View</Title>
+			<Title>View</Title>
 		</View>
 		<Options>
-			<Title amp="0">Options</Title>
-			<NT amp="1">LN Input Style - NT/BMSE</NT>
-			<ErrorCheck amp="0">Error Check</ErrorCheck>
-			<PreviewOnClick amp="11">Preview on Click</PreviewOnClick>
-			<ShowFileName amp="5">Show File Name on Notes</ShowFileName>
-			<ChangePlaySide amp="0">RightScratch Mode</ChangePlaySide>
+			<Title>Options</Title>
+			<NT>LN Input Style - NT/BMSE</NT>
+			<ErrorCheck>Error Check</ErrorCheck>
+			<PreviewOnClick>Preview on Click</PreviewOnClick>
+			<ShowFileName>Show File Name on Notes</ShowFileName>
+			<ChangePlaySide>RightScratch Mode</ChangePlaySide>
 			<SyncSplitterScroll>Sync Scroll between Splitters</SyncSplitterScroll>
 			<SlashGrid>Slash key grid value</SlashGrid>
-			<GeneralOptions amp="0">General Options</GeneralOptions>
-			<VisualOptions amp="0">Visual Options</VisualOptions>
-			<PlayerOptions amp="0">Player Options</PlayerOptions>
-			<Language amp="0">Language</Language>
-			<Theme amp="0">Theme</Theme>
+			<GeneralOptions>General Options</GeneralOptions>
+			<VisualOptions>Visual Options</VisualOptions>
+			<PlayerOptions>Player Options</PlayerOptions>
+			<Language>Language</Language>
+			<Theme>Theme</Theme>
 		</Options>
-		<Conversion amp="0">Conversions</Conversion>
+		<Conversion>Conversions</Conversion>
 		<Preview>
-			<Title amp="0">Preview</Title>
-			<PlayBegin amp="10">Play from beginning</PlayBegin>
-			<PlayHere amp="0">Play from here</PlayHere>
-			<PlayStop amp="0">Stop</PlayStop>
+			<Title>Preview</Title>
+			<PlayBegin>Play from beginning</PlayBegin>
+			<PlayHere>Play from here</PlayHere>
+			<PlayStop>Stop</PlayStop>
 		</Preview>
-		<About>
-			<Title amp="0">About</Title>
-			<About amp="0">About</About>
-			<CheckUpdates amp="6">Check Updates</CheckUpdates>
-			<CheckUpdatesC>Check Updates (Chinese)</CheckUpdatesC>
-		</About>
+		<Help>
+			<Title>Help</Title>
+			<CheckUpdates>Check Updates</CheckUpdates>
+			<CheckUpdatesOnStartup>Check Updates on Startup</CheckUpdatesOnStartup>
+		</Help>
 	</Menu>
 	<ToolBar>
 		<New>New (Ctrl+N)</New>
@@ -113,7 +112,6 @@
 		<GeneralOptions>General Options</GeneralOptions>
 		<Language>Language</Language>
 		<Theme>Theme</Theme>
-		<About>About</About>
 	</ToolBar>
 	<StatusBar>
 		<ColumnCaption>Column Caption</ColumnCaption>
@@ -138,14 +136,14 @@
 	<SubMenu>
 		<ShowHide>
 			<ToolTip>Show / Hide</ToolTip>
-			<Menu amp="0">Main Menu</Menu>
-			<ToolBar amp="0">ToolBar</ToolBar>
-			<OptionsPanel amp="0">Options Panel</OptionsPanel>
-			<StatusBar amp="0">Status Bar</StatusBar>
-			<LSplit amp="0">Left Splitter</LSplit>
-			<RSplit amp="0">Right Splitter</RSplit>
-			<AddSplitter amp="0">Add Splitter</AddSplitter>
-			<RemoveSplitter amp="0">Remove Splitter</RemoveSplitter>
+			<Menu>Main Menu</Menu>
+			<ToolBar>ToolBar</ToolBar>
+			<OptionsPanel>Options Panel</OptionsPanel>
+			<StatusBar>Status Bar</StatusBar>
+			<LSplit>Left Splitter</LSplit>
+			<RSplit>Right Splitter</RSplit>
+			<AddSplitter>Add Splitter</AddSplitter>
+			<RemoveSplitter>Remove Splitter</RemoveSplitter>
 			<Grid>Grid</Grid>
 			<Sub>Sub</Sub>
 			<BG>BackGround</BG>
@@ -173,16 +171,16 @@
 			<LoadComptability>Load Theme File from iBMSC 2.x</LoadComptability>
 		</Theme>
 		<Convert>
-			<Long amp="2">→ Long Note</Long>
-			<Short amp="2">→ Short Note</Short>
+			<Long>→ Long Note</Long>
+			<Short>→ Short Note</Short>
 			<LongShort>Long Note ↔ Short Note</LongShort>
-			<Hidden amp="2">→ Hidden Note</Hidden>
+			<Hidden>→ Hidden Note</Hidden>
 			<Landmine>→ LandMine Note</Landmine>
-			<Visible amp="2">→ Normal Note</Visible>
+			<Visible>→ Normal Note</Visible>
 			<HiddenVisible>Normal Note ↔ Hidden Note</HiddenVisible>
 			<NormalLandmine>Normal Note ↔ LandMine Note</NormalLandmine>
-			<Relabel amp="0">Modify Labels</Relabel>
-			<Mirror amp="2">Mirror</Mirror>
+			<Relabel>Modify Labels</Relabel>
+			<Mirror>Mirror</Mirror>
 		</Convert>
 		<WAV>
 			<Base62>Extend to base62</Base62>
@@ -238,9 +236,9 @@
 		</Header>
 		<Grid>
 			<Title>Grid</Title>
-			<Snap>Grid Snap (G)</Snap>
+			<Snap>Grid Snap</Snap>
 			<BCols>Minimum BGM Columns</BCols>
-			<DisableVertical>Disable vertical moves (D)</DisableVertical>
+			<DisableVertical>Disable vertical moves</DisableVertical>
 		</Grid>
 		<WaveForm>
 			<Title>WaveForm</Title>
@@ -294,6 +292,22 @@
 		<FileAssociationError>Error changing file type association:</FileAssociationError>
 		<RestoreDefaultSettings>Restore default settings?</RestoreDefaultSettings>
 		<RestoreAutosavedFile>{} autosaved file(s) have been found. Do you want to recover these files?</RestoreAutosavedFile>
+		<UpdateCheckTitle>Check Updates</UpdateCheckTitle>
+		<UpdateAvailable>A new version is available.
+Current: {0}
+Latest: {1}</UpdateAvailable>
+		<UpdateLatest>You are using the latest version.
+Current: {0}
+Latest: {1}</UpdateLatest>
+		<UpdateCheckFailed>Failed to check updates.
+{0}</UpdateCheckFailed>
+		<UpdateVersionUnsupported>Could not compare versions.
+Current: {0}
+Latest release: {1}
+Open the release page?</UpdateVersionUnsupported>
+		<UpdateOpenRelease>Open Release</UpdateOpenRelease>
+		<UpdateLater>Later</UpdateLater>
+		<UpdateSkipVersion>Skip This Version</UpdateSkipVersion>
 	</Messages>
 	<FileType>
 		<_all>All files (*.*)</_all>

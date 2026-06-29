@@ -44,6 +44,14 @@ Public Class Strings
         Public Shared FileAssociationError As String = "Error changing file type association:"
         Public Shared RestoreDefaultSettings As String = "Restore default settings?"
         Public Shared RestoreAutosavedFile As String = "{} autosaved file(s) have been found. Do you want to recover these files?"
+        Public Shared UpdateCheckTitle As String = "Check Updates"
+        Public Shared UpdateAvailable As String = "A new version is available." & vbCrLf & "Current: {0}" & vbCrLf & "Latest: {1}"
+        Public Shared UpdateLatest As String = "You are using the latest version." & vbCrLf & "Current: {0}" & vbCrLf & "Latest: {1}"
+        Public Shared UpdateCheckFailed As String = "Failed to check updates." & vbCrLf & "{0}"
+        Public Shared UpdateVersionUnsupported As String = "Could not compare versions." & vbCrLf & "Current: {0}" & vbCrLf & "Latest release: {1}" & vbCrLf & "Open the release page?"
+        Public Shared UpdateOpenRelease As String = "Open Release"
+        Public Shared UpdateLater As String = "Later"
+        Public Shared UpdateSkipVersion As String = "Skip This Version"
     End Class
 
     Public Class FileType

@@ -272,6 +272,8 @@ Public Class MainWindow
     Dim SkipClippedMeasure As Boolean = False
     Dim LaneHighlight As Integer = 0
     Dim pTempFileNames() As String = {}
+    Dim SkippedUpdateTag As String = ""
+    Dim CheckUpdatesOnStartup As Boolean = True
 
     '----Split Panel Options
     Dim PanelWidth() As Single = {100}
@@ -861,8 +863,7 @@ Public Class MainWindow
             End If
         Loop
 
-        Dim xText As String = xBuilder.ToString()
-        Return System.Text.RegularExpressions.Regex.Replace(xText, "\s\([A-Za-z0-9]\)(?=\.{3}|$)", "")
+        Return xBuilder.ToString()
     End Function
 
     Private Sub RemoveMenuAccessKeys(ByVal items As ToolStripItemCollection)
@@ -2727,6 +2728,7 @@ Public Class MainWindow
         PMainIn.Focus()
         ResetSelectedOptionsTabScroll()
         QueueResetSelectedOptionsTabScroll()
+        If CheckUpdatesOnStartup Then BeginInvoke(New MethodInvoker(AddressOf StartStartupUpdateCheck))
     End Sub
 
     Private Sub LoadInitialPreferences()
@@ -4569,21 +4571,6 @@ StartCount:     If Not NTInput Then
     '... 'Me.RedoRemoveNote(K(xI1), True, xUndo, xRedo)
     'AddUndo(xUndo, xBaseRedo.Next)
 
-
-
-    Private Sub TBAbout_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        Dim Aboutboxx1 As New AboutBox1()
-        'If My.Computer.FileSystem.FileExists(My.Application.Info.DirectoryPath & "\About.png") Then
-        Aboutboxx1.bBitmap = My.Resources.About0
-        'Aboutboxx1.SelectBitmap()
-        Aboutboxx1.ClientSize = New Size(1000, 500)
-        Aboutboxx1.ClickToCopy.Visible = True
-        Aboutboxx1.ShowDialog(Me)
-        'Else
-        '    MsgBox(locale.Messages.cannotfind & " ""About.png""", MsgBoxStyle.Critical, locale.Messages.err)
-        'End If
-    End Sub
-
     Private Sub TBOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBVOptions.Click, mnVOptions.Click
 
         Dim xDiag As New OpVisual(vo, column, LWAV.Font)
@@ -6036,12 +6023,230 @@ Jump2:
         POStatusRefresh()
     End Sub
 
-    Private Sub mnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        Process.Start("http://www.cs.mcgill.ca/~ryang6/iBMSC/")
+    Private Enum UpdatePromptAction
+        Later
+        OpenRelease
+        SkipVersion
+    End Enum
+
+    Private Async Sub mnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnUpdate.Click
+        Dim xCursor As Cursor = Cursor
+        mnUpdate.Enabled = False
+        Cursor = Cursors.WaitCursor
+
+        Try
+            Dim xResult As UpdateCheckResult = Await System.Threading.Tasks.Task.Run(Function() UpdateChecker.Check(My.Application.Info.Version))
+            ShowUpdateCheckResult(xResult, True)
+        Finally
+            Cursor = xCursor
+            mnUpdate.Enabled = True
+        End Try
     End Sub
 
-    Private Sub mnUpdateC_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        Process.Start("http://bbs.rohome.net/thread-1074065-1-1.html")
+    Private Sub mnUpdateStartup_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnUpdateStartup.CheckedChanged
+        CheckUpdatesOnStartup = mnUpdateStartup.Checked
+        If IsInitializing Then Return
+
+        Try
+            SaveSettings(My.Application.Info.DirectoryPath & "\nBMSC.Settings.xml", False)
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
+        End Try
+    End Sub
+
+    Private Sub StartStartupUpdateCheck()
+        System.Threading.Tasks.Task.Run(Sub()
+                                            Dim xResult As UpdateCheckResult = UpdateChecker.Check(My.Application.Info.Version)
+                                            If Not xResult.IsSuccess OrElse Not xResult.CanCompare OrElse Not xResult.HasUpdate Then Return
+                                            If IsUpdateTagSkipped(xResult.LatestTag) Then Return
+                                            If IsDisposed OrElse Not IsHandleCreated Then Return
+
+                                            Try
+                                                BeginInvoke(New MethodInvoker(Sub()
+                                                                                  If Not IsDisposed Then ShowUpdateCheckResult(xResult, False)
+                                                                              End Sub))
+                                            Catch ex As ObjectDisposedException
+                                            Catch ex As InvalidOperationException
+                                            End Try
+                                        End Sub)
+    End Sub
+
+    Private Sub ShowUpdateCheckResult(ByVal xResult As UpdateCheckResult, ByVal xIsManual As Boolean)
+        If Not xResult.IsSuccess Then
+            If xIsManual Then MsgBox(String.Format(Strings.Messages.UpdateCheckFailed, xResult.ErrorMessage), MsgBoxStyle.Exclamation, Strings.Messages.UpdateCheckTitle)
+            Return
+        End If
+
+        If Not xResult.CanCompare Then
+            If xIsManual AndAlso MsgBox(String.Format(Strings.Messages.UpdateVersionUnsupported, My.Application.Info.Version, xResult.LatestTag),
+                                        MsgBoxStyle.Question Or MsgBoxStyle.YesNo,
+                                        Strings.Messages.UpdateCheckTitle) = MsgBoxResult.Yes Then
+                OpenUpdatePage(xResult.ReleaseUrl)
+            End If
+            Return
+        End If
+
+        If xResult.HasUpdate Then
+            Select Case ShowUpdateAvailableDialog(xResult)
+                Case UpdatePromptAction.OpenRelease
+                    OpenUpdatePage(xResult.ReleaseUrl)
+                Case UpdatePromptAction.SkipVersion
+                    SkipUpdateVersion(xResult.LatestTag)
+            End Select
+        ElseIf xIsManual Then
+            MsgBox(String.Format(Strings.Messages.UpdateLatest, My.Application.Info.Version, xResult.LatestTag),
+                   MsgBoxStyle.Information,
+                   Strings.Messages.UpdateCheckTitle)
+        End If
+    End Sub
+
+    Private Function ShowUpdateAvailableDialog(ByVal xResult As UpdateCheckResult) As UpdatePromptAction
+        Using xForm As New Form()
+            xForm.Text = Strings.Messages.UpdateCheckTitle
+            xForm.FormBorderStyle = FormBorderStyle.FixedDialog
+            xForm.StartPosition = FormStartPosition.CenterParent
+            xForm.MinimizeBox = False
+            xForm.MaximizeBox = False
+            xForm.ShowInTaskbar = False
+            xForm.Font = Font
+
+            Dim xContentPadding As New Padding(22, 14, 22, 18)
+            Dim xButtonPadding As New Padding(12, 8, 12, 8)
+            Dim xIconSize As Integer = 32
+            Dim xIconTextGap As Integer = 14
+            Dim xMainDetailsGap As Integer = 6
+
+            Dim xIcon As New PictureBox()
+            xIcon.Image = SystemIcons.Information.ToBitmap()
+            xIcon.Size = New Size(xIconSize, xIconSize)
+            xIcon.SizeMode = PictureBoxSizeMode.CenterImage
+
+            Dim xMessageText As String = String.Format(Strings.Messages.UpdateAvailable, My.Application.Info.Version, xResult.LatestTag)
+            Dim xMessageLines As String() = xMessageText.Replace(vbCrLf, vbLf).Split(ControlChars.Lf)
+
+            Dim xMainInstruction As New Label()
+            xMainInstruction.AutoSize = True
+            xMainInstruction.ForeColor = SystemColors.HotTrack
+            xMainInstruction.Font = New Font(Font.FontFamily, Font.Size + 2.0!, FontStyle.Regular)
+            xMainInstruction.Text = If(xMessageLines.Length > 0, xMessageLines(0), "")
+
+            Dim xContentText As String = ""
+            If xMessageLines.Length > 1 Then
+                Dim xContentLines(xMessageLines.Length - 2) As String
+                Array.Copy(xMessageLines, 1, xContentLines, 0, xContentLines.Length)
+                xContentText = String.Join(vbCrLf, xContentLines)
+            End If
+
+            Dim xDetails As New Label()
+            xDetails.AutoSize = True
+            xDetails.Text = xContentText
+
+            Dim xOpen As New Button()
+            xOpen.Text = Strings.Messages.UpdateOpenRelease
+            xOpen.DialogResult = DialogResult.Yes
+            xOpen.Size = MeasureUpdateDialogButton(xOpen.Text, xForm.Font)
+            xOpen.Margin = New Padding(6, 0, 0, 0)
+
+            Dim xLater As New Button()
+            xLater.Text = Strings.Messages.UpdateLater
+            xLater.DialogResult = DialogResult.No
+            xLater.Size = MeasureUpdateDialogButton(xLater.Text, xForm.Font)
+            xLater.Margin = New Padding(6, 0, 0, 0)
+
+            Dim xSkip As New Button()
+            xSkip.Text = Strings.Messages.UpdateSkipVersion
+            xSkip.DialogResult = DialogResult.Ignore
+            xSkip.Size = MeasureUpdateDialogButton(xSkip.Text, xForm.Font)
+            xSkip.Margin = New Padding(6, 0, 0, 0)
+
+            Dim xMainInstructionSize As Size = xMainInstruction.PreferredSize
+            Dim xDetailsSize As Size = xDetails.PreferredSize
+            Dim xContentTextWidth As Integer = Math.Max(xMainInstructionSize.Width, xDetailsSize.Width)
+            Dim xContentTextHeight As Integer = xMainInstructionSize.Height + xMainDetailsGap + xDetailsSize.Height
+            Dim xContentWidth As Integer = xContentPadding.Left + xIconSize + xIconTextGap + xContentTextWidth + xContentPadding.Right
+            Dim xContentHeight As Integer = xContentPadding.Top + Math.Max(xIconSize, xContentTextHeight) + xContentPadding.Bottom
+
+            Dim xButtons As New FlowLayoutPanel()
+            xButtons.FlowDirection = FlowDirection.RightToLeft
+            xButtons.Padding = xButtonPadding
+            xButtons.WrapContents = False
+
+            Dim xButtonControls As Button() = {xOpen, xSkip, xLater}
+            Dim xButtonsWidth As Integer = xButtonPadding.Left + xButtonPadding.Right
+            Dim xButtonHeight As Integer = 0
+            For Each xButton As Button In xButtonControls
+                xButtonsWidth += xButton.Width + xButton.Margin.Left + xButton.Margin.Right
+                xButtonHeight = Math.Max(xButtonHeight, xButton.Height + xButton.Margin.Top + xButton.Margin.Bottom)
+            Next
+            Dim xButtonsHeight As Integer = xButtonPadding.Top + xButtonHeight + xButtonPadding.Bottom
+            Dim xClientWidth As Integer = Math.Max(xContentWidth, xButtonsWidth)
+
+            Dim xContent As New Panel()
+            xContent.BackColor = SystemColors.Window
+            xContent.Location = New Point(0, 0)
+            xContent.Size = New Size(xClientWidth, xContentHeight)
+
+            Dim xTextLeft As Integer = xContentPadding.Left + xIconSize + xIconTextGap
+            Dim xTextTop As Integer = xContentPadding.Top
+            xIcon.Location = New Point(xContentPadding.Left, xContentPadding.Top)
+            xMainInstruction.Location = New Point(xTextLeft, xTextTop)
+            xDetails.Location = New Point(xTextLeft, xTextTop + xMainInstructionSize.Height + xMainDetailsGap)
+            xContent.Controls.Add(xIcon)
+            xContent.Controls.Add(xMainInstruction)
+            xContent.Controls.Add(xDetails)
+
+            xButtons.Location = New Point(0, xContentHeight)
+            xButtons.Size = New Size(xClientWidth, xButtonsHeight)
+            xButtons.Controls.Add(xLater)
+            xButtons.Controls.Add(xSkip)
+            xButtons.Controls.Add(xOpen)
+
+            xForm.ClientSize = New Size(xClientWidth, xContentHeight + xButtonsHeight)
+            xForm.Controls.Add(xContent)
+            xForm.Controls.Add(xButtons)
+            xForm.AcceptButton = xOpen
+            xForm.CancelButton = xLater
+
+            Select Case xForm.ShowDialog(Me)
+                Case DialogResult.Yes
+                    Return UpdatePromptAction.OpenRelease
+                Case DialogResult.Ignore
+                    Return UpdatePromptAction.SkipVersion
+                Case Else
+                    Return UpdatePromptAction.Later
+            End Select
+        End Using
+    End Function
+
+    Private Function MeasureUpdateDialogButton(ByVal xText As String, ByVal xFont As Font) As Size
+        Dim xTextSize As Size = TextRenderer.MeasureText(xText, xFont, New Size(Integer.MaxValue, Integer.MaxValue), TextFormatFlags.SingleLine)
+        Return New Size(xTextSize.Width + 24, Math.Max(27, xTextSize.Height + 9))
+    End Function
+
+    Private Function IsUpdateTagSkipped(ByVal xTag As String) As Boolean
+        Return Not String.IsNullOrWhiteSpace(xTag) AndAlso
+               String.Equals(SkippedUpdateTag, xTag, StringComparison.OrdinalIgnoreCase)
+    End Function
+
+    Private Sub SkipUpdateVersion(ByVal xTag As String)
+        If String.IsNullOrWhiteSpace(xTag) Then Return
+
+        SkippedUpdateTag = xTag
+        Try
+            SaveSettings(My.Application.Info.DirectoryPath & "\nBMSC.Settings.xml", False)
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
+        End Try
+    End Sub
+
+    Private Sub OpenUpdatePage(ByVal xUrl As String)
+        If String.IsNullOrWhiteSpace(xUrl) Then Return
+
+        Try
+            Process.Start(xUrl)
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
+        End Try
     End Sub
 
     Private Sub mnQuit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnQuit.Click

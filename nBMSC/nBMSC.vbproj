@@ -136,12 +136,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Column.vb" />
-    <Compile Include="Dialogs\AboutBox1.designer.vb">
-      <DependentUpon>AboutBox1.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\AboutBox1.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="ApplicationEvents.vb" />
     <Compile Include="Dialogs\ColorPicker.designer.vb">
       <DependentUpon>ColorPicker.vb</DependentUpon>
@@ -220,6 +214,7 @@
     <Compile Include="Utilities.vb" />
     <Compile Include="Option Windows\Note.vb" />
     <Compile Include="Strings.vb" />
+    <Compile Include="UpdateChecker.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -262,9 +257,6 @@
     <Compile Include="XMLUtil.vb" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Dialogs\AboutBox1.resx">
-      <DependentUpon>AboutBox1.vb</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\ColorPicker.resx">
       <DependentUpon>ColorPicker.vb</DependentUpon>
     </EmbeddedResource>

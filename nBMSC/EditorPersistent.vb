@@ -101,6 +101,11 @@ Partial Public Class MainWindow
             .WriteAttributeString("STOPDefinitionMode", STOPDefinitionMode)
             .WriteEndElement()
 
+            .WriteStartElement("Update")
+            .WriteAttributeString("SkippedTag", SkippedUpdateTag)
+            .WriteAttributeString("CheckOnStartup", CheckUpdatesOnStartup)
+            .WriteEndElement()
+
             .WriteStartElement("WAV")
             .WriteAttributeString("WAVMultiSelect", WAVMultiSelect)
             .WriteAttributeString("WAVChangeLabel", WAVChangeLabel)
@@ -416,6 +421,14 @@ Partial Public Class MainWindow
             End With
         End If
 
+        'update
+        Dim eUpdate As XmlElement = Root.Item("Update")
+        If eUpdate IsNot Nothing Then
+            XMLLoadAttribute(eUpdate.GetAttribute("SkippedTag"), SkippedUpdateTag)
+            XMLLoadAttribute(eUpdate.GetAttribute("CheckOnStartup"), CheckUpdatesOnStartup)
+            mnUpdateStartup.Checked = CheckUpdatesOnStartup
+        End If
+
         'WAV
         Dim eWAV As XmlElement = Root.Item("WAV")
         If eWAV IsNot Nothing Then
@@ -578,7 +591,7 @@ EndOfSub:
 
     Private Sub XMLLoadLocaleMenu(ByVal n As XmlElement, ByRef target As String)
         If n Is Nothing Then Exit Sub
-        target = RemoveMenuAccessKeys(n.InnerText)
+        target = n.InnerText
     End Sub
 
     Private Sub XMLLoadLocale(ByVal n As XmlElement, ByRef target As String)
@@ -746,12 +759,11 @@ EndOfSub:
                     XMLLoadLocaleMenu(ePreview.Item("PlayStop"), mnStop.Text)
                 End If
 
-                Dim eAbout As XmlElement = eMenu.Item("About")
-                If eAbout IsNot Nothing Then
-                    'XMLLoadLocaleMenu(eAbout.Item("Title"), mnAbout.Text)
-                    'XMLLoadLocaleMenu(eAbout.Item("About"), mnAbout1.Text)
-                    'XMLLoadLocaleMenu(eAbout.Item("CheckUpdates"), mnUpdate.Text)
-                    'XMLLoadLocaleMenu(eAbout.Item("CheckUpdatesC"), mnUpdateC.Text)
+                Dim eHelp As XmlElement = eMenu.Item("Help")
+                If eHelp IsNot Nothing Then
+                    XMLLoadLocaleMenu(eHelp.Item("Title"), mnHelp.Text)
+                    XMLLoadLocaleMenu(eHelp.Item("CheckUpdates"), mnUpdate.Text)
+                    XMLLoadLocaleMenu(eHelp.Item("CheckUpdatesOnStartup"), mnUpdateStartup.Text)
                 End If
             End If
 
@@ -1018,6 +1030,14 @@ EndOfSub:
                 XMLLoadLocale(eMessages.Item("FileAssociationError"), Strings.Messages.FileAssociationError)
                 XMLLoadLocale(eMessages.Item("RestoreDefaultSettings"), Strings.Messages.RestoreDefaultSettings)
                 XMLLoadLocale(eMessages.Item("RestoreAutosavedFile"), Strings.Messages.RestoreAutosavedFile)
+                XMLLoadLocale(eMessages.Item("UpdateCheckTitle"), Strings.Messages.UpdateCheckTitle)
+                XMLLoadLocale(eMessages.Item("UpdateAvailable"), Strings.Messages.UpdateAvailable)
+                XMLLoadLocale(eMessages.Item("UpdateLatest"), Strings.Messages.UpdateLatest)
+                XMLLoadLocale(eMessages.Item("UpdateCheckFailed"), Strings.Messages.UpdateCheckFailed)
+                XMLLoadLocale(eMessages.Item("UpdateVersionUnsupported"), Strings.Messages.UpdateVersionUnsupported)
+                XMLLoadLocale(eMessages.Item("UpdateOpenRelease"), Strings.Messages.UpdateOpenRelease)
+                XMLLoadLocale(eMessages.Item("UpdateLater"), Strings.Messages.UpdateLater)
+                XMLLoadLocale(eMessages.Item("UpdateSkipVersion"), Strings.Messages.UpdateSkipVersion)
             End If
 
             Dim eFileType As XmlElement = Root.Item("FileType")
