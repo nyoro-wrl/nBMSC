@@ -6097,7 +6097,7 @@ Jump2:
     End Sub
 
     Private Sub TBThemeRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBThemeRefresh.Click
-        For xI1 As Integer = cmnTheme.Items.Count - 1 To 5 Step -1
+        For xI1 As Integer = cmnTheme.Items.Count - 1 To 4 Step -1
             Try
                 cmnTheme.Items.RemoveAt(xI1)
             Catch ex As Exception
@@ -6111,18 +6111,6 @@ Jump2:
             cmnTheme.Items.Add(xStr.Name, Nothing, AddressOf LoadTheme)
             cmnTheme.Items(cmnTheme.Items.Count - 1).ToolTipText = xStr.FullName
         Next
-    End Sub
-
-    Private Sub TBThemeLoadComptability_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBThemeLoadComptability.Click
-        Dim xDiag As New OpenFileDialog
-        xDiag.Filter = Strings.FileType.TH & "|*.th"
-        xDiag.DefaultExt = "th"
-        xDiag.InitialDirectory = My.Application.Info.DirectoryPath
-        If My.Computer.FileSystem.DirectoryExists(My.Application.Info.DirectoryPath & "\Theme") Then xDiag.InitialDirectory = My.Application.Info.DirectoryPath & "\Theme"
-        If xDiag.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
-
-        Me.LoadThemeComptability(xDiag.FileName)
-        RefreshPanelAll()
     End Sub
 
     ''' <summary>

@@ -872,7 +872,6 @@ EndOfSub:
                     XMLLoadLocaleMenu(eTheme.Item("Default"), TBThemeDef.Text)
                     XMLLoadLocaleMenu(eTheme.Item("Save"), TBThemeSave.Text)
                     XMLLoadLocaleMenu(eTheme.Item("Refresh"), TBThemeRefresh.Text)
-                    XMLLoadLocaleMenu(eTheme.Item("LoadComptability"), TBThemeLoadComptability.Text)
                 End If
 
                 Dim eConvert As XmlElement = eSubMenu.Item("Convert")
@@ -1054,7 +1053,6 @@ EndOfSub:
                 XMLLoadLocale(eFileType.Item("NBMSC"), Strings.FileType.NBMSC)
                 XMLLoadLocale(eFileType.Item("XML"), Strings.FileType.XML)
                 XMLLoadLocale(eFileType.Item("THEME_XML"), Strings.FileType.THEME_XML)
-                XMLLoadLocale(eFileType.Item("TH"), Strings.FileType.TH)
                 XMLLoadLocale(eFileType.Item("_audio"), Strings.FileType._audio)
                 XMLLoadLocale(eFileType.Item("_wave"), Strings.FileType._wave)
                 XMLLoadLocale(eFileType.Item("WAV"), Strings.FileType.WAV)
@@ -1243,112 +1241,6 @@ EndOfSub:
         'File.Delete(xTempFileName)
     End Sub
 
-    Private Sub LoadThemeComptability(ByVal xPath As String)
-        Try
-            Dim xStrLine() As String = Split(My.Computer.FileSystem.ReadAllText(xPath), vbCrLf)
-            If xStrLine(0).Trim <> "iBMSC Configuration Settings Format" And xStrLine(0).Trim <> "iBMSC Theme Format" Then Exit Sub
-
-            Dim xW1 As String = ""
-            Dim xW2 As String = ""
-
-            For Each xLine As String In xStrLine
-                xW1 = UCase(Mid(xLine, 1, InStr(xLine, "=") - 1))
-                xW2 = Mid(xLine, InStr(xLine, "=") + 1)
-
-                Select Case xW1
-                    Case "VOTITLE" : vo.ColumnTitle.Color = Color.FromArgb(Val(xW2))
-                    Case "VOTITLEFONT" : vo.ColumnTitleFont = StringToFont(xW2, Me.Font)
-                    Case "VOBG" : vo.Bg.Color = Color.FromArgb(Val(xW2))
-                    Case "VOGRID" : vo.pGrid.Color = Color.FromArgb(Val(xW2))
-                    Case "VOSUB" : vo.pSub.Color = Color.FromArgb(Val(xW2))
-                    Case "VOVLINE" : vo.pVLine.Color = Color.FromArgb(Val(xW2))
-                    Case "VOMLINE" : vo.pMLine.Color = Color.FromArgb(Val(xW2))
-                    Case "VOBGMWAV"
-                        vo.pBGMWav.Color = Color.FromArgb(Val(xW2))
-                        TWTransparency.Value = vo.pBGMWav.Color.A
-                        TWTransparency2.Value = vo.pBGMWav.Color.A
-                        TWSaturation.Value = vo.pBGMWav.Color.GetSaturation * 1000
-                        TWSaturation2.Value = vo.pBGMWav.Color.GetSaturation * 1000
-                    Case "VOSELBOX" : vo.SelBox.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPECURSOR" : vo.PECursor.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPEHALF" : vo.PEHalf.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPEDELTAMOUSEOVER" : vo.PEDeltaMouseOver = Val(xW2)
-                    Case "VOPEMOUSEOVER" : vo.PEMouseOver.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPESEL" : vo.PESel.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPEBPM" : vo.PEBPM.Color = Color.FromArgb(Val(xW2))
-                    Case "VOPEBPMFONT" : vo.PEBPMFont = StringToFont(xW2, Me.Font)
-                    Case "VKHEIGHT" : vo.kHeight = Val(xW2)
-                    Case "VKFONT" : vo.kFont = StringToFont(xW2, Me.Font)
-                    Case "VKMFONT" : vo.kMFont = StringToFont(xW2, Me.Font)
-                    Case "VKLABELVSHIFT" : vo.kLabelVShift = Val(xW2)
-                    Case "VKLABELHSHIFT" : vo.kLabelHShift = Val(xW2)
-                    Case "VKLABELHSHIFTL" : vo.kLabelHShiftL = Val(xW2)
-                    Case "VKMOUSEOVER" : vo.kMouseOver.Color = Color.FromArgb(Val(xW2))
-                    Case "VKMOUSEOVERE " : vo.kMouseOverE.Color = Color.FromArgb(Val(xW2))
-                    Case "VKSELECTED" : vo.kSelected.Color = Color.FromArgb(Val(xW2))
-                        'Case "VKHIDTRANSPARENCY" : vo.kOpacity = Val(xW2)
-
-                    Case "KLENGTH"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).Width = Val(xE(i))
-                        Next
-
-                    Case "KTITLE"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).Title = xE(i)
-                        Next
-
-                    Case "KCOLOR"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).setNoteColor(Val(xE(i)))
-                        Next
-
-                    Case "KCOLORL"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).setLNoteColor(Val(xE(i)))
-                        Next
-
-                    Case "KFORECOLOR"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).cText = Color.FromArgb(Val(xE(i)))
-                        Next
-
-                    Case "KFORECOLORL"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).cLText = Color.FromArgb(Val(xE(i)))
-                        Next
-
-                    Case "KBGCOLOR"
-                        Dim xE() As String = LoadThemeComptability_SplitStringInto26Parts(xW2)
-                        For i As Integer = 0 To 26
-                            column(i).cBG = Color.FromArgb(Val(xE(i)))
-                        Next
-
-                End Select
-
-            Next
-
-        Catch ex As Exception
-            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
-
-        Finally
-            CalculateGreatestColumn()
-
-        End Try
-    End Sub
-
-    Private Function LoadThemeComptability_SplitStringInto26Parts(ByVal xLine As String) As String()
-        Dim xE() As String = Split(xLine, ",")
-        ReDim Preserve xE(26)
-        Return xE
-    End Function
-
     Private Sub LoadLang(ByVal sender As System.Object, ByVal e As System.EventArgs)
         Dim xFN2 As String = sender.ToolTipText
         'ReadLanguagePack(xFN2)
@@ -1378,7 +1270,6 @@ EndOfSub:
     Private Sub LoadTheme(ByVal sender As System.Object, ByVal e As System.EventArgs)
         Dim xThemePath As String = sender.ToolTipText
         'SaveTheme = True
-        'LoadCFF(My.Computer.FileSystem.ReadAllText(xThemePath, System.Text.Encoding.Unicode))
         LoadSettings(xThemePath)
         ChangePlaySideSkin(False)
         RefreshPanelAll()

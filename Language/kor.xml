@@ -165,7 +165,6 @@
 			<Default>초기화</Default>
 			<Save>테마 저장</Save>
 			<Refresh>목록 새로고침</Refresh>
-			<LoadComptability>iBMSC 2.x 의 테마를 새로고침</LoadComptability>
 		</Theme>
 		<Convert>
 			<Long>롱노트화</Long>
@@ -315,7 +314,6 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<NBMSC>nBMSC 바이너리 포맷 (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
 		<THEME_XML>iBMSC 테마 (*.xml)</THEME_XML>
-		<TH>iBMSC 2.x 테마 파일 (*.th)</TH>
 		<_audio>사용 가능한 오디오파일(*.wav, *.ogg, *.mp3, *.mid)</_audio>
 		<_wave>사용 가능한 음원 파일(*.wav, *.ogg, *.mp3)</_wave>
 		<WAV>Waveform Audio (*.wav)</WAV>

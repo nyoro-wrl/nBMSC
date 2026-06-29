@@ -31,7 +31,6 @@ Partial Class MainWindow
         Me.TBThemeDef = New System.Windows.Forms.ToolStripMenuItem()
         Me.TBThemeSave = New System.Windows.Forms.ToolStripMenuItem()
         Me.TBThemeRefresh = New System.Windows.Forms.ToolStripMenuItem()
-        Me.TBThemeLoadComptability = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator6 = New System.Windows.Forms.ToolStripSeparator()
         Me.TBTheme = New System.Windows.Forms.ToolStripDropDownButton()
         Me.mnTheme = New System.Windows.Forms.ToolStripMenuItem()
@@ -500,10 +499,10 @@ Partial Class MainWindow
         '
         'cmnTheme
         '
-        Me.cmnTheme.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBThemeDef, Me.TBThemeSave, Me.TBThemeRefresh, Me.TBThemeLoadComptability, Me.ToolStripSeparator6})
+        Me.cmnTheme.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBThemeDef, Me.TBThemeSave, Me.TBThemeRefresh, Me.ToolStripSeparator6})
         Me.cmnTheme.Name = "cmnLanguage"
         Me.cmnTheme.OwnerItem = Me.mnTheme
-        Me.cmnTheme.Size = New System.Drawing.Size(246, 98)
+        Me.cmnTheme.Size = New System.Drawing.Size(246, 76)
         '
         'TBThemeDef
         '
@@ -524,13 +523,6 @@ Partial Class MainWindow
         Me.TBThemeRefresh.Name = "TBThemeRefresh"
         Me.TBThemeRefresh.Size = New System.Drawing.Size(245, 22)
         Me.TBThemeRefresh.Text = "Refresh"
-        '
-        'TBThemeLoadComptability
-        '
-        Me.TBThemeLoadComptability.Name = "TBThemeLoadComptability"
-        Me.TBThemeLoadComptability.Size = New System.Drawing.Size(245, 22)
-        Me.TBThemeLoadComptability.Text = "Load Theme File from iBMSC 2.x"
-        '
         'ToolStripSeparator6
         '
         Me.ToolStripSeparator6.Name = "ToolStripSeparator6"
@@ -4617,7 +4609,6 @@ Partial Class MainWindow
     Friend WithEvents POptionsResizer As System.Windows.Forms.Button
     Friend WithEvents SpR As System.Windows.Forms.Button
     Friend WithEvents SpL As System.Windows.Forms.Button
-    Friend WithEvents TBThemeLoadComptability As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents POWAVPart2 As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents CWAVBase62 As System.Windows.Forms.CheckBox
     Friend WithEvents CWAVMultiSelect As System.Windows.Forms.CheckBox

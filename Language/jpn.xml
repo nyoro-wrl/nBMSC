@@ -168,7 +168,6 @@
 			<Default>初期化</Default>
 			<Save>テーマを保存</Save>
 			<Refresh>リストの再読み込み</Refresh>
-			<LoadComptability>iBMSC 2.x のテーマを読み込む</LoadComptability>
 		</Theme>
 		<Convert>
 			<Long>→ ロングノート</Long>
@@ -321,7 +320,6 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 		<NBMSC>nBMSC files (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
 		<THEME_XML>iBMSC テーマ (*.xml)</THEME_XML>
-		<TH>iBMSC 2.x テーマファイル (*.th)</TH>
 		<_audio>使用可能な音楽ファイル (*.wav, *.ogg, *.mp3, *.flac, *.mid)</_audio>
 		<_wave>使用可能な Wave ファイル (*.wav, *.ogg, *.mp3, *.flac)</_wave>
 		<WAV>Wave サウンド (*.wav)</WAV>

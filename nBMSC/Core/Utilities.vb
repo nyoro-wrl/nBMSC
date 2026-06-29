@@ -186,17 +186,6 @@ Namespace Editor
             Return False
         End Function
 
-
-        Public Function StringToFont(ByVal xStr As String, ByVal xDefault As Font) As Font
-            Dim xLine() As String = Split(xStr, ",")
-            If UBound(xLine) = 2 Then
-                Dim xFontStyle As System.Drawing.FontStyle = Val(xLine(2))
-                Return New Font(xLine(0), CSng(Val(xLine(1))), xFontStyle, GraphicsUnit.Pixel)
-            Else
-                Return xDefault
-            End If
-        End Function
-
         Public Function ArrayToString(ByVal xInt() As Integer) As String
             Dim xStr As String = ""
             For xI1 As Integer = 0 To UBound(xInt)

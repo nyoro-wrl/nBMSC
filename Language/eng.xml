@@ -168,7 +168,6 @@
 			<Default>(Default)</Default>
 			<Save>Save Theme</Save>
 			<Refresh>Refresh</Refresh>
-			<LoadComptability>Load Theme File from iBMSC 2.x</LoadComptability>
 		</Theme>
 		<Convert>
 			<Long>→ Long Note</Long>
@@ -321,7 +320,6 @@ Open the release page?</UpdateVersionUnsupported>
 		<NBMSC>nBMSC Binary Format (*.nbmsc)</NBMSC>
 		<XML>Extensible Markup Language (*.xml)</XML>
 		<THEME_XML>iBMSC Theme File (*.xml)</THEME_XML>
-		<TH>iBMSC 2.x Theme File (*.th)</TH>
 		<_audio>Supported Audio Format (*.wav, *.ogg, *.mp3, *.flac, *.mid)</_audio>
 		<_wave>Supported Wave Audio Format (*.wav, *.ogg, *.mp3, *.flac)</_wave>
 		<WAV>Waveform Audio (*.wav)</WAV>
