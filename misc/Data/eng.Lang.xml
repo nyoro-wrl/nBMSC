@@ -144,6 +144,7 @@
 			<RSplit>Right Splitter</RSplit>
 			<AddSplitter>Add Splitter</AddSplitter>
 			<RemoveSplitter>Remove Splitter</RemoveSplitter>
+			<CloseSplitter>Close Splitter</CloseSplitter>
 			<Grid>Grid</Grid>
 			<Sub>Sub</Sub>
 			<BG>BackGround</BG>

@@ -144,6 +144,7 @@
 			<RSplit>スプリッタ（右側）</RSplit>
 			<AddSplitter>スプリッタを追加</AddSplitter>
 			<RemoveSplitter>スプリッタを削除</RemoveSplitter>
+			<CloseSplitter>スプリッタを閉じる</CloseSplitter>
 			<Grid>Grid</Grid>
 			<Sub>補助</Sub>
 			<BG>背景</BG>

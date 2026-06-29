@@ -336,9 +336,11 @@ Public Class MainWindow
     Private EditorContextNormalLandmine As ToolStripMenuItem
     Private EditorContextModify As ToolStripMenuItem
     Private EditorContextMirror As ToolStripMenuItem
+    Private EditorContextCloseSplitter As ToolStripMenuItem
     Private EditorContextEditSeparator As ToolStripSeparator
     Private EditorContextConvertSeparator As ToolStripSeparator
     Private EditorContextModifySeparator As ToolStripSeparator
+    Private EditorContextSplitterSeparator As ToolStripSeparator
     Private DefinitionContextMenu As ContextMenuStrip
     Private DefinitionContextDelete As ToolStripMenuItem
     Private DefinitionContextList As ListBox
@@ -748,9 +750,12 @@ Public Class MainWindow
         EditorContextNormalLandmine = New ToolStripMenuItem()
         EditorContextModify = New ToolStripMenuItem()
         EditorContextMirror = New ToolStripMenuItem()
+        EditorContextCloseSplitter = New ToolStripMenuItem()
         EditorContextEditSeparator = New ToolStripSeparator()
         EditorContextConvertSeparator = New ToolStripSeparator()
         EditorContextModifySeparator = New ToolStripSeparator()
+        EditorContextSplitterSeparator = New ToolStripSeparator()
+        EditorContextCloseSplitter.Text = "Close Splitter"
 
         EditorContextMenu.Items.AddRange(New ToolStripItem() {
             EditorContextPlayB,
@@ -771,7 +776,9 @@ Public Class MainWindow
             EditorContextNormalLandmine,
             EditorContextModifySeparator,
             EditorContextModify,
-            EditorContextMirror})
+            EditorContextMirror,
+            EditorContextSplitterSeparator,
+            EditorContextCloseSplitter})
 
         AddHandler EditorContextMenu.Opening, AddressOf EditorContextMenu_Opening
         AddHandler EditorContextPlayB.Click, AddressOf TBPlayB_Click
@@ -789,6 +796,7 @@ Public Class MainWindow
         AddHandler EditorContextNormalLandmine.Click, AddressOf POBNormalLandmine_Click
         AddHandler EditorContextModify.Click, AddressOf POBModify_Click
         AddHandler EditorContextMirror.Click, AddressOf POBMirror_Click
+        AddHandler EditorContextCloseSplitter.Click, AddressOf EditorContextCloseSplitter_Click
     End Sub
 
     Private Sub EditorContextMenu_Opening(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs)
@@ -833,6 +841,10 @@ Public Class MainWindow
         EditorContextModify.Visible = xHasSelection
         EditorContextMirror.Visible = xHasSelection
         EditorContextModifySeparator.Visible = xHasSelection
+
+        Dim xCanCloseSplitter As Boolean = EditorContextPanelIndex > MainPanelIndex AndAlso IsValidPanelIndex(EditorContextPanelIndex)
+        EditorContextCloseSplitter.Visible = xCanCloseSplitter
+        EditorContextSplitterSeparator.Visible = xCanCloseSplitter
     End Sub
 
     Private Sub CopyMenuItem(ByVal xTarget As ToolStripMenuItem, ByVal xSource As ToolStripMenuItem, Optional ByVal xCopyImage As Boolean = False)
@@ -948,7 +960,10 @@ Public Class MainWindow
     Private Sub ShowEditorContextMenu(ByVal xControl As Control, ByVal e As MouseEventArgs, ByVal xVS As Long, ByVal xHeight As Integer)
         If xControl Is Nothing OrElse EditorContextMenu Is Nothing Then Return
 
-        EditorContextPanelIndex = PanelFocus
+        EditorContextPanelIndex = GetSplitPaneIndex(xControl)
+        If Not IsValidPanelIndex(EditorContextPanelIndex) Then EditorContextPanelIndex = PanelFocus
+        If Not IsValidPanelIndex(EditorContextPanelIndex) Then EditorContextPanelIndex = MainPanelIndex
+
         menuVPosition = (xHeight - xVS * gxHeight - e.Y - 1) / gxHeight
         If menuVPosition < 0 Then menuVPosition = 0
         If menuVPosition >= GetMaxVPosition() Then menuVPosition = GetMaxVPosition() - 1
@@ -956,6 +971,20 @@ Public Class MainWindow
         RefreshEditorContextMenu()
         EditorContextMenu.Show(xControl, e.Location)
     End Sub
+
+    Private Function GetSplitPaneIndex(ByVal xControl As Control) As Integer
+        If xControl Is Nothing Then Return -1
+
+        For i As Integer = 0 To SplitPanes.Count - 1
+            Dim xPane As SplitPane = SplitPanes(i)
+            If xPane.Canvas Is xControl Then Return i
+            If xPane.Container Is xControl Then Return i
+            If xPane.Splitter Is xControl Then Return i
+            If xPane.Container IsNot Nothing AndAlso xPane.Container.Contains(xControl) Then Return i
+        Next
+
+        Return -1
+    End Function
 
     Private Sub EditorContextDelete_Click(ByVal sender As Object, ByVal e As EventArgs)
         FocusEditorContextPanel()
@@ -965,6 +994,10 @@ Public Class MainWindow
     Private Sub EditorContextPaste_Click(ByVal sender As Object, ByVal e As EventArgs)
         FocusEditorContextPanel()
         PasteNotes(MeasureBottom(MeasureAtDisplacement(menuVPosition)))
+    End Sub
+
+    Private Sub EditorContextCloseSplitter_Click(ByVal sender As Object, ByVal e As EventArgs)
+        RemoveRightSplitPane(EditorContextPanelIndex)
     End Sub
 
     Private Sub FocusEditorContextPanel()
@@ -1961,11 +1994,17 @@ Public Class MainWindow
     Private Sub SetIsSaved(ByVal isSaved As Boolean)
         'pttl.Refresh()
         'pIsSaved.Visible = Not xBool
-        Dim xVersion As String = My.Application.Info.Version.Major & "." & My.Application.Info.Version.Minor &
-                             IIf(My.Application.Info.Version.Build = 0, "", "." & My.Application.Info.Version.Build)
+        Dim xVersion As String = FormatVersionText(My.Application.Info.Version)
         Text = IIf(isSaved, "", "*") & GetFileName(FileName) & " - " & My.Application.Info.Title & " " & xVersion
         Me.IsSaved = isSaved
     End Sub
+
+    Private Function FormatVersionText(ByVal xVersion As Version) As String
+        If xVersion Is Nothing Then Return ""
+        If xVersion.Build < 0 Then Return xVersion.Major & "." & xVersion.Minor
+
+        Return xVersion.Major & "." & xVersion.Minor & "." & xVersion.Build
+    End Function
 
     Private Sub PreviewNote(ByVal xFileLocation As String, ByVal bStop As Boolean)
         If bStop Then
@@ -6077,8 +6116,11 @@ Jump2:
             Return
         End If
 
+        Dim xCurrentVersion As String = FormatVersionText(My.Application.Info.Version)
+        Dim xLatestVersion As String = FormatLatestVersionText(xResult)
+
         If Not xResult.CanCompare Then
-            If xIsManual AndAlso MsgBox(String.Format(Strings.Messages.UpdateVersionUnsupported, My.Application.Info.Version, xResult.LatestTag),
+            If xIsManual AndAlso MsgBox(String.Format(Strings.Messages.UpdateVersionUnsupported, xCurrentVersion, xLatestVersion),
                                         MsgBoxStyle.Question Or MsgBoxStyle.YesNo,
                                         Strings.Messages.UpdateCheckTitle) = MsgBoxResult.Yes Then
                 OpenUpdatePage(xResult.ReleaseUrl)
@@ -6094,11 +6136,21 @@ Jump2:
                     SkipUpdateVersion(xResult.LatestTag)
             End Select
         ElseIf xIsManual Then
-            MsgBox(String.Format(Strings.Messages.UpdateLatest, My.Application.Info.Version, xResult.LatestTag),
+            MsgBox(String.Format(Strings.Messages.UpdateLatest, xCurrentVersion, xLatestVersion),
                    MsgBoxStyle.Information,
                    Strings.Messages.UpdateCheckTitle)
         End If
     End Sub
+
+    Private Function FormatLatestVersionText(ByVal xResult As UpdateCheckResult) As String
+        If xResult IsNot Nothing AndAlso xResult.CanCompare AndAlso xResult.LatestVersion IsNot Nothing Then
+            Return FormatVersionText(xResult.LatestVersion)
+        End If
+
+        If xResult Is Nothing Then Return ""
+
+        Return xResult.LatestTag
+    End Function
 
     Private Function ShowUpdateAvailableDialog(ByVal xResult As UpdateCheckResult) As UpdatePromptAction
         Using xForm As New Form()
@@ -6121,7 +6173,7 @@ Jump2:
             xIcon.Size = New Size(xIconSize, xIconSize)
             xIcon.SizeMode = PictureBoxSizeMode.CenterImage
 
-            Dim xMessageText As String = String.Format(Strings.Messages.UpdateAvailable, My.Application.Info.Version, xResult.LatestTag)
+            Dim xMessageText As String = String.Format(Strings.Messages.UpdateAvailable, FormatVersionText(My.Application.Info.Version), FormatLatestVersionText(xResult))
             Dim xMessageLines As String() = xMessageText.Replace(vbCrLf, vbLf).Split(ControlChars.Lf)
 
             Dim xMainInstruction As New Label()
@@ -6580,12 +6632,14 @@ Jump2:
         End If
     End Sub
 
-    Private Sub RemoveRightSplitPane()
+    Private Sub RemoveRightSplitPane(Optional ByVal panelIndex As Integer = -1)
         If UpdatingSplitterControls OrElse RightSplitPaneCount() = 0 Then Return
+        If panelIndex = -1 Then panelIndex = SplitPanes.Count - 1
+        If panelIndex <= MainPanelIndex OrElse panelIndex >= SplitPanes.Count Then Return
 
         UpdatingSplitterControls = True
         Try
-            Dim xIndex As Integer = SplitPanes.Count - 1
+            Dim xIndex As Integer = panelIndex
             Dim xPane As SplitPane = SplitPanes(xIndex)
             StoreSplitPanelRatio(xIndex)
             RemovePanelHandlers(xPane)
@@ -6593,11 +6647,17 @@ Jump2:
             xPane.Container.Dispose()
             SplitPanes.RemoveAt(xIndex)
 
-            If PanelFocus >= SplitPanes.Count Then
+            If PanelFocus = xIndex Then
                 PanelFocus = MainPanelIndex
                 PMainIn.Focus()
+            ElseIf PanelFocus > xIndex Then
+                PanelFocus -= 1
             End If
-            If spMouseOver >= SplitPanes.Count Then spMouseOver = MainPanelIndex
+            If spMouseOver = xIndex Then
+                spMouseOver = MainPanelIndex
+            ElseIf spMouseOver > xIndex Then
+                spMouseOver -= 1
+            End If
 
             RebuildPanelArrays()
             ClearPanelBuffers()
@@ -6611,8 +6671,6 @@ Jump2:
     End Sub
 
     Private Sub RebuildPanelArrays()
-        Dim xOldH() As Integer = PanelhBMSCROLL
-        Dim xOldV() As Integer = PanelVScroll
         ReDim spMain(SplitPanes.Count - 1)
         ReDim PanelWidth(SplitPanes.Count - 1)
         ReDim PanelhBMSCROLL(SplitPanes.Count - 1)
@@ -6628,8 +6686,8 @@ Jump2:
 
             spMain(i) = xPane.Canvas
             PanelWidth(i) = xPane.Container.Width
-            PanelhBMSCROLL(i) = If(i < xOldH.Length, xOldH(i), 0)
-            PanelVScroll(i) = If(i < xOldV.Length, xOldV(i), PanelVScroll(MainPanelIndex))
+            PanelhBMSCROLL(i) = xPane.HScroll.Value
+            PanelVScroll(i) = xPane.VScroll.Value
         Next
     End Sub
 

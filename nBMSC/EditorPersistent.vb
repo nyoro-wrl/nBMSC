@@ -841,6 +841,7 @@ EndOfSub:
                     XMLLoadLocaleMenu(eShowHide.Item("StatusBar"), mnSStatus.Text)
                     XMLLoadLocaleMenu(eShowHide.Item("AddSplitter"), mnSAddSplitter.Text)
                     XMLLoadLocaleMenu(eShowHide.Item("RemoveSplitter"), mnSRemoveSplitter.Text)
+                    XMLLoadLocaleMenu(eShowHide.Item("CloseSplitter"), EditorContextCloseSplitter.Text)
                     XMLLoadLocaleMenu(eShowHide.Item("Grid"), CGShow.Text)
                     XMLLoadLocaleMenu(eShowHide.Item("Sub"), CGShowS.Text)
                     XMLLoadLocaleMenu(eShowHide.Item("BG"), CGShowBG.Text)

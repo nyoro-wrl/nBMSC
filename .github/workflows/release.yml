@@ -31,6 +31,10 @@ jobs:
           }
 
           $version = $Matches[1]
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw 'AssemblyVersion must be Major.Minor.Patch.'
+          }
+
           $tag = $version
           "version=$version" >> $env:GITHUB_OUTPUT
           "tag=$tag" >> $env:GITHUB_OUTPUT

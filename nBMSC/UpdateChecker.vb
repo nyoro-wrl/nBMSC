@@ -42,8 +42,9 @@ Public NotInheritable Class UpdateChecker
             Dim xLatestVersion As Version = Nothing
             Dim xCanCompare As Boolean = TryParseVersionTag(xTagName, xLatestVersion)
             Dim xHasUpdate As Boolean = False
+            If xCanCompare Then xLatestVersion = NormalizeVersion(xLatestVersion)
             If xCanCompare AndAlso currentVersion IsNot Nothing Then
-                xHasUpdate = xLatestVersion.CompareTo(currentVersion) > 0
+                xHasUpdate = xLatestVersion.CompareTo(NormalizeVersion(currentVersion)) > 0
             End If
 
             Return New UpdateCheckResult With {
@@ -67,7 +68,16 @@ Public NotInheritable Class UpdateChecker
             xTagName = xTagName.Substring(1)
         End If
 
+        If xTagName.Split("."c).Length <> 3 Then Return False
+
         Return Version.TryParse(xTagName, version)
+    End Function
+
+    Private Shared Function NormalizeVersion(ByVal version As Version) As Version
+        If version Is Nothing Then Return Nothing
+        If version.Build < 0 Then Return New Version(version.Major, version.Minor)
+
+        Return New Version(version.Major, version.Minor, version.Build)
     End Function
 
     Private Shared Function DownloadLatestReleaseJson() As String
