@@ -73,6 +73,7 @@
 		</Preview>
 		<Help>
 			<Title>ヘルプ</Title>
+			<OpenAppFolder>アプリケーションフォルダを開く</OpenAppFolder>
 			<CheckUpdates>更新を確認</CheckUpdates>
 			<CheckUpdatesOnStartup>起動時に更新を確認</CheckUpdatesOnStartup>
 		</Help>

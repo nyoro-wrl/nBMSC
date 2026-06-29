@@ -6105,6 +6105,17 @@ Jump2:
         End Try
     End Sub
 
+    Private Sub mnOpenAppFolder_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnOpenAppFolder.Click
+        Try
+            Dim xInfo As New ProcessStartInfo()
+            xInfo.FileName = My.Application.Info.DirectoryPath
+            xInfo.UseShellExecute = True
+            Process.Start(xInfo)
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
+        End Try
+    End Sub
+
     Private Sub StartStartupUpdateCheck()
         System.Threading.Tasks.Task.Run(Sub()
                                             Dim xResult As UpdateCheckResult = UpdateChecker.Check(My.Application.Info.Version)

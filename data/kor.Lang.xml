@@ -73,6 +73,7 @@
 		</Preview>
 		<Help>
 			<Title>도움말</Title>
+			<OpenAppFolder>응용 프로그램 폴더 열기</OpenAppFolder>
 			<CheckUpdates>업데이트 확인</CheckUpdates>
 			<CheckUpdatesOnStartup>시작할 때 업데이트 확인</CheckUpdatesOnStartup>
 		</Help>

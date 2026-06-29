@@ -70,6 +70,7 @@
 		</Preview>
 		<Help>
 			<Title>帮助</Title>
+			<OpenAppFolder>打开应用程序文件夹</OpenAppFolder>
 			<CheckUpdates>检查更新</CheckUpdates>
 			<CheckUpdatesOnStartup>启动时检查更新</CheckUpdatesOnStartup>
 		</Help>

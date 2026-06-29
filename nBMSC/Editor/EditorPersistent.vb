@@ -762,6 +762,7 @@ EndOfSub:
                 Dim eHelp As XmlElement = eMenu.Item("Help")
                 If eHelp IsNot Nothing Then
                     XMLLoadLocaleMenu(eHelp.Item("Title"), mnHelp.Text)
+                    XMLLoadLocaleMenu(eHelp.Item("OpenAppFolder"), mnOpenAppFolder.Text)
                     XMLLoadLocaleMenu(eHelp.Item("CheckUpdates"), mnUpdate.Text)
                     XMLLoadLocaleMenu(eHelp.Item("CheckUpdatesOnStartup"), mnUpdateStartup.Text)
                 End If

@@ -278,6 +278,8 @@ Partial Class MainWindow
         Me.mnPlay = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnStop = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnHelp = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnOpenAppFolder = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripSeparator25 = New System.Windows.Forms.ToolStripSeparator()
         Me.mnUpdate = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnUpdateStartup = New System.Windows.Forms.ToolStripMenuItem()
         Me.POConvert = New System.Windows.Forms.ToolStripDropDownButton()
@@ -3280,10 +3282,21 @@ Partial Class MainWindow
         '
         'mnHelp
         '
-        Me.mnHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnUpdate, Me.mnUpdateStartup})
+        Me.mnHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnOpenAppFolder, Me.ToolStripSeparator25, Me.mnUpdate, Me.mnUpdateStartup})
         Me.mnHelp.Name = "mnHelp"
         Me.mnHelp.Size = New System.Drawing.Size(44, 19)
         Me.mnHelp.Text = "Help"
+        '
+        'mnOpenAppFolder
+        '
+        Me.mnOpenAppFolder.Name = "mnOpenAppFolder"
+        Me.mnOpenAppFolder.Size = New System.Drawing.Size(209, 22)
+        Me.mnOpenAppFolder.Text = "Open Application Folder"
+        '
+        'ToolStripSeparator25
+        '
+        Me.ToolStripSeparator25.Name = "ToolStripSeparator25"
+        Me.ToolStripSeparator25.Size = New System.Drawing.Size(206, 6)
         '
         'mnUpdate
         '
@@ -4348,6 +4361,8 @@ Partial Class MainWindow
     Friend WithEvents mnPlay As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnStop As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnHelp As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnOpenAppFolder As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ToolStripSeparator25 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents mnUpdate As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnUpdateStartup As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnTimeSelect As System.Windows.Forms.ToolStripMenuItem

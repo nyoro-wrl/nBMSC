@@ -73,6 +73,7 @@
 		</Preview>
 		<Help>
 			<Title>Help</Title>
+			<OpenAppFolder>Open Application Folder</OpenAppFolder>
 			<CheckUpdates>Check Updates</CheckUpdates>
 			<CheckUpdatesOnStartup>Check Updates on Startup</CheckUpdatesOnStartup>
 		</Help>
