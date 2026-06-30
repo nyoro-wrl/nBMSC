@@ -143,12 +143,6 @@
     <Compile Include="Dialogs\ColorPicker.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Dialogs\dgImportSM.designer.vb">
-      <DependentUpon>dgImportSM.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\dgImportSM.vb">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Dialogs\dgStatistics.designer.vb">
       <DependentUpon>dgStatistics.vb</DependentUpon>
     </Compile>
@@ -250,9 +244,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\ColorPicker.resx">
       <DependentUpon>ColorPicker.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Dialogs\dgImportSM.resx">
-      <DependentUpon>dgImportSM.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Dialogs\dgStatistics.resx">
       <DependentUpon>dgStatistics.vb</DependentUpon>

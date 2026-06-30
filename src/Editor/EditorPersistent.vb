@@ -397,7 +397,8 @@ Partial Public Class MainWindow
             .WriteEndElement()
 
             .WriteStartElement("Save")
-            .WriteAttributeString("TextEncoding", EncodingToString(TextEncoding))
+            .WriteAttributeString("InputTextEncoding", TextEncodingModeToString(InputTextEncoding))
+            .WriteAttributeString("OutputTextEncoding", TextEncodingModeToString(OutputTextEncoding))
             .WriteAttributeString("BMSGridLimit", BMSGridLimit)
             .WriteAttributeString("BeepWhileSaved", BeepWhileSaved)
             .WriteAttributeString("NewBMSUseBase62Definitions", NewBMSUseBase62Definitions)
@@ -745,6 +746,40 @@ Partial Public Class MainWindow
         End With
     End Sub
 
+    Private Function LoadInputTextEncodingMode(ByVal eSave As XmlElement) As TextEncodingMode
+        If eSave.HasAttribute("InputTextEncoding") Then
+            Return ParseTextEncodingMode(eSave.GetAttribute("InputTextEncoding"), TextEncodingMode.Auto)
+        End If
+
+        If eSave.HasAttribute("TextEncoding") Then
+            Return ParseTextEncodingMode(eSave.GetAttribute("TextEncoding"), TextEncodingMode.Auto)
+        End If
+
+        Return TextEncodingMode.Auto
+    End Function
+
+    Private Function LoadOutputTextEncodingMode(ByVal eSave As XmlElement) As TextEncodingMode
+        If eSave.HasAttribute("OutputTextEncoding") Then
+            Return CoerceOutputTextEncodingMode(ParseTextEncodingMode(eSave.GetAttribute("OutputTextEncoding"), TextEncodingMode.SystemDefault))
+        End If
+
+        If eSave.HasAttribute("DefaultTextEncoding") Then
+            Return CoerceOutputTextEncodingMode(ParseTextEncodingMode(eSave.GetAttribute("DefaultTextEncoding"), TextEncodingMode.SystemDefault))
+        End If
+
+        If eSave.HasAttribute("TextEncoding") Then
+            Return CoerceOutputTextEncodingMode(ParseTextEncodingMode(eSave.GetAttribute("TextEncoding"), TextEncodingMode.SystemDefault))
+        End If
+
+        Return TextEncodingMode.SystemDefault
+    End Function
+
+    Private Function IsSettingsBeforeVersion(ByVal xMajor As Integer, ByVal xMinor As Integer, ByVal xBuild As Integer, ByVal yMajor As Integer, ByVal yMinor As Integer, ByVal yBuild As Integer) As Boolean
+        If xMajor <> yMajor Then Return xMajor < yMajor
+        If xMinor <> yMinor Then Return xMinor < yMinor
+        Return xBuild < yBuild
+    End Function
+
     Private Sub LoadSettings(ByVal Path As String)
         If Not My.Computer.FileSystem.FileExists(Path) Then Return
 
@@ -770,6 +805,7 @@ Partial Public Class MainWindow
         Dim Major As Integer = My.Application.Info.Version.Major
         Dim Minor As Integer = My.Application.Info.Version.Minor
         Dim Build As Integer = My.Application.Info.Version.Build
+        Dim HasSettingsVersion As Boolean = False
         Try
             Dim xMajor As Integer = Val(Root.Attributes("Major").Value)
             Dim xMinor As Integer = Val(Root.Attributes("Minor").Value)
@@ -777,6 +813,7 @@ Partial Public Class MainWindow
             Major = xMajor
             Minor = xMinor
             Build = xBuild
+            HasSettingsVersion = True
         Catch ex As Exception
         End Try
 
@@ -863,19 +900,13 @@ Partial Public Class MainWindow
         Dim eSave As XmlElement = Root.Item("Save")
         If eSave IsNot Nothing Then
             With eSave
-                Select Case UCase(.GetAttribute("TextEncoding"))
-                    Case "SYSTEM ANSI" : TextEncoding = System.Text.Encoding.Default
-                    Case "LITTLE ENDIAN UTF16" : TextEncoding = System.Text.Encoding.Unicode
-                    Case "ASCII" : TextEncoding = System.Text.Encoding.ASCII
-                    Case "BIG ENDIAN UTF16" : TextEncoding = System.Text.Encoding.BigEndianUnicode
-                    Case "LITTLE ENDIAN UTF32" : TextEncoding = System.Text.Encoding.UTF32
-                    Case "UTF7" : TextEncoding = System.Text.Encoding.UTF7
-                    Case "UTF8" : TextEncoding = System.Text.Encoding.UTF8
-                    Case "SJIS" : TextEncoding = System.Text.Encoding.GetEncoding(932)
-                    Case "EUC-KR" : TextEncoding = System.Text.Encoding.GetEncoding(51949)
-                        ' leave current encoding
-                        ' Case Else
-                End Select
+                If Not HasSettingsVersion OrElse IsSettingsBeforeVersion(Major, Minor, Build, 5, 1, 0) Then
+                    InputTextEncoding = TextEncodingMode.Auto
+                    OutputTextEncoding = TextEncodingMode.SystemDefault
+                Else
+                    InputTextEncoding = LoadInputTextEncodingMode(eSave)
+                    OutputTextEncoding = LoadOutputTextEncodingMode(eSave)
+                End If
 
                 XMLLoadAttribute(.GetAttribute("BMSGridLimit"), BMSGridLimit)
                 XMLLoadAttribute(.GetAttribute("BeepWhileSaved"), BeepWhileSaved)
@@ -1130,7 +1161,6 @@ EndOfSub:
                     XMLLoadLocaleMenu(eFile.Item("Title"), mnFile.Text)
                     XMLLoadLocaleMenu(eFile.Item("New"), mnNew.Text)
                     XMLLoadLocaleMenu(eFile.Item("Open"), mnOpen.Text)
-                    XMLLoadLocaleMenu(eFile.Item("ImportSM"), mnImportSM.Text)
                     XMLLoadLocaleMenu(eFile.Item("ImportNBMSC"), mnImportNBMSC.Text)
                     XMLLoadLocaleMenu(eFile.Item("Save"), mnSave.Text)
                     XMLLoadLocaleMenu(eFile.Item("SaveAs"), mnSaveAs.Text)
@@ -1482,7 +1512,6 @@ EndOfSub:
                 XMLLoadLocale(eFileType.Item("BML"), Strings.FileType.BML)
                 XMLLoadLocale(eFileType.Item("PMS"), Strings.FileType.PMS)
                 XMLLoadLocale(eFileType.Item("TXT"), Strings.FileType.TXT)
-                XMLLoadLocale(eFileType.Item("SM"), Strings.FileType.SM)
                 XMLLoadLocale(eFileType.Item("NBMSC"), Strings.FileType.NBMSC)
                 XMLLoadLocale(eFileType.Item("XML"), Strings.FileType.XML)
                 XMLLoadLocale(eFileType.Item("THEME_XML"), Strings.FileType.THEME_XML)
@@ -1584,7 +1613,8 @@ EndOfSub:
             If eGeneralOptions IsNot Nothing Then
                 XMLLoadLocale(eGeneralOptions.Item("Title"), Strings.fopGeneral.Title)
                 XMLLoadLocale(eGeneralOptions.Item("MouseWheel"), Strings.fopGeneral.MouseWheel)
-                XMLLoadLocale(eGeneralOptions.Item("TextEncoding"), Strings.fopGeneral.TextEncoding)
+                XMLLoadLocale(eGeneralOptions.Item("InputTextEncoding"), Strings.fopGeneral.InputTextEncoding)
+                XMLLoadLocale(eGeneralOptions.Item("OutputTextEncoding"), Strings.fopGeneral.OutputTextEncoding)
                 XMLLoadLocale(eGeneralOptions.Item("PageUpDown"), Strings.fopGeneral.PageUpDown)
                 XMLLoadLocale(eGeneralOptions.Item("MiddleButton"), Strings.fopGeneral.MiddleButton)
                 XMLLoadLocale(eGeneralOptions.Item("MiddleButtonAuto"), Strings.fopGeneral.MiddleButtonAuto)
@@ -1607,6 +1637,14 @@ EndOfSub:
                 XMLLoadLocale(eGeneralOptions.Item("LaneHighlight"), Strings.fopGeneral.LaneHighlight)
                 XMLLoadLocale(eGeneralOptions.Item("MinimumBGMLanes"), Strings.fopGeneral.MinimumBGMLanes)
                 XMLLoadLocale(eGeneralOptions.Item("UndoRedoMemoryLimit"), Strings.fopGeneral.UndoRedoMemoryLimit)
+            End If
+
+            Dim eEncoding As XmlElement = Root.Item("Encoding")
+            If eEncoding IsNot Nothing Then
+                XMLLoadLocale(eEncoding.Item("Auto"), Strings.Encoding.Auto)
+                XMLLoadLocale(eEncoding.Item("SystemDefault"), Strings.Encoding.SystemDefault)
+                XMLLoadLocale(eEncoding.Item("ReloadWithEncoding"), Strings.Encoding.ReloadWithEncoding)
+                SyncEncodingMenuText()
             End If
 
             Dim eFind As XmlElement = Root.Item("Find")
@@ -1633,13 +1671,6 @@ EndOfSub:
                 XMLLoadLocale(eFind.Item("Unselect"), Strings.fFind.Unselect_)
                 XMLLoadLocale(eFind.Item("Delete"), Strings.fFind.Delete_)
                 XMLLoadLocale(eFind.Item("Close"), Strings.fFind.Close_)
-            End If
-
-            Dim eImportSM As XmlElement = Root.Item("ImportSM")
-            If eImportSM IsNot Nothing Then
-                XMLLoadLocale(eImportSM.Item("Title"), Strings.fImportSM.Title)
-                XMLLoadLocale(eImportSM.Item("Difficulty"), Strings.fImportSM.Difficulty)
-                XMLLoadLocale(eImportSM.Item("Note"), Strings.fImportSM.Note)
             End If
 
             Dim eImportBMSON As XmlElement = Root.Item("ImportBMSON")

@@ -64,7 +64,6 @@ Public Class Strings
         Public Shared PMS As String = "Po-Mu Script (*.pms)"
         Public Shared TXT As String = "Text document (*.txt)"
 
-        Public Shared SM As String = "StepMania Script (*.sm)"
         Public Shared NBMSC As String = "nBMSC Binary Format (*.nbmsc)"
         Public Shared BMSON As String = "BMS JSON Format (*.bmson)"
         Public Shared XML As String = "Extensible Markup Language (*.xml)"
@@ -166,7 +165,8 @@ Public Class Strings
     Public Class fopGeneral
         Public Shared Title As String = "General Options"
         Public Shared MouseWheel As String = "Mouse Wheel"
-        Public Shared TextEncoding As String = "Text Encoding"
+        Public Shared InputTextEncoding As String = "Input Encoding"
+        Public Shared OutputTextEncoding As String = "Output Encoding"
         'Public Shared SortingMethod As String = "Sorting Method"
         'Public Shared sortBubble As String = "One-directional Bubble Sort"
         'Public Shared sortInsertion As String = "Insertion Sort"
@@ -197,6 +197,12 @@ Public Class Strings
         Public Shared UndoRedoMemoryLimit As String = "Undo/Redo memory limit"
     End Class
 
+    Public Class Encoding
+        Public Shared Auto As String = "Auto"
+        Public Shared SystemDefault As String = "System Default"
+        Public Shared ReloadWithEncoding As String = "Reload with Encoding"
+    End Class
+
     Public Class fFind
         Public Shared NoteRange As String = "Note Range"
         Public Shared MeasureRange As String = "Measure Range"
@@ -221,12 +227,6 @@ Public Class Strings
         Public Shared Unselect_ As String = "Unselect"
         Public Shared Delete_ As String = "Delete"
         Public Shared Close_ As String = "Close"
-    End Class
-
-    Public Class fImportSM
-        Public Shared Title As String = "Import *.SM file"
-        Public Shared Difficulty As String = "Difficulty"
-        Public Shared Note As String = "Please note that bg musics and STOP values will not be imported."
     End Class
 
     Public Class fImportBMSON

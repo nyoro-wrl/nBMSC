@@ -27,8 +27,10 @@ Partial Class OpGeneral
         Me.Cancel_Button = New System.Windows.Forms.Button()
         Me.CWheel = New System.Windows.Forms.ComboBox()
         Me.CTextEncoding = New System.Windows.Forms.ComboBox()
+        Me.COutputTextEncoding = New System.Windows.Forms.ComboBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
+        Me.LabelOutputTextEncoding = New System.Windows.Forms.Label()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.TBAssociate = New System.Windows.Forms.Button()
         Me.cBeep = New System.Windows.Forms.CheckBox()
@@ -83,7 +85,7 @@ Partial Class OpGeneral
         Me.TableLayoutPanel1.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
         Me.TableLayoutPanel1.Controls.Add(Me.OK_Button, 0, 0)
         Me.TableLayoutPanel1.Controls.Add(Me.Cancel_Button, 1, 0)
-        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 616)
+        Me.TableLayoutPanel1.Location = New System.Drawing.Point(229, 647)
         Me.TableLayoutPanel1.Name = "TableLayoutPanel1"
         Me.TableLayoutPanel1.RowCount = 1
         Me.TableLayoutPanel1.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
@@ -114,7 +116,7 @@ Partial Class OpGeneral
         Me.CWheel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CWheel.FormattingEnabled = True
         Me.CWheel.Items.AddRange(New Object() {"1", "1 / 2", "1 / 3", "1 / 4"})
-        Me.CWheel.Location = New System.Drawing.Point(154, 305)
+        Me.CWheel.Location = New System.Drawing.Point(154, 336)
         Me.CWheel.Name = "CWheel"
         Me.CWheel.Size = New System.Drawing.Size(237, 23)
         Me.CWheel.TabIndex = 11
@@ -123,15 +125,25 @@ Partial Class OpGeneral
         '
         Me.CTextEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CTextEncoding.FormattingEnabled = True
-        Me.CTextEncoding.Items.AddRange(New Object() {"ANSI (Locale dependant)", "Little Endian UTF16", "ASCII", "Big Endian UTF16", "Little Endian UTF32", "UTF7", "UTF8", "Shift-JIS", "EUC-KR"})
+        Me.CTextEncoding.Items.AddRange(New Object() {"Auto", "System Default", "Shift-JIS", "EUC-KR", "UTF-8", "UTF-16LE", "UTF-16BE", "UTF-32LE", "UTF-32BE"})
         Me.CTextEncoding.Location = New System.Drawing.Point(137, 18)
         Me.CTextEncoding.Name = "CTextEncoding"
         Me.CTextEncoding.Size = New System.Drawing.Size(254, 23)
         Me.CTextEncoding.TabIndex = 2
         '
+        'COutputTextEncoding
+        '
+        Me.COutputTextEncoding.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.COutputTextEncoding.FormattingEnabled = True
+        Me.COutputTextEncoding.Items.AddRange(New Object() {"Auto", "System Default", "Shift-JIS", "UTF-8"})
+        Me.COutputTextEncoding.Location = New System.Drawing.Point(137, 47)
+        Me.COutputTextEncoding.Name = "COutputTextEncoding"
+        Me.COutputTextEncoding.Size = New System.Drawing.Size(254, 23)
+        Me.COutputTextEncoding.TabIndex = 3
+        '
         'Label1
         '
-        Me.Label1.Location = New System.Drawing.Point(12, 307)
+        Me.Label1.Location = New System.Drawing.Point(12, 338)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(136, 17)
         Me.Label1.TabIndex = 40
@@ -144,12 +156,21 @@ Partial Class OpGeneral
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(136, 17)
         Me.Label2.TabIndex = 41
-        Me.Label2.Text = "Text Encoding"
+        Me.Label2.Text = "Input Encoding"
         Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        '
+        'LabelOutputTextEncoding
+        '
+        Me.LabelOutputTextEncoding.Location = New System.Drawing.Point(-5, 49)
+        Me.LabelOutputTextEncoding.Name = "LabelOutputTextEncoding"
+        Me.LabelOutputTextEncoding.Size = New System.Drawing.Size(136, 17)
+        Me.LabelOutputTextEncoding.TabIndex = 42
+        Me.LabelOutputTextEncoding.Text = "Output Encoding"
+        Me.LabelOutputTextEncoding.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         '
         'Label4
         '
-        Me.Label4.Location = New System.Drawing.Point(-5, 50)
+        Me.Label4.Location = New System.Drawing.Point(-5, 81)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(136, 17)
         Me.Label4.TabIndex = 43
@@ -158,7 +179,7 @@ Partial Class OpGeneral
         '
         'TBAssociate
         '
-        Me.TBAssociate.Location = New System.Drawing.Point(137, 47)
+        Me.TBAssociate.Location = New System.Drawing.Point(137, 78)
         Me.TBAssociate.Name = "TBAssociate"
         Me.TBAssociate.Size = New System.Drawing.Size(122, 23)
         Me.TBAssociate.TabIndex = 3
@@ -170,7 +191,7 @@ Partial Class OpGeneral
         Me.cBeep.AutoSize = True
         Me.cBeep.Checked = True
         Me.cBeep.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.cBeep.Location = New System.Drawing.Point(32, 169)
+        Me.cBeep.Location = New System.Drawing.Point(32, 200)
         Me.cBeep.Name = "cBeep"
         Me.cBeep.Size = New System.Drawing.Size(116, 19)
         Me.cBeep.TabIndex = 8
@@ -180,7 +201,7 @@ Partial Class OpGeneral
         'cNewBMSUseBase62
         '
         Me.cNewBMSUseBase62.AutoSize = True
-        Me.cNewBMSUseBase62.Location = New System.Drawing.Point(32, 194)
+        Me.cNewBMSUseBase62.Location = New System.Drawing.Point(32, 225)
         Me.cNewBMSUseBase62.Name = "cNewBMSUseBase62"
         Me.cNewBMSUseBase62.Size = New System.Drawing.Size(170, 19)
         Me.cNewBMSUseBase62.TabIndex = 9
@@ -190,7 +211,7 @@ Partial Class OpGeneral
         'PictureBox1
         '
         Me.PictureBox1.BackColor = System.Drawing.Color.FromArgb(CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer), CType(CType(64, Byte), Integer))
-        Me.PictureBox1.Location = New System.Drawing.Point(20, 289)
+        Me.PictureBox1.Location = New System.Drawing.Point(20, 320)
         Me.PictureBox1.Name = "PictureBox1"
         Me.PictureBox1.Size = New System.Drawing.Size(375, 1)
         Me.PictureBox1.TabIndex = 47
@@ -198,7 +219,7 @@ Partial Class OpGeneral
         '
         'LabelBPMDefinitionMode
         '
-        Me.LabelBPMDefinitionMode.Location = New System.Drawing.Point(12, 227)
+        Me.LabelBPMDefinitionMode.Location = New System.Drawing.Point(12, 258)
         Me.LabelBPMDefinitionMode.Name = "LabelBPMDefinitionMode"
         Me.LabelBPMDefinitionMode.Size = New System.Drawing.Size(136, 17)
         Me.LabelBPMDefinitionMode.TabIndex = 67
@@ -210,14 +231,14 @@ Partial Class OpGeneral
         Me.cBpm1296.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cBpm1296.FormattingEnabled = True
         Me.cBpm1296.Items.AddRange(New Object() {"Default (01-FF)", "36 base (01-ZZ)", "62 base (01-zz)"})
-        Me.cBpm1296.Location = New System.Drawing.Point(154, 224)
+        Me.cBpm1296.Location = New System.Drawing.Point(154, 255)
         Me.cBpm1296.Name = "cBpm1296"
         Me.cBpm1296.Size = New System.Drawing.Size(237, 23)
         Me.cBpm1296.TabIndex = 10
         '
         'LabelSTOPDefinitionMode
         '
-        Me.LabelSTOPDefinitionMode.Location = New System.Drawing.Point(12, 255)
+        Me.LabelSTOPDefinitionMode.Location = New System.Drawing.Point(12, 286)
         Me.LabelSTOPDefinitionMode.Name = "LabelSTOPDefinitionMode"
         Me.LabelSTOPDefinitionMode.Size = New System.Drawing.Size(136, 17)
         Me.LabelSTOPDefinitionMode.TabIndex = 68
@@ -229,7 +250,7 @@ Partial Class OpGeneral
         Me.cStop1296.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cStop1296.FormattingEnabled = True
         Me.cStop1296.Items.AddRange(New Object() {"Default (01-FF)", "36 base (01-ZZ)", "62 base (01-zz)"})
-        Me.cStop1296.Location = New System.Drawing.Point(154, 252)
+        Me.cStop1296.Location = New System.Drawing.Point(154, 283)
         Me.cStop1296.Name = "cStop1296"
         Me.cStop1296.Size = New System.Drawing.Size(237, 23)
         Me.cStop1296.TabIndex = 11
@@ -237,7 +258,7 @@ Partial Class OpGeneral
         'cMEnterFocus
         '
         Me.cMEnterFocus.AutoSize = True
-        Me.cMEnterFocus.Location = New System.Drawing.Point(34, 415)
+        Me.cMEnterFocus.Location = New System.Drawing.Point(34, 446)
         Me.cMEnterFocus.Name = "cMEnterFocus"
         Me.cMEnterFocus.Size = New System.Drawing.Size(322, 19)
         Me.cMEnterFocus.TabIndex = 14
@@ -247,7 +268,7 @@ Partial Class OpGeneral
         'cMClickFocus
         '
         Me.cMClickFocus.AutoSize = True
-        Me.cMClickFocus.Location = New System.Drawing.Point(34, 440)
+        Me.cMClickFocus.Location = New System.Drawing.Point(34, 471)
         Me.cMClickFocus.Name = "cMClickFocus"
         Me.cMClickFocus.Size = New System.Drawing.Size(293, 19)
         Me.cMClickFocus.TabIndex = 15
@@ -256,7 +277,7 @@ Partial Class OpGeneral
         '
         'TBAssociatePMS
         '
-        Me.TBAssociatePMS.Location = New System.Drawing.Point(310, 78)
+        Me.TBAssociatePMS.Location = New System.Drawing.Point(310, 109)
         Me.TBAssociatePMS.Name = "TBAssociatePMS"
         Me.TBAssociatePMS.Size = New System.Drawing.Size(81, 23)
         Me.TBAssociatePMS.TabIndex = 4
@@ -265,7 +286,7 @@ Partial Class OpGeneral
         '
         'TBAssociateNBMSC
         '
-        Me.TBAssociateNBMSC.Location = New System.Drawing.Point(265, 47)
+        Me.TBAssociateNBMSC.Location = New System.Drawing.Point(265, 78)
         Me.TBAssociateNBMSC.Name = "TBAssociateNBMSC"
         Me.TBAssociateNBMSC.Size = New System.Drawing.Size(127, 23)
         Me.TBAssociateNBMSC.TabIndex = 5
@@ -274,7 +295,7 @@ Partial Class OpGeneral
         '
         'Label5
         '
-        Me.Label5.Location = New System.Drawing.Point(12, 336)
+        Me.Label5.Location = New System.Drawing.Point(12, 367)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(136, 17)
         Me.Label5.TabIndex = 56
@@ -286,7 +307,7 @@ Partial Class OpGeneral
         Me.CPgUpDn.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CPgUpDn.FormattingEnabled = True
         Me.CPgUpDn.Items.AddRange(New Object() {"8", "6", "4", "3", "2", "1", "1 / 2"})
-        Me.CPgUpDn.Location = New System.Drawing.Point(154, 334)
+        Me.CPgUpDn.Location = New System.Drawing.Point(154, 365)
         Me.CPgUpDn.Name = "CPgUpDn"
         Me.CPgUpDn.Size = New System.Drawing.Size(237, 23)
         Me.CPgUpDn.TabIndex = 12
@@ -294,7 +315,7 @@ Partial Class OpGeneral
         'NAutoSave
         '
         Me.NAutoSave.DecimalPlaces = 1
-        Me.NAutoSave.Location = New System.Drawing.Point(171, 142)
+        Me.NAutoSave.Location = New System.Drawing.Point(171, 173)
         Me.NAutoSave.Maximum = New Decimal(New Integer() {60, 0, 0, 0})
         Me.NAutoSave.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.NAutoSave.Name = "NAutoSave"
@@ -304,7 +325,7 @@ Partial Class OpGeneral
         '
         'Label7
         '
-        Me.Label7.Location = New System.Drawing.Point(239, 144)
+        Me.Label7.Location = New System.Drawing.Point(239, 175)
         Me.Label7.Name = "Label7"
         Me.Label7.Size = New System.Drawing.Size(73, 17)
         Me.Label7.TabIndex = 59
@@ -316,7 +337,7 @@ Partial Class OpGeneral
         Me.cAutoSave.AutoSize = True
         Me.cAutoSave.Checked = True
         Me.cAutoSave.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.cAutoSave.Location = New System.Drawing.Point(32, 144)
+        Me.cAutoSave.Location = New System.Drawing.Point(32, 175)
         Me.cAutoSave.Name = "cAutoSave"
         Me.cAutoSave.Size = New System.Drawing.Size(76, 19)
         Me.cAutoSave.TabIndex = 6
@@ -328,7 +349,7 @@ Partial Class OpGeneral
         Me.cMStopPreview.AutoSize = True
         Me.cMStopPreview.Checked = True
         Me.cMStopPreview.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.cMStopPreview.Location = New System.Drawing.Point(34, 465)
+        Me.cMStopPreview.Location = New System.Drawing.Point(34, 496)
         Me.cMStopPreview.Name = "cMStopPreview"
         Me.cMStopPreview.Size = New System.Drawing.Size(253, 19)
         Me.cMStopPreview.TabIndex = 60
@@ -338,7 +359,7 @@ Partial Class OpGeneral
         'cSkipClippedMeasure
         '
         Me.cSkipClippedMeasure.AutoSize = True
-        Me.cSkipClippedMeasure.Location = New System.Drawing.Point(34, 490)
+        Me.cSkipClippedMeasure.Location = New System.Drawing.Point(34, 521)
         Me.cSkipClippedMeasure.Name = "cSkipClippedMeasure"
         Me.cSkipClippedMeasure.Size = New System.Drawing.Size(319, 19)
         Me.cSkipClippedMeasure.TabIndex = 69
@@ -347,7 +368,7 @@ Partial Class OpGeneral
         '
         'nLaneHighlight
         '
-        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 515)
+        Me.nLaneHighlight.Location = New System.Drawing.Point(219, 546)
         Me.nLaneHighlight.Maximum = New Decimal(New Integer() {100, 0, 0, 0})
         Me.nLaneHighlight.Name = "nLaneHighlight"
         Me.nLaneHighlight.Size = New System.Drawing.Size(62, 23)
@@ -355,7 +376,7 @@ Partial Class OpGeneral
         '
         'LabelLaneHighlight
         '
-        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 517)
+        Me.LabelLaneHighlight.Location = New System.Drawing.Point(34, 548)
         Me.LabelLaneHighlight.Name = "LabelLaneHighlight"
         Me.LabelLaneHighlight.Size = New System.Drawing.Size(179, 17)
         Me.LabelLaneHighlight.TabIndex = 71
@@ -364,7 +385,7 @@ Partial Class OpGeneral
         '
         'LabelLaneHighlightPercent
         '
-        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 517)
+        Me.LabelLaneHighlightPercent.Location = New System.Drawing.Point(287, 548)
         Me.LabelLaneHighlightPercent.Name = "LabelLaneHighlightPercent"
         Me.LabelLaneHighlightPercent.Size = New System.Drawing.Size(28, 17)
         Me.LabelLaneHighlightPercent.TabIndex = 72
@@ -373,7 +394,7 @@ Partial Class OpGeneral
         '
         'nBgmLaneCount
         '
-        Me.nBgmLaneCount.Location = New System.Drawing.Point(219, 544)
+        Me.nBgmLaneCount.Location = New System.Drawing.Point(219, 575)
         Me.nBgmLaneCount.Maximum = New Decimal(New Integer() {999, 0, 0, 0})
         Me.nBgmLaneCount.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.nBgmLaneCount.Name = "nBgmLaneCount"
@@ -383,7 +404,7 @@ Partial Class OpGeneral
         '
         'LabelBgmLaneCount
         '
-        Me.LabelBgmLaneCount.Location = New System.Drawing.Point(34, 546)
+        Me.LabelBgmLaneCount.Location = New System.Drawing.Point(34, 577)
         Me.LabelBgmLaneCount.Name = "LabelBgmLaneCount"
         Me.LabelBgmLaneCount.Size = New System.Drawing.Size(179, 17)
         Me.LabelBgmLaneCount.TabIndex = 74
@@ -392,7 +413,7 @@ Partial Class OpGeneral
         '
         'nUndoRedoMemoryLimit
         '
-        Me.nUndoRedoMemoryLimit.Location = New System.Drawing.Point(219, 573)
+        Me.nUndoRedoMemoryLimit.Location = New System.Drawing.Point(219, 606)
         Me.nUndoRedoMemoryLimit.Maximum = New Decimal(New Integer() {1024, 0, 0, 0})
         Me.nUndoRedoMemoryLimit.Minimum = New Decimal(New Integer() {16, 0, 0, 0})
         Me.nUndoRedoMemoryLimit.Name = "nUndoRedoMemoryLimit"
@@ -402,7 +423,7 @@ Partial Class OpGeneral
         '
         'LabelUndoRedoMemoryLimit
         '
-        Me.LabelUndoRedoMemoryLimit.Location = New System.Drawing.Point(34, 575)
+        Me.LabelUndoRedoMemoryLimit.Location = New System.Drawing.Point(34, 608)
         Me.LabelUndoRedoMemoryLimit.Name = "LabelUndoRedoMemoryLimit"
         Me.LabelUndoRedoMemoryLimit.Size = New System.Drawing.Size(179, 17)
         Me.LabelUndoRedoMemoryLimit.TabIndex = 76
@@ -411,7 +432,7 @@ Partial Class OpGeneral
         '
         'LabelUndoRedoMemoryLimitMB
         '
-        Me.LabelUndoRedoMemoryLimitMB.Location = New System.Drawing.Point(287, 575)
+        Me.LabelUndoRedoMemoryLimitMB.Location = New System.Drawing.Point(287, 608)
         Me.LabelUndoRedoMemoryLimitMB.Name = "LabelUndoRedoMemoryLimitMB"
         Me.LabelUndoRedoMemoryLimitMB.Size = New System.Drawing.Size(28, 17)
         Me.LabelUndoRedoMemoryLimitMB.TabIndex = 77
@@ -420,7 +441,7 @@ Partial Class OpGeneral
         '
         'nGridPartition
         '
-        Me.nGridPartition.Location = New System.Drawing.Point(219, 107)
+        Me.nGridPartition.Location = New System.Drawing.Point(219, 138)
         Me.nGridPartition.Maximum = New Decimal(New Integer() {10000, 0, 0, 0})
         Me.nGridPartition.Minimum = New Decimal(New Integer() {8, 0, 0, 0})
         Me.nGridPartition.Name = "nGridPartition"
@@ -430,7 +451,7 @@ Partial Class OpGeneral
         '
         'Label6
         '
-        Me.Label6.Location = New System.Drawing.Point(44, 108)
+        Me.Label6.Location = New System.Drawing.Point(44, 139)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(169, 17)
         Me.Label6.TabIndex = 62
@@ -439,7 +460,7 @@ Partial Class OpGeneral
         '
         'TBAssociateBME
         '
-        Me.TBAssociateBME.Location = New System.Drawing.Point(137, 78)
+        Me.TBAssociateBME.Location = New System.Drawing.Point(137, 109)
         Me.TBAssociateBME.Name = "TBAssociateBME"
         Me.TBAssociateBME.Size = New System.Drawing.Size(76, 23)
         Me.TBAssociateBME.TabIndex = 63
@@ -448,7 +469,7 @@ Partial Class OpGeneral
         '
         'TBAssociateBML
         '
-        Me.TBAssociateBML.Location = New System.Drawing.Point(219, 78)
+        Me.TBAssociateBML.Location = New System.Drawing.Point(219, 109)
         Me.TBAssociateBML.Name = "TBAssociateBML"
         Me.TBAssociateBML.Size = New System.Drawing.Size(85, 23)
         Me.TBAssociateBML.TabIndex = 64
@@ -457,7 +478,7 @@ Partial Class OpGeneral
         '
         'Label3
         '
-        Me.Label3.Location = New System.Drawing.Point(12, 364)
+        Me.Label3.Location = New System.Drawing.Point(12, 395)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(136, 17)
         Me.Label3.TabIndex = 65
@@ -471,7 +492,7 @@ Partial Class OpGeneral
         Me.FlowLayoutPanel1.Controls.Add(Me.rMiddleAuto)
         Me.FlowLayoutPanel1.Controls.Add(Me.rMiddleDrag)
         Me.FlowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown
-        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(154, 363)
+        Me.FlowLayoutPanel1.Location = New System.Drawing.Point(154, 394)
         Me.FlowLayoutPanel1.Name = "FlowLayoutPanel1"
         Me.FlowLayoutPanel1.Size = New System.Drawing.Size(141, 38)
         Me.FlowLayoutPanel1.TabIndex = 66
@@ -506,7 +527,7 @@ Partial Class OpGeneral
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None
         Me.CancelButton = Me.Cancel_Button
-        Me.ClientSize = New System.Drawing.Size(413, 663)
+        Me.ClientSize = New System.Drawing.Size(413, 694)
         Me.Controls.Add(Me.LabelUndoRedoMemoryLimitMB)
         Me.Controls.Add(Me.LabelUndoRedoMemoryLimit)
         Me.Controls.Add(Me.nUndoRedoMemoryLimit)
@@ -541,8 +562,10 @@ Partial Class OpGeneral
         Me.Controls.Add(Me.cBeep)
         Me.Controls.Add(Me.TBAssociate)
         Me.Controls.Add(Me.Label4)
+        Me.Controls.Add(Me.LabelOutputTextEncoding)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.COutputTextEncoding)
         Me.Controls.Add(Me.CTextEncoding)
         Me.Controls.Add(Me.CWheel)
         Me.Controls.Add(Me.TableLayoutPanel1)
@@ -572,8 +595,10 @@ Partial Class OpGeneral
     Friend WithEvents Cancel_Button As System.Windows.Forms.Button
     Friend WithEvents CWheel As System.Windows.Forms.ComboBox
     Friend WithEvents CTextEncoding As System.Windows.Forms.ComboBox
+    Friend WithEvents COutputTextEncoding As System.Windows.Forms.ComboBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents Label2 As System.Windows.Forms.Label
+    Friend WithEvents LabelOutputTextEncoding As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents TBAssociate As System.Windows.Forms.Button
     Friend WithEvents cBeep As System.Windows.Forms.CheckBox

@@ -55,8 +55,22 @@ Public Class MainWindow
     Dim HSValue As Integer = 0 'Store value before ValueChange event
 
     'Dim SortingMethod As Integer = 1
+    Private Enum TextEncodingMode
+        Auto = 0
+        SystemDefault = 1
+        SJIS = 2
+        EUCKR = 3
+        UTF8 = 4
+        UTF16LE = 5
+        UTF16BE = 6
+        UTF32LE = 7
+        UTF32BE = 8
+    End Enum
+
     Dim MiddleButtonMoveMethod As Integer = 0
-    Dim TextEncoding As System.Text.Encoding = System.Text.Encoding.UTF8
+    Dim InputTextEncoding As TextEncodingMode = TextEncodingMode.Auto
+    Dim OutputTextEncoding As TextEncodingMode = TextEncodingMode.SystemDefault
+    Dim ChartTextEncoding As System.Text.Encoding = System.Text.Encoding.GetEncoding(932)
     Dim DispLang As String = ""     'Display Language
     Dim Recent() As String = {"", "", "", "", ""}
     Dim NTInput As Boolean = True
@@ -92,7 +106,7 @@ Public Class MainWindow
 
     'Variables for Drag/Drop
     Dim DDFileName() As String = {}
-    Dim SupportedFileExtension() As String = {".bms", ".bme", ".bml", ".pms", ".txt", ".sm", ".nbmsc"}
+    Dim SupportedFileExtension() As String = {".bms", ".bme", ".bml", ".pms", ".txt", ".nbmsc"}
     Dim SupportedAudioExtension() As String = {".wav", ".mp3", ".ogg", ".flac"}
     Dim SupportedImageExtension() As String = {".bmp", ".png", ".jpg", ".jpeg", ".gif", ".mpg", ".mpeg", ".avi", ".m1v", ".m2v", ".m4v", ".mp4", ".webm", ".wmv"}
 
@@ -313,6 +327,8 @@ Public Class MainWindow
     Private WithEvents mnSAddSplitView As ToolStripMenuItem
     Private WithEvents mnSRemoveSplitView As ToolStripMenuItem
     Private WithEvents mnSlashGrid As ToolStripMenuItem
+    Private mnReloadEncoding As ToolStripMenuItem
+    Private ReloadEncodingMenuItems As New Dictionary(Of TextEncodingMode, ToolStripMenuItem)
     Private WithEvents TBGridDivide As ToolStripComboBox
     Private WithEvents TBGridSub As ToolStripComboBox
     Private WithEvents TBGridHeight As ToolStripComboBox
@@ -837,6 +853,7 @@ Public Class MainWindow
         InitializeGridToolbar()
         InitializeOptionsTabs()
         InitializeOptionsMenuItems()
+        InitializeEncodingMenuItems()
         InitializeSplitViewControls()
         ReorderConversionMenu()
         RefreshMenuShortcutDisplay()
@@ -1294,6 +1311,40 @@ Public Class MainWindow
         Else
             mnOptions.DropDownItems.Add(mnSlashGrid)
         End If
+    End Sub
+
+    Private Sub InitializeEncodingMenuItems()
+        mnReloadEncoding = New ToolStripMenuItem With {
+            .Name = "mnReloadEncoding"
+        }
+
+        For Each xMode As TextEncodingMode In InputTextEncodingModes()
+            Dim xItem As New ToolStripMenuItem With {
+                .Name = "mnReloadEncoding" & TextEncodingModeToString(xMode),
+                .Tag = xMode
+            }
+            AddHandler xItem.Click, AddressOf ReloadEncodingMenuItem_Click
+            ReloadEncodingMenuItems.Add(xMode, xItem)
+            mnReloadEncoding.DropDownItems.Add(xItem)
+        Next
+
+        Dim xIndex As Integer = mnFile.DropDownItems.IndexOf(mnOpen)
+        If xIndex >= 0 Then
+            mnFile.DropDownItems.Insert(xIndex + 1, mnReloadEncoding)
+        Else
+            mnFile.DropDownItems.Add(mnReloadEncoding)
+        End If
+
+        SyncEncodingMenuText()
+    End Sub
+
+    Private Sub SyncEncodingMenuText()
+        If mnReloadEncoding Is Nothing Then Return
+
+        mnReloadEncoding.Text = Strings.Encoding.ReloadWithEncoding
+        For Each xPair As KeyValuePair(Of TextEncodingMode, ToolStripMenuItem) In ReloadEncodingMenuItems
+            xPair.Value.Text = TextEncodingModeDisplayName(xPair.Key)
+        Next
     End Sub
 
     Private Sub KeepOptionsPanelDockedRight()
@@ -2150,7 +2201,7 @@ Public Class MainWindow
         'pttl.Refresh()
         'pIsSaved.Visible = Not xBool
         Dim xVersion As String = FormatVersionText(My.Application.Info.Version)
-        Text = IIf(isSaved, "", "*") & GetFileName(FileName) & " - " & My.Application.Info.Title & " " & xVersion
+        Text = IIf(isSaved, "", "*") & GetFileName(FileName) & " - " & My.Application.Info.Title & " " & xVersion & " (" & CurrentEncodingStatusText() & ")"
         Me.IsSaved = isSaved
     End Sub
 
@@ -2466,6 +2517,326 @@ Public Class MainWindow
         Return enabledIndex
     End Function
 
+    Private Function ShiftJisEncoding() As System.Text.Encoding
+        Return System.Text.Encoding.GetEncoding(932)
+    End Function
+
+    Private Function InputTextEncodingModes() As TextEncodingMode()
+        Return New TextEncodingMode() {
+            TextEncodingMode.Auto,
+            TextEncodingMode.SystemDefault,
+            TextEncodingMode.SJIS,
+            TextEncodingMode.EUCKR,
+            TextEncodingMode.UTF8,
+            TextEncodingMode.UTF16LE,
+            TextEncodingMode.UTF16BE,
+            TextEncodingMode.UTF32LE,
+            TextEncodingMode.UTF32BE
+        }
+    End Function
+
+    Private Function OutputTextEncodingModeToIndex(ByVal xMode As TextEncodingMode) As Integer
+        Select Case xMode
+            Case TextEncodingMode.Auto : Return 0
+            Case TextEncodingMode.SystemDefault : Return 1
+            Case TextEncodingMode.SJIS : Return 2
+            Case TextEncodingMode.UTF8 : Return 3
+        End Select
+
+        Return 0
+    End Function
+
+    Private Function OutputTextEncodingIndexToMode(ByVal xIndex As Integer) As TextEncodingMode
+        Select Case xIndex
+            Case 0 : Return TextEncodingMode.Auto
+            Case 1 : Return TextEncodingMode.SystemDefault
+            Case 2 : Return TextEncodingMode.SJIS
+            Case 3 : Return TextEncodingMode.UTF8
+        End Select
+
+        Return TextEncodingMode.SystemDefault
+    End Function
+
+    Private Function TextEncodingModeToString(ByVal xMode As TextEncodingMode) As String
+        Select Case xMode
+            Case TextEncodingMode.Auto : Return "Auto"
+            Case TextEncodingMode.SystemDefault : Return "System"
+            Case TextEncodingMode.SJIS : Return "SJIS"
+            Case TextEncodingMode.EUCKR : Return "EUCKR"
+            Case TextEncodingMode.UTF8 : Return "UTF8"
+            Case TextEncodingMode.UTF16LE : Return "UTF16LE"
+            Case TextEncodingMode.UTF16BE : Return "UTF16BE"
+            Case TextEncodingMode.UTF32LE : Return "UTF32LE"
+            Case TextEncodingMode.UTF32BE : Return "UTF32BE"
+        End Select
+
+        Return "Auto"
+    End Function
+
+    Private Function TextEncodingModeDisplayName(ByVal xMode As TextEncodingMode) As String
+        Select Case xMode
+            Case TextEncodingMode.Auto : Return Strings.Encoding.Auto
+            Case TextEncodingMode.SystemDefault : Return Strings.Encoding.SystemDefault
+            Case TextEncodingMode.SJIS : Return "Shift-JIS"
+            Case TextEncodingMode.EUCKR : Return "EUC-KR"
+            Case TextEncodingMode.UTF8 : Return "UTF-8"
+            Case TextEncodingMode.UTF16LE : Return "UTF-16LE"
+            Case TextEncodingMode.UTF16BE : Return "UTF-16BE"
+            Case TextEncodingMode.UTF32LE : Return "UTF-32LE"
+            Case TextEncodingMode.UTF32BE : Return "UTF-32BE"
+        End Select
+
+        Return Strings.Encoding.Auto
+    End Function
+
+    Private Function ParseTextEncodingMode(ByVal xValue As String, ByVal xDefaultMode As TextEncodingMode) As TextEncodingMode
+        Select Case UCase(Replace(Replace(Replace(xValue, "-", ""), "_", ""), " ", ""))
+            Case "AUTO" : Return TextEncodingMode.Auto
+            Case "SYSTEM", "SYSTEMANSI", "ANSI", "DEFAULT" : Return TextEncodingMode.SystemDefault
+            Case "SJIS", "SHIFTJIS", "CP932", "932" : Return TextEncodingMode.SJIS
+            Case "EUCKR", "CP949", "949" : Return TextEncodingMode.EUCKR
+            Case "UTF8", "UTF7" : Return TextEncodingMode.UTF8
+            Case "UTF16LE", "LITTLEENDIANUTF16", "UNICODE" : Return TextEncodingMode.UTF16LE
+            Case "UTF16BE", "BIGENDIANUTF16" : Return TextEncodingMode.UTF16BE
+            Case "UTF32LE", "LITTLEENDIANUTF32" : Return TextEncodingMode.UTF32LE
+            Case "UTF32BE", "BIGENDIANUTF32" : Return TextEncodingMode.UTF32BE
+            Case "ASCII" : Return TextEncodingMode.SJIS
+        End Select
+
+        Return xDefaultMode
+    End Function
+
+    Private Function CoerceOutputTextEncodingMode(ByVal xMode As TextEncodingMode) As TextEncodingMode
+        Select Case xMode
+            Case TextEncodingMode.Auto, TextEncodingMode.SystemDefault, TextEncodingMode.SJIS, TextEncodingMode.UTF8
+                Return xMode
+        End Select
+
+        Return TextEncodingMode.SystemDefault
+    End Function
+
+    Private Function TextEncodingModeToEncoding(ByVal xMode As TextEncodingMode) As System.Text.Encoding
+        Select Case xMode
+            Case TextEncodingMode.SystemDefault
+                Return System.Text.Encoding.Default
+            Case TextEncodingMode.SJIS
+                Return ShiftJisEncoding()
+            Case TextEncodingMode.EUCKR
+                Return System.Text.Encoding.GetEncoding("EUC-KR")
+            Case TextEncodingMode.UTF8
+                Return New System.Text.UTF8Encoding(True, False)
+            Case TextEncodingMode.UTF16LE
+                Return New System.Text.UnicodeEncoding(False, True)
+            Case TextEncodingMode.UTF16BE
+                Return New System.Text.UnicodeEncoding(True, True)
+            Case TextEncodingMode.UTF32LE
+                Return New System.Text.UTF32Encoding(False, True)
+            Case TextEncodingMode.UTF32BE
+                Return New System.Text.UTF32Encoding(True, True)
+        End Select
+
+        Return ShiftJisEncoding()
+    End Function
+
+    Private Function EncodingToTextEncodingMode(ByVal xEncoding As System.Text.Encoding) As TextEncodingMode
+        If xEncoding Is Nothing Then Return TextEncodingMode.SJIS
+
+        Select Case xEncoding.CodePage
+            Case 932
+                Return TextEncodingMode.SJIS
+            Case System.Text.Encoding.GetEncoding("EUC-KR").CodePage
+                Return TextEncodingMode.EUCKR
+            Case System.Text.Encoding.Default.CodePage
+                Return TextEncodingMode.SystemDefault
+            Case System.Text.Encoding.UTF8.CodePage
+                Return TextEncodingMode.UTF8
+            Case System.Text.Encoding.Unicode.CodePage
+                Return TextEncodingMode.UTF16LE
+            Case System.Text.Encoding.BigEndianUnicode.CodePage
+                Return TextEncodingMode.UTF16BE
+            Case System.Text.Encoding.UTF32.CodePage
+                Return TextEncodingMode.UTF32LE
+        End Select
+
+        If xEncoding.WebName = "utf-32BE" OrElse xEncoding.WebName = "utf-32be" Then Return TextEncodingMode.UTF32BE
+        Return TextEncodingMode.SJIS
+    End Function
+
+    Private Sub ResetChartTextEncoding()
+        ChartTextEncoding = ShiftJisEncoding()
+        SetIsSaved(IsSaved)
+    End Sub
+
+    Private Function HasBom(ByVal xBytes() As Byte, ByVal xBom() As Byte) As Boolean
+        If xBytes.Length < xBom.Length Then Return False
+        For xI1 As Integer = 0 To xBom.Length - 1
+            If xBytes(xI1) <> xBom(xI1) Then Return False
+        Next
+        Return True
+    End Function
+
+    Private Function EncodingFromBom(ByVal xBytes() As Byte) As System.Text.Encoding
+        If HasBom(xBytes, New Byte() {&H0, &H0, &HFE, &HFF}) Then Return New System.Text.UTF32Encoding(True, True)
+        If HasBom(xBytes, New Byte() {&HFF, &HFE, &H0, &H0}) Then Return New System.Text.UTF32Encoding(False, True)
+        If HasBom(xBytes, New Byte() {&HEF, &HBB, &HBF}) Then Return New System.Text.UTF8Encoding(True, False)
+        If HasBom(xBytes, New Byte() {&HFE, &HFF}) Then Return New System.Text.UnicodeEncoding(True, True)
+        If HasBom(xBytes, New Byte() {&HFF, &HFE}) Then Return New System.Text.UnicodeEncoding(False, True)
+        Return Nothing
+    End Function
+
+    Private Function PreambleLength(ByVal xBytes() As Byte, ByVal xEncoding As System.Text.Encoding) As Integer
+        Dim xPreamble() As Byte = xEncoding.GetPreamble()
+        If xPreamble Is Nothing OrElse xPreamble.Length = 0 Then Return 0
+        If HasBom(xBytes, xPreamble) Then Return xPreamble.Length
+        Return 0
+    End Function
+
+    Private Function IsValidShiftJis(ByVal xBytes() As Byte, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
+        If xBytes.Length < 2 Then Return False
+
+        Dim xLimit As Integer = Math.Min(xBytes.Length, xSize)
+        Dim xI1 As Integer = 0
+        While xI1 < xLimit
+            Dim xByte As Byte = xBytes(xI1)
+            If xByte <= &H7F OrElse (xByte >= &HA1 AndAlso xByte <= &HDF) Then
+                xI1 += 1
+            ElseIf (xByte >= &H81 AndAlso xByte <= &H9F) OrElse (xByte >= &HE0 AndAlso xByte <= &HEF) Then
+                If xI1 + 1 >= xLimit Then Return False
+
+                Dim xNext As Byte = xBytes(xI1 + 1)
+                If (xNext >= &H40 AndAlso xNext <= &H7E) OrElse (xNext >= &H80 AndAlso xNext <= &HFC) Then
+                    xI1 += 2
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        End While
+
+        Return True
+    End Function
+
+    Private Function IsValidEucKr(ByVal xBytes() As Byte, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
+        If xBytes.Length < 2 Then Return False
+
+        Dim xLimit As Integer = Math.Min(xBytes.Length, xSize)
+        Dim xI1 As Integer = 0
+        While xI1 < xLimit
+            Dim xByte As Byte = xBytes(xI1)
+            If xByte <= &H7F Then
+                xI1 += 1
+            ElseIf xByte >= &H81 AndAlso xByte <= &HFE Then
+                If xI1 + 1 >= xLimit Then Return False
+
+                Dim xNext As Byte = xBytes(xI1 + 1)
+                If xNext >= &H81 AndAlso xNext <= &HFE Then
+                    xI1 += 2
+                Else
+                    Return False
+                End If
+            Else
+                Return False
+            End If
+        End While
+
+        Return True
+    End Function
+
+    Private Function IsValidUtf8(ByVal xBytes() As Byte) As Boolean
+        Try
+            Dim xUtf8 As New System.Text.UTF8Encoding(False, True)
+            xUtf8.GetString(xBytes)
+            Return True
+        Catch ex As System.Text.DecoderFallbackException
+            Return False
+        End Try
+    End Function
+
+    Private Function LooksLikeChartText(ByVal xText As String) As Boolean
+        Return xText.Contains("#") AndAlso
+               (xText.Contains(vbCrLf) OrElse xText.Contains(vbCr) OrElse xText.Contains(vbLf))
+    End Function
+
+    Private Function IsRoundTripEncoding(ByVal xBytes() As Byte, ByVal xEncoding As System.Text.Encoding, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
+        Try
+            Dim xLength As Integer = Math.Min(xBytes.Length, xSize)
+            If xLength = 0 Then Return False
+            Dim xSample(xLength - 1) As Byte
+            Array.Copy(xBytes, xSample, xLength)
+            Dim xText As String = xEncoding.GetString(xSample)
+            If Not LooksLikeChartText(xText) Then Return False
+
+            Dim xRoundTrip() As Byte = xEncoding.GetBytes(xText)
+            If xRoundTrip.Length <> xSample.Length Then Return False
+            For xI1 As Integer = 0 To xSample.Length - 1
+                If xSample(xI1) <> xRoundTrip(xI1) Then Return False
+            Next
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
+    End Function
+
+    Private Function DetectChartTextEncoding(ByVal xBytes() As Byte) As System.Text.Encoding
+        Dim xEncoding As System.Text.Encoding = EncodingFromBom(xBytes)
+        If xEncoding IsNot Nothing Then Return xEncoding
+
+        If IsValidShiftJis(xBytes) Then Return ShiftJisEncoding()
+        If IsValidEucKr(xBytes) Then Return System.Text.Encoding.GetEncoding("EUC-KR")
+        If IsValidUtf8(xBytes) Then Return New System.Text.UTF8Encoding(True, False)
+
+        Dim xEncodings() As System.Text.Encoding = {
+            New System.Text.UnicodeEncoding(True, True, True),
+            New System.Text.UnicodeEncoding(False, True, True),
+            New System.Text.UTF32Encoding(True, True, True),
+            New System.Text.UTF32Encoding(False, True, True)
+        }
+        For Each xCandidate As System.Text.Encoding In xEncodings
+            If IsRoundTripEncoding(xBytes, xCandidate) Then Return xCandidate
+        Next
+
+        Return ShiftJisEncoding()
+    End Function
+
+    Private Function ReadChartText(ByVal xPath As String, Optional ByVal xMode As TextEncodingMode = TextEncodingMode.Auto) As String
+        Dim xBytes() As Byte = File.ReadAllBytes(xPath)
+        If xMode = TextEncodingMode.Auto Then
+            ChartTextEncoding = DetectChartTextEncoding(xBytes)
+        Else
+            ChartTextEncoding = TextEncodingModeToEncoding(xMode)
+        End If
+
+        Dim xOffset As Integer = PreambleLength(xBytes, ChartTextEncoding)
+        SetIsSaved(IsSaved)
+        Return ChartTextEncoding.GetString(xBytes, xOffset, xBytes.Length - xOffset)
+    End Function
+
+    Private Function CurrentSaveEncoding() As System.Text.Encoding
+        Select Case OutputTextEncoding
+            Case TextEncodingMode.Auto
+                If ChartTextEncoding Is Nothing Then Return ShiftJisEncoding()
+                Return ChartTextEncoding
+            Case Else
+                Return TextEncodingModeToEncoding(OutputTextEncoding)
+        End Select
+    End Function
+
+    Private Function CurrentEncodingStatusText() As String
+        Dim xInput As String = EncodingDisplayName(ChartTextEncoding)
+        Dim xOutput As String = EncodingDisplayName(CurrentSaveEncoding())
+        If OutputTextEncoding = TextEncodingMode.Auto OrElse xInput = xOutput Then Return xInput
+        Return xInput & " -> " & xOutput
+    End Function
+
+    Private Function EncodingDisplayName(ByVal xEncoding As System.Text.Encoding) As String
+        Return TextEncodingModeDisplayName(EncodingToTextEncodingMode(xEncoding))
+    End Function
+
+    Private Sub WriteChartText(ByVal xPath As String, ByVal xText As String)
+        My.Computer.FileSystem.WriteAllText(xPath, xText, False, CurrentSaveEncoding())
+    End Sub
+
     Private Sub Form1_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         If pTempFileNames IsNot Nothing Then
             For Each xStr As String In pTempFileNames
@@ -2500,7 +2871,7 @@ Public Class MainWindow
                     SetFileName(xDSave.FileName)
                 End If
                 Dim xStrAll As String = SaveBMS()
-                My.Computer.FileSystem.WriteAllText(FileName, xStrAll, False, TextEncoding)
+                WriteChartText(FileName, xStrAll)
                 NewRecent(FileName)
                 If BeepWhileSaved Then Beep()
             End If
@@ -2755,20 +3126,14 @@ Public Class MainWindow
     Friend Sub ReadFile(ByVal xPath As String)
         Select Case LCase(Path.GetExtension(xPath))
             Case ".bms", ".bme", ".bml", ".pms", ".txt"
-                OpenBMS(My.Computer.FileSystem.ReadAllText(xPath, TextEncoding))
+                OpenBMS(ReadChartText(xPath, InputTextEncoding))
                 ClearUndo()
                 NewRecent(xPath)
                 SetFileName(xPath)
                 SetIsSaved(True)
 
-            Case ".sm"
-                If OpenSM(My.Computer.FileSystem.ReadAllText(xPath, TextEncoding)) Then Return
-                InitPath = ExcludeFileName(xPath)
-                ClearUndo()
-                SetFileName("Untitled.bms")
-                SetIsSaved(False)
-
             Case ".nbmsc"
+                ResetChartTextEncoding()
                 OpenNBMSC(xPath)
                 InitPath = ExcludeFileName(xPath)
                 NewRecent(xPath)
@@ -2874,6 +3239,7 @@ Public Class MainWindow
         Else
             LoadInitialPreferences()
         End If
+        ResetChartTextEncoding()
         RefreshPlayerSelector()
         SetUseBase62Definitions(NewBMSUseBase62Definitions)
         RefreshDefinitionLists()
@@ -3296,7 +3662,7 @@ EndSearch:
                     SetFileName(xDSave.FileName)
                 End If
                 Dim xStrAll As String = SaveBMS()
-                My.Computer.FileSystem.WriteAllText(FileName, xStrAll, False, TextEncoding)
+                WriteChartText(FileName, xStrAll)
                 NewRecent(FileName)
                 If BeepWhileSaved Then Beep()
             End If
@@ -3315,6 +3681,7 @@ EndSearch:
 
         ClearUndo()
         InitializeNewBMS()
+        ResetChartTextEncoding()
 
         ReDim Notes(0)
         ReDim mColumn(999)
@@ -3384,6 +3751,7 @@ EndSearch:
         'pIsSaved.Visible = Not IsSaved
 
         If MsgBox("Please copy your code to clipboard and click OK.", MsgBoxStyle.OkCancel, "Create from code") = MsgBoxResult.Cancel Then Exit Sub
+        ResetChartTextEncoding()
         OpenBMS(Clipboard.GetText)
     End Sub
 
@@ -3400,12 +3768,31 @@ EndSearch:
 
         If xDOpen.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
         InitPath = ExcludeFileName(xDOpen.FileName)
-        OpenBMS(My.Computer.FileSystem.ReadAllText(xDOpen.FileName, TextEncoding))
+        OpenBMS(ReadChartText(xDOpen.FileName, InputTextEncoding))
         ClearUndo()
         SetFileName(xDOpen.FileName)
         NewRecent(FileName)
         SetIsSaved(True)
         'pIsSaved.Visible = Not IsSaved
+    End Sub
+
+    Private Sub ReloadEncodingMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs)
+        If ExcludeFileName(FileName) = "" Then Return
+        Select Case LCase(Path.GetExtension(FileName))
+            Case ".bms", ".bme", ".bml", ".pms", ".txt"
+            Case Else
+                Return
+        End Select
+
+        If ClosingPopSave() Then Return
+
+        Dim xItem As ToolStripMenuItem = TryCast(sender, ToolStripMenuItem)
+        If xItem Is Nothing OrElse xItem.Tag Is Nothing Then Return
+
+        Dim xMode As TextEncodingMode = DirectCast(xItem.Tag, TextEncodingMode)
+        OpenBMS(ReadChartText(FileName, xMode))
+        ClearUndo()
+        SetIsSaved(True)
     End Sub
 
     Private Sub TBImportNBMSC_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBImportNBMSC.Click, mnImportNBMSC.Click
@@ -3422,28 +3809,9 @@ EndSearch:
         If xDOpen.ShowDialog = Windows.Forms.DialogResult.Cancel Then Return
         InitPath = ExcludeFileName(xDOpen.FileName)
         SetFileName("Imported_" & GetFileName(xDOpen.FileName))
+        ResetChartTextEncoding()
         OpenNBMSC(xDOpen.FileName)
         NewRecent(xDOpen.FileName)
-        SetIsSaved(False)
-        'pIsSaved.Visible = Not IsSaved
-    End Sub
-
-    Private Sub TBImportSM_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBImportSM.Click, mnImportSM.Click
-        'KMouseDown = -1
-        ReDim SelectedNotes(-1)
-        KMouseOver = -1
-        If ClosingPopSave() Then Exit Sub
-
-        Dim xDOpen As New OpenFileDialog
-        xDOpen.Filter = Strings.FileType.SM & "|*.sm"
-        xDOpen.DefaultExt = "sm"
-        xDOpen.InitialDirectory = IIf(ExcludeFileName(FileName) = "", InitPath, ExcludeFileName(FileName))
-
-        If xDOpen.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
-        If OpenSM(My.Computer.FileSystem.ReadAllText(xDOpen.FileName, TextEncoding)) Then Exit Sub
-        InitPath = ExcludeFileName(xDOpen.FileName)
-        SetFileName("Untitled.bms")
-        ClearUndo()
         SetIsSaved(False)
         'pIsSaved.Visible = Not IsSaved
     End Sub
@@ -3470,7 +3838,7 @@ EndSearch:
             SetFileName(xDSave.FileName)
         End If
         Dim xStrAll As String = SaveBMS()
-        My.Computer.FileSystem.WriteAllText(FileName, xStrAll, False, TextEncoding)
+        WriteChartText(FileName, xStrAll)
         NewRecent(FileName)
         SetFileName(FileName)
         SetIsSaved(True)
@@ -3498,7 +3866,7 @@ EndSearch:
         InitPath = ExcludeFileName(xDSave.FileName)
         SetFileName(xDSave.FileName)
         Dim xStrAll As String = SaveBMS()
-        My.Computer.FileSystem.WriteAllText(FileName, xStrAll, False, TextEncoding)
+        WriteChartText(FileName, xStrAll)
         NewRecent(FileName)
         SetFileName(FileName)
         SetIsSaved(True)
@@ -3518,7 +3886,6 @@ EndSearch:
         If xDSave.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
 
         SaveNBMSC(xDSave.FileName)
-        'My.Computer.FileSystem.WriteAllText(xDSave.FileName, xStrAll, False, TextEncoding)
         NewRecent(FileName)
         If BeepWhileSaved Then Beep()
     End Sub
@@ -3535,7 +3902,6 @@ EndSearch:
         If xDSave.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
 
         SaveBMSON(xDSave.FileName)
-        'My.Computer.FileSystem.WriteAllText(xDSave.FileName, xStrAll, False, TextEncoding)
         NewRecent(FileName)
         If BeepWhileSaved Then Beep()
     End Sub
@@ -4225,7 +4591,7 @@ EndSearch:
         Dim xFileName As String = IIf(Not PathIsValid(FileName),
                                       IIf(InitPath = "", My.Application.Info.DirectoryPath, InitPath),
                                       ExcludeFileName(FileName)) & "\___TempBMS.bms"
-        My.Computer.FileSystem.WriteAllText(xFileName, xStrAll, False, TextEncoding)
+        WriteChartText(xFileName, xStrAll)
 
         AddTempFileList(xFileName)
         System.Diagnostics.Process.Start(PrevCodeToReal(xArg.Path), PrevCodeToReal(xArg.aHere, SkipClippedMeasure))
@@ -4248,7 +4614,7 @@ EndSearch:
         Dim xFileName As String = IIf(Not PathIsValid(FileName),
                                       IIf(InitPath = "", My.Application.Info.DirectoryPath, InitPath),
                                       ExcludeFileName(FileName)) & "\___TempBMS.bms"
-        My.Computer.FileSystem.WriteAllText(xFileName, xStrAll, False, TextEncoding)
+        WriteChartText(xFileName, xStrAll)
 
         AddTempFileList(xFileName)
 
@@ -5417,21 +5783,7 @@ StartCount:     If Not NTInput Then
     End Sub
 
     Private Sub mnGOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnGOptions.Click
-        Dim xTE As Integer
-        Select Case UCase(EncodingToString(TextEncoding)) ' az: wow seriously? is there really no better way? 
-            Case "SYSTEM ANSI" : xTE = 0
-            Case "LITTLE ENDIAN UTF16" : xTE = 1
-            Case "ASCII" : xTE = 2
-            Case "BIG ENDIAN UTF16" : xTE = 3
-            Case "LITTLE ENDIAN UTF32" : xTE = 4
-            Case "UTF7" : xTE = 5
-            Case "UTF8" : xTE = 6
-            Case "SJIS" : xTE = 7
-            Case "EUC-KR" : xTE = 8
-            Case Else : xTE = 0
-        End Select
-
-        Dim xDiag As New OpGeneral(gWheel, gPgUpDn, MiddleButtonMoveMethod, xTE, 192.0R / BMSGridLimit,
+        Dim xDiag As New OpGeneral(gWheel, gPgUpDn, MiddleButtonMoveMethod, CInt(InputTextEncoding), OutputTextEncodingModeToIndex(OutputTextEncoding), 192.0R / BMSGridLimit,
             AutoSaveInterval, BeepWhileSaved, NewBMSUseBase62Definitions, BPMDefinitionMode, STOPDefinitionMode,
             AutoFocusMouseEnter, FirstClickDisabled, ClickStopPreview, SkipClippedMeasure, LaneHighlight, CInt(CGB.Value), UndoRedoMemoryLimitMB)
 
@@ -5439,7 +5791,8 @@ StartCount:     If Not NTInput Then
             With xDiag
                 gWheel = .zWheel
                 gPgUpDn = .zPgUpDn
-                TextEncoding = .zEncoding
+                InputTextEncoding = CType(.zInputTextEncoding, TextEncodingMode)
+                OutputTextEncoding = OutputTextEncodingIndexToMode(.zOutputTextEncoding)
                 'SortingMethod = .zSort
                 MiddleButtonMoveMethod = .zMiddle
                 AutoSaveInterval = .zAutoSave
@@ -5460,6 +5813,7 @@ StartCount:     If Not NTInput Then
             End With
             If AutoSaveInterval Then AutoSaveTimer.Interval = AutoSaveInterval
             AutoSaveTimer.Enabled = AutoSaveInterval
+            SetIsSaved(IsSaved)
             RefreshGridToolbar()
             RefreshPanelAll()
         End If

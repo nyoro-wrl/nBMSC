@@ -193,7 +193,6 @@ Partial Class MainWindow
         Me.mnFile = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnNew = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnOpen = New System.Windows.Forms.ToolStripMenuItem()
-        Me.mnImportSM = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnImportNBMSC = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator14 = New System.Windows.Forms.ToolStripSeparator()
         Me.mnSave = New System.Windows.Forms.ToolStripMenuItem()
@@ -288,7 +287,6 @@ Partial Class MainWindow
         Me.TBOpenR3 = New System.Windows.Forms.ToolStripMenuItem()
         Me.TBOpenR4 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator12 = New System.Windows.Forms.ToolStripSeparator()
-        Me.TBImportSM = New System.Windows.Forms.ToolStripMenuItem()
         Me.TBImportNBMSC = New System.Windows.Forms.ToolStripMenuItem()
         Me.TBSave = New System.Windows.Forms.ToolStripSplitButton()
         Me.TBSaveAs = New System.Windows.Forms.ToolStripMenuItem()
@@ -2617,7 +2615,7 @@ Partial Class MainWindow
         '
         'mnFile
         '
-        Me.mnFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNew, Me.mnOpen, Me.mnImportSM, Me.mnImportNBMSC, Me.ToolStripSeparator14, Me.mnSave, Me.mnSaveAs, Me.mnExportNBMSC, Me.mnExportBMSON, Me.ToolStripSeparator15, Me.mnOpenR0, Me.mnOpenR1, Me.mnOpenR2, Me.mnOpenR3, Me.mnOpenR4, Me.ToolStripSeparator16, Me.mnQuit})
+        Me.mnFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNew, Me.mnOpen, Me.mnImportNBMSC, Me.ToolStripSeparator14, Me.mnSave, Me.mnSaveAs, Me.mnExportNBMSC, Me.mnExportBMSON, Me.ToolStripSeparator15, Me.mnOpenR0, Me.mnOpenR1, Me.mnOpenR2, Me.mnOpenR3, Me.mnOpenR4, Me.ToolStripSeparator16, Me.mnQuit})
         Me.mnFile.Name = "mnFile"
         Me.mnFile.Size = New System.Drawing.Size(37, 19)
         Me.mnFile.Text = "&File"
@@ -2637,13 +2635,6 @@ Partial Class MainWindow
         Me.mnOpen.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.O), System.Windows.Forms.Keys)
         Me.mnOpen.Size = New System.Drawing.Size(199, 22)
         Me.mnOpen.Text = "&Open"
-        '
-        'mnImportSM
-        '
-        Me.mnImportSM.Image = Global.nBMSC.My.Resources.Resources.x16Import2
-        Me.mnImportSM.Name = "mnImportSM"
-        Me.mnImportSM.Size = New System.Drawing.Size(199, 22)
-        Me.mnImportSM.Text = "Import from .S&M file"
         '
         'mnImportNBMSC
         '
@@ -3314,7 +3305,7 @@ Partial Class MainWindow
         'TBOpen
         '
         Me.TBOpen.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.TBOpen.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBOpenR0, Me.TBOpenR1, Me.TBOpenR2, Me.TBOpenR3, Me.TBOpenR4, Me.ToolStripSeparator12, Me.TBImportSM, Me.TBImportNBMSC})
+        Me.TBOpen.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBOpenR0, Me.TBOpenR1, Me.TBOpenR2, Me.TBOpenR3, Me.TBOpenR4, Me.ToolStripSeparator12, Me.TBImportNBMSC})
         Me.TBOpen.Image = Global.nBMSC.My.Resources.Resources.x16Open
         Me.TBOpen.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.TBOpen.Name = "TBOpen"
@@ -3365,13 +3356,6 @@ Partial Class MainWindow
         '
         Me.ToolStripSeparator12.Name = "ToolStripSeparator12"
         Me.ToolStripSeparator12.Size = New System.Drawing.Size(196, 6)
-        '
-        'TBImportSM
-        '
-        Me.TBImportSM.Image = Global.nBMSC.My.Resources.Resources.x16Import2
-        Me.TBImportSM.Name = "TBImportSM"
-        Me.TBImportSM.Size = New System.Drawing.Size(199, 22)
-        Me.TBImportSM.Text = "Import from .SM file"
         '
         'TBImportNBMSC
         '
@@ -4261,7 +4245,6 @@ Partial Class MainWindow
     Friend WithEvents mnFile As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnNew As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnOpen As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents mnImportSM As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnImportNBMSC As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator14 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents mnSave As System.Windows.Forms.ToolStripMenuItem
@@ -4377,7 +4360,6 @@ Partial Class MainWindow
     Friend WithEvents TBOpenR3 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents TBOpenR4 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator12 As System.Windows.Forms.ToolStripSeparator
-    Friend WithEvents TBImportSM As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents TBImportNBMSC As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents TBSave As System.Windows.Forms.ToolStripSplitButton
     Friend WithEvents TBSaveAs As System.Windows.Forms.ToolStripMenuItem

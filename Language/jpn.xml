@@ -16,7 +16,6 @@
 			<Title>ファイル</Title>
 			<New>新規</New>
 			<Open>開く</Open>
-			<ImportSM>.SM ファイルからインポート</ImportSM>
 			<ImportNBMSC>.NBMSC ファイルからインポート</ImportNBMSC>
 			<Save>保存</Save>
 			<SaveAs>名前をつけて保存</SaveAs>
@@ -316,7 +315,6 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 		<BML>Be-Music Longnote Format (*.bml)</BML>
 		<PMS>Po-Mu Script (*.pms)</PMS>
 		<TXT>テキストドキュメント (*.txt)</TXT>
-		<SM>Step Mania files (*.sm)</SM>
 		<NBMSC>nBMSC files (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
 		<THEME_XML>nBMSC テーマ (*.xml)</THEME_XML>
@@ -410,7 +408,8 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 	<GeneralOptions>
 		<Title>一般オプション</Title>
 		<MouseWheel>マウスホイール</MouseWheel>
-		<TextEncoding>文字コード</TextEncoding>
+		<InputTextEncoding>読み込み文字コード</InputTextEncoding>
+		<OutputTextEncoding>保存文字コード</OutputTextEncoding>
 		<PageUpDown>PageUp / PageDown</PageUpDown>
 		<MiddleButton>中クリックの動作</MiddleButton>
 		<MiddleButtonAuto>オートスクロール</MiddleButtonAuto>
@@ -434,6 +433,11 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 		<MinimumBGMLanes>BGMレーンの最小数</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo履歴メモリ上限</UndoRedoMemoryLimit>
 	</GeneralOptions>
+	<Encoding>
+		<Auto>自動判定</Auto>
+		<SystemDefault>System ANSI</SystemDefault>
+		<ReloadWithEncoding>文字コードを指定して再読み込み</ReloadWithEncoding>
+	</Encoding>
 	<Find>
 		<NoteRange>対象ノート</NoteRange>
 		<MeasureRange>小節の範囲</MeasureRange>
@@ -459,11 +463,6 @@ Release ページを開きますか？</UpdateVersionUnsupported>
 		<Delete>削除</Delete>
 		<Close>閉じる</Close>
 	</Find>
-	<ImportSM>
-		<Title>*.SM ファイルからインポート</Title>
-		<Difficulty>難易度</Difficulty>
-		<Note>注意：曲と STOP の値はインポートされません。</Note>
-	</ImportSM>
 	<FileAssociation>
 		<BMS>Be-Music Source</BMS>
 		<BME>Be-Music Extended Format</BME>

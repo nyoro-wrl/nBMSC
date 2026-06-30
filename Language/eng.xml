@@ -16,7 +16,6 @@
 			<Title>File</Title>
 			<New>New</New>
 			<Open>Open</Open>
-			<ImportSM>Import from .SM file</ImportSM>
 			<ImportNBMSC>Import from .NBMSC file</ImportNBMSC>
 			<Save>Save</Save>
 			<SaveAs>Save As...</SaveAs>
@@ -316,7 +315,6 @@ Open the release page?</UpdateVersionUnsupported>
 		<BML>Be-Music Longnote Format (*.bml)</BML>
 		<PMS>Po-Mu Script (*.pms)</PMS>
 		<TXT>Text document (*.txt)</TXT>
-		<SM>StepMania Script (*.sm)</SM>
 		<NBMSC>nBMSC Binary Format (*.nbmsc)</NBMSC>
 		<XML>Extensible Markup Language (*.xml)</XML>
 		<THEME_XML>nBMSC Theme File (*.xml)</THEME_XML>
@@ -410,7 +408,8 @@ Open the release page?</UpdateVersionUnsupported>
 	<GeneralOptions>
 		<Title>General Options</Title>
 		<MouseWheel>Mouse Wheel</MouseWheel>
-		<TextEncoding>Text Encoding</TextEncoding>
+		<InputTextEncoding>Input Encoding</InputTextEncoding>
+		<OutputTextEncoding>Output Encoding</OutputTextEncoding>
 		<PageUpDown>PageUp / PageDown</PageUpDown>
 		<MiddleButton>Mouse Middle Button</MiddleButton>
 		<MiddleButtonAuto>Click and Auto Scroll</MiddleButtonAuto>
@@ -434,6 +433,11 @@ Open the release page?</UpdateVersionUnsupported>
 		<MinimumBGMLanes>Minimum BGM lanes</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo memory limit</UndoRedoMemoryLimit>
 	</GeneralOptions>
+	<Encoding>
+		<Auto>Auto Detection</Auto>
+		<SystemDefault>System Default</SystemDefault>
+		<ReloadWithEncoding>Reload with Encoding</ReloadWithEncoding>
+	</Encoding>
 	<Find>
 		<NoteRange>Note Range</NoteRange>
 		<MeasureRange>Measure Range</MeasureRange>
@@ -458,11 +462,6 @@ Open the release page?</UpdateVersionUnsupported>
 		<Delete>Delete</Delete>
 		<Close>Close</Close>
 	</Find>
-	<ImportSM>
-		<Title>Import *.SM file</Title>
-		<Difficulty>Difficulty</Difficulty>
-		<Note>Please note that bg musics and STOP values will not be imported.</Note>
-	</ImportSM>
 	<FileAssociation>
 		<BMS>Be-Music Script</BMS>
 		<BME>Be-Music Extended Format</BME>

@@ -64,12 +64,13 @@
                 InitPath = ExcludeFileName(xFileName)
                 SetFileName(xFileName)
                 ClearUndo()
-                OpenBMS(My.Computer.FileSystem.ReadAllText(xFileName, TextEncoding))
+                OpenBMS(ReadChartText(xFileName, InputTextEncoding))
                 SetFileName(FileName)
                 SetIsSaved(True)
             Case ".NBMSC"
                 InitPath = ExcludeFileName(xFileName)
                 SetFileName("Imported_" & GetFileName(xFileName))
+                ResetChartTextEncoding()
                 OpenNBMSC(xFileName)
                 SetIsSaved(False)
         End Select

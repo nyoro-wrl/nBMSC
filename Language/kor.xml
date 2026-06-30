@@ -16,7 +16,6 @@
 			<Title>파일</Title>
 			<New>새로 만들기</New>
 			<Open>열기</Open>
-			<ImportSM>.SM 에서 가져오기</ImportSM>
 			<ImportNBMSC>.NBMSC 에서 가져오기</ImportNBMSC>
 			<Save>저장</Save>
 			<SaveAs>다른 이름으로 저장</SaveAs>
@@ -310,7 +309,6 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<BML>Be-Music Longnote Format (*.bml)</BML>
 		<PMS>Po-Mu Script (*.pms)</PMS>
 		<TXT>텍스트 파일 (*.txt)</TXT>
-		<SM>Step Mania files (*.sm)</SM>
 		<NBMSC>nBMSC 바이너리 포맷 (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
 		<THEME_XML>nBMSC 테마 (*.xml)</THEME_XML>
@@ -404,7 +402,8 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 	<GeneralOptions>
 		<Title>일반 옵션</Title>
 		<MouseWheel>마우스 휠 스크롤</MouseWheel>
-		<TextEncoding>문자코드</TextEncoding>
+		<InputTextEncoding>읽기 문자코드</InputTextEncoding>
+		<OutputTextEncoding>저장 문자코드</OutputTextEncoding>
 		<PageUpDown>PageUp / Down 스크롤</PageUpDown>
 		<MiddleButton>휠 버튼 동작</MiddleButton>
 		<MiddleButtonAuto>자동 스크롤</MiddleButtonAuto>
@@ -428,6 +427,11 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<MinimumBGMLanes>BGM 레인 최소 수</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>Undo/Redo 메모리 제한</UndoRedoMemoryLimit>
 	</GeneralOptions>
+	<Encoding>
+		<Auto>자동 판정</Auto>
+		<SystemDefault>시스템 기본값</SystemDefault>
+		<ReloadWithEncoding>문자코드를 지정해서 다시 읽기</ReloadWithEncoding>
+	</Encoding>
 	<Find>
 		<NoteRange>대상 노트</NoteRange>
 		<MeasureRange>마디 범위</MeasureRange>
@@ -452,11 +456,6 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<Delete>삭제</Delete>
 		<Close>닫기</Close>
 	</Find>
-	<ImportSM>
-		<Title>*.SM 파일에서 가져오기</Title>
-		<Difficulty>난이도</Difficulty>
-		<Note>주의! 음악과 STOP값은 가져오지 않습니다.</Note>
-	</ImportSM>
 	<FileAssociation>
 		<BMS>Be-Music Source</BMS>
 		<BME>Be-Music Extended Format</BME>

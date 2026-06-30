@@ -3,7 +3,8 @@ Imports System.Windows.Forms
 Public Class OpGeneral
     Public zWheel As Integer
     Public zPgUpDn As Integer
-    Public zEncoding As System.Text.Encoding
+    Public zInputTextEncoding As Integer
+    Public zOutputTextEncoding As Integer
     Public zMiddle As Integer
     'Public zSort As Integer
     Public zAutoSave As Integer
@@ -35,17 +36,8 @@ Public Class OpGeneral
             Case 5 : zPgUpDn = 192
             Case 6 : zPgUpDn = 96
         End Select
-        Select Case CTextEncoding.SelectedIndex
-            Case 0 : zEncoding = System.Text.Encoding.Default
-            Case 1 : zEncoding = System.Text.Encoding.Unicode
-            Case 2 : zEncoding = System.Text.Encoding.ASCII
-            Case 3 : zEncoding = System.Text.Encoding.BigEndianUnicode
-            Case 4 : zEncoding = System.Text.Encoding.UTF32
-            Case 5 : zEncoding = System.Text.Encoding.UTF7
-            Case 6 : zEncoding = System.Text.Encoding.UTF8
-            Case 7 : zEncoding = System.Text.Encoding.GetEncoding(932)
-            Case 8 : zEncoding = System.Text.Encoding.GetEncoding(51949)
-        End Select
+        zInputTextEncoding = CTextEncoding.SelectedIndex
+        zOutputTextEncoding = COutputTextEncoding.SelectedIndex
         'zSort = CSortingMethod.SelectedIndex
         zMiddle = IIf(rMiddleDrag.Checked, 1, 0)
         zAutoSave = IIf(cAutoSave.Checked, 1, 0) * NAutoSave.Value * 60000
@@ -62,11 +54,12 @@ Public Class OpGeneral
         Me.Close()
     End Sub
 
-    Public Sub New(ByVal xMsWheel As Integer, ByVal xPgUpDn As Integer, ByVal xMiddleButton As Integer, ByVal xTextEncoding As Integer, ByVal xGridPartition As Integer, _
+    Public Sub New(ByVal xMsWheel As Integer, ByVal xPgUpDn As Integer, ByVal xMiddleButton As Integer, ByVal xInputTextEncoding As Integer, ByVal xOutputTextEncoding As Integer, ByVal xGridPartition As Integer, _
                    ByVal xAutoSave As Integer, ByVal xBeep As Boolean, ByVal xNewBase62 As Boolean, ByVal xBPMMode As Integer, ByVal xSTOPMode As Integer, _
                    ByVal xMFEnter As Boolean, ByVal xMFClick As Boolean, ByVal xMStopPreview As Boolean, ByVal xSkipClippedMeasure As Boolean, ByVal xLaneHighlight As Integer, _
                    ByVal xBgmLaneCount As Integer, ByVal xUndoRedoMemoryLimitMB As Integer)
         InitializeComponent()
+        LoadEncodingItems()
 
         On Error Resume Next
         Select Case xMsWheel
@@ -86,7 +79,8 @@ Public Class OpGeneral
             Case 96 : CPgUpDn.SelectedIndex = 6
         End Select
 
-        CTextEncoding.SelectedIndex = xTextEncoding
+        CTextEncoding.SelectedIndex = Math.Max(0, Math.Min(xInputTextEncoding, CTextEncoding.Items.Count - 1))
+        COutputTextEncoding.SelectedIndex = Math.Max(0, Math.Min(xOutputTextEncoding, COutputTextEncoding.Items.Count - 1))
         'CSortingMethod.SelectedIndex = xSort
         nGridPartition.Value = xGridPartition
 
@@ -112,6 +106,29 @@ Public Class OpGeneral
         nUndoRedoMemoryLimit.Value = Math.Min(nUndoRedoMemoryLimit.Maximum, Math.Max(nUndoRedoMemoryLimit.Minimum, xUndoRedoMemoryLimitMB))
     End Sub
 
+    Private Sub LoadEncodingItems()
+        CTextEncoding.Items.Clear()
+        CTextEncoding.Items.AddRange(New Object() {
+            Strings.Encoding.Auto,
+            Strings.Encoding.SystemDefault,
+            "Shift-JIS",
+            "EUC-KR",
+            "UTF-8",
+            "UTF-16LE",
+            "UTF-16BE",
+            "UTF-32LE",
+            "UTF-32BE"
+        })
+
+        COutputTextEncoding.Items.Clear()
+        COutputTextEncoding.Items.AddRange(New Object() {
+            Strings.Encoding.Auto,
+            Strings.Encoding.SystemDefault,
+            "Shift-JIS",
+            "UTF-8"
+        })
+    End Sub
+
     Private Sub OpGeneral_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Me.Font = MainWindow.Font
 
@@ -119,7 +136,8 @@ Public Class OpGeneral
         'Dim xL() As String = Form1.lpgo
         Me.Text = Strings.fopGeneral.Title
         Label1.Text = Strings.fopGeneral.MouseWheel
-        Label2.Text = Strings.fopGeneral.TextEncoding
+        Label2.Text = Strings.fopGeneral.InputTextEncoding
+        LabelOutputTextEncoding.Text = Strings.fopGeneral.OutputTextEncoding
         'Label3.Text = Locale.fopGeneral.SortingMethod
         Label5.Text = Strings.fopGeneral.PageUpDown
         Label3.Text = Strings.fopGeneral.MiddleButton
@@ -152,9 +170,6 @@ Public Class OpGeneral
         LabelLaneHighlight.Text = Strings.fopGeneral.LaneHighlight
         LabelBgmLaneCount.Text = Strings.fopGeneral.MinimumBGMLanes
         LabelUndoRedoMemoryLimit.Text = Strings.fopGeneral.UndoRedoMemoryLimit
-
-        Dim enc = System.Text.Encoding.Default
-        CTextEncoding.Items(0) = "System ANSI (" & enc.EncodingName & ")"
 
         OK_Button.Text = Strings.OK
         Cancel_Button.Text = Strings.Cancel

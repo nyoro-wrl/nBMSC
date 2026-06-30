@@ -18,7 +18,6 @@
 			<Title>文件</Title>
 			<New>新建</New>
 			<Open>打开</Open>
-			<ImportSM>导入 .SM 文件</ImportSM>
 			<ImportNBMSC>导入 .NBMSC 文件</ImportNBMSC>
 			<Save>保存</Save>
 			<SaveAs>另存为 ...</SaveAs>
@@ -301,7 +300,6 @@
 		<BML>BML谱面文件 (*.bml)</BML>
 		<PMS>PMS谱面文件 (*.pms)</PMS>
 		<TXT>文本文档 (*.txt)</TXT>
-		<SM>StepMania谱面文件 (*.sm)</SM>
 		<NBMSC>nBMSC二进制文件 (*.nbmsc)</NBMSC>
 		<XML>可扩展标记语言 (*.xml)</XML>
 		<THEME_XML>nBMSC 皮肤文件 (*.xml)</THEME_XML>
@@ -382,7 +380,8 @@
 	<GeneralOptions>
 		<Title>常规设置</Title>
 		<MouseWheel>鼠标滚轮翻页</MouseWheel>
-		<TextEncoding>文字编码</TextEncoding>
+		<InputTextEncoding>读取编码</InputTextEncoding>
+		<OutputTextEncoding>保存编码</OutputTextEncoding>
 		<PageUpDown>PageUp / PageDown</PageUpDown>
 		<MiddleButton>鼠标中键</MiddleButton>
 		<MiddleButtonAuto>单击滚动</MiddleButtonAuto>
@@ -406,6 +405,11 @@
 		<MinimumBGMLanes>BGM 轨道最小数量</MinimumBGMLanes>
 		<UndoRedoMemoryLimit>撤销/重做历史内存上限</UndoRedoMemoryLimit>
 	</GeneralOptions>
+	<Encoding>
+		<Auto>自动检测</Auto>
+		<SystemDefault>系统默认</SystemDefault>
+		<ReloadWithEncoding>指定编码重新读取</ReloadWithEncoding>
+	</Encoding>
 	<Find>
 		<NoteRange>Note 范围</NoteRange>
 		<MeasureRange>小节范围</MeasureRange>
@@ -430,11 +434,6 @@
 		<Delete>删除</Delete>
 		<Close>关闭</Close>
 	</Find>
-	<ImportSM>
-		<Title>导入 *.SM 文件</Title>
-		<Difficulty>难度</Difficulty>
-		<Note>注：背景音和STOP值不会被导入。</Note>
-	</ImportSM>
 	<FileAssociation>
 		<BMS>BMS 谱面文件</BMS>
 		<BME>BME 谱面文件</BME>
