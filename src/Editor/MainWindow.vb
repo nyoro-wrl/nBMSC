@@ -57,18 +57,6 @@ Public Class MainWindow
     Dim HSValue As Integer = 0 'Store value before ValueChange event
 
     'Dim SortingMethod As Integer = 1
-    Private Enum TextEncodingMode
-        Auto = 0
-        SystemDefault = 1
-        SJIS = 2
-        EUCKR = 3
-        UTF8 = 4
-        UTF16LE = 5
-        UTF16BE = 6
-        UTF32LE = 7
-        UTF32BE = 8
-    End Enum
-
     Dim MiddleButtonMoveMethod As Integer = 0
     Dim InputTextEncoding As TextEncodingMode = TextEncodingMode.Auto
     Dim OutputTextEncoding As TextEncodingMode = TextEncodingMode.SystemDefault
@@ -97,9 +85,9 @@ Public Class MainWindow
     }
 
     Dim BeepWhileSaved As Boolean = True
-    Const DefinitionModeLegacy As Integer = 0
-    Const DefinitionModeBase36 As Integer = 1
-    Const DefinitionModeBase62 As Integer = 2
+    Const DefinitionModeLegacy As Integer = BmsDefinitionLabels.ModeLegacy
+    Const DefinitionModeBase36 As Integer = BmsDefinitionLabels.ModeBase36
+    Const DefinitionModeBase62 As Integer = BmsDefinitionLabels.ModeBase62
     Dim BPMDefinitionMode As Integer = DefinitionModeLegacy
     Dim STOPDefinitionMode As Integer = DefinitionModeLegacy
     Dim UseBase62Definitions As Boolean = False
@@ -117,8 +105,6 @@ Public Class MainWindow
     Dim BMSGridLimit As Double = 1.0R
 
     Dim LnObj As Integer = 0    '0 for none, 1-3843 for 01-zz
-    Private Const RecommendedTotalMin As Integer = 260
-
     'IO
     Dim FileName As String = "Untitled.bms"
     'Dim TitlePath As New Drawing2D.GraphicsPath
@@ -2910,59 +2896,23 @@ Public Class MainWindow
     End Function
 
     Private Function ShiftJisEncoding() As System.Text.Encoding
-        Return System.Text.Encoding.GetEncoding(932)
+        Return ChartTextEncodings.ShiftJisEncoding()
     End Function
 
     Private Function InputTextEncodingModes() As TextEncodingMode()
-        Return New TextEncodingMode() {
-            TextEncodingMode.Auto,
-            TextEncodingMode.SystemDefault,
-            TextEncodingMode.SJIS,
-            TextEncodingMode.EUCKR,
-            TextEncodingMode.UTF8,
-            TextEncodingMode.UTF16LE,
-            TextEncodingMode.UTF16BE,
-            TextEncodingMode.UTF32LE,
-            TextEncodingMode.UTF32BE
-        }
+        Return ChartTextEncodings.InputModes()
     End Function
 
     Private Function OutputTextEncodingModeToIndex(ByVal xMode As TextEncodingMode) As Integer
-        Select Case xMode
-            Case TextEncodingMode.Auto : Return 0
-            Case TextEncodingMode.SystemDefault : Return 1
-            Case TextEncodingMode.SJIS : Return 2
-            Case TextEncodingMode.UTF8 : Return 3
-        End Select
-
-        Return 0
+        Return ChartTextEncodings.OutputModeToIndex(xMode)
     End Function
 
     Private Function OutputTextEncodingIndexToMode(ByVal xIndex As Integer) As TextEncodingMode
-        Select Case xIndex
-            Case 0 : Return TextEncodingMode.Auto
-            Case 1 : Return TextEncodingMode.SystemDefault
-            Case 2 : Return TextEncodingMode.SJIS
-            Case 3 : Return TextEncodingMode.UTF8
-        End Select
-
-        Return TextEncodingMode.SystemDefault
+        Return ChartTextEncodings.OutputIndexToMode(xIndex)
     End Function
 
     Private Function TextEncodingModeToString(ByVal xMode As TextEncodingMode) As String
-        Select Case xMode
-            Case TextEncodingMode.Auto : Return "Auto"
-            Case TextEncodingMode.SystemDefault : Return "System"
-            Case TextEncodingMode.SJIS : Return "SJIS"
-            Case TextEncodingMode.EUCKR : Return "EUCKR"
-            Case TextEncodingMode.UTF8 : Return "UTF8"
-            Case TextEncodingMode.UTF16LE : Return "UTF16LE"
-            Case TextEncodingMode.UTF16BE : Return "UTF16BE"
-            Case TextEncodingMode.UTF32LE : Return "UTF32LE"
-            Case TextEncodingMode.UTF32BE : Return "UTF32BE"
-        End Select
-
-        Return "Auto"
+        Return ChartTextEncodings.ModeToString(xMode)
     End Function
 
     Private Function TextEncodingModeDisplayName(ByVal xMode As TextEncodingMode) As String
@@ -2982,76 +2932,19 @@ Public Class MainWindow
     End Function
 
     Private Function ParseTextEncodingMode(ByVal xValue As String, ByVal xDefaultMode As TextEncodingMode) As TextEncodingMode
-        Select Case UCase(Replace(Replace(Replace(xValue, "-", ""), "_", ""), " ", ""))
-            Case "AUTO" : Return TextEncodingMode.Auto
-            Case "SYSTEM", "SYSTEMANSI", "ANSI", "DEFAULT" : Return TextEncodingMode.SystemDefault
-            Case "SJIS", "SHIFTJIS", "CP932", "932" : Return TextEncodingMode.SJIS
-            Case "EUCKR", "CP949", "949" : Return TextEncodingMode.EUCKR
-            Case "UTF8", "UTF7" : Return TextEncodingMode.UTF8
-            Case "UTF16LE", "LITTLEENDIANUTF16", "UNICODE" : Return TextEncodingMode.UTF16LE
-            Case "UTF16BE", "BIGENDIANUTF16" : Return TextEncodingMode.UTF16BE
-            Case "UTF32LE", "LITTLEENDIANUTF32" : Return TextEncodingMode.UTF32LE
-            Case "UTF32BE", "BIGENDIANUTF32" : Return TextEncodingMode.UTF32BE
-            Case "ASCII" : Return TextEncodingMode.SJIS
-        End Select
-
-        Return xDefaultMode
+        Return ChartTextEncodings.ParseMode(xValue, xDefaultMode)
     End Function
 
     Private Function CoerceOutputTextEncodingMode(ByVal xMode As TextEncodingMode) As TextEncodingMode
-        Select Case xMode
-            Case TextEncodingMode.Auto, TextEncodingMode.SystemDefault, TextEncodingMode.SJIS, TextEncodingMode.UTF8
-                Return xMode
-        End Select
-
-        Return TextEncodingMode.SystemDefault
+        Return ChartTextEncodings.CoerceOutputMode(xMode)
     End Function
 
     Private Function TextEncodingModeToEncoding(ByVal xMode As TextEncodingMode) As System.Text.Encoding
-        Select Case xMode
-            Case TextEncodingMode.SystemDefault
-                Return System.Text.Encoding.Default
-            Case TextEncodingMode.SJIS
-                Return ShiftJisEncoding()
-            Case TextEncodingMode.EUCKR
-                Return System.Text.Encoding.GetEncoding("EUC-KR")
-            Case TextEncodingMode.UTF8
-                Return New System.Text.UTF8Encoding(True, False)
-            Case TextEncodingMode.UTF16LE
-                Return New System.Text.UnicodeEncoding(False, True)
-            Case TextEncodingMode.UTF16BE
-                Return New System.Text.UnicodeEncoding(True, True)
-            Case TextEncodingMode.UTF32LE
-                Return New System.Text.UTF32Encoding(False, True)
-            Case TextEncodingMode.UTF32BE
-                Return New System.Text.UTF32Encoding(True, True)
-        End Select
-
-        Return ShiftJisEncoding()
+        Return ChartTextEncodings.ToEncoding(xMode)
     End Function
 
     Private Function EncodingToTextEncodingMode(ByVal xEncoding As System.Text.Encoding) As TextEncodingMode
-        If xEncoding Is Nothing Then Return TextEncodingMode.SJIS
-
-        Select Case xEncoding.CodePage
-            Case 932
-                Return TextEncodingMode.SJIS
-            Case System.Text.Encoding.GetEncoding("EUC-KR").CodePage
-                Return TextEncodingMode.EUCKR
-            Case System.Text.Encoding.Default.CodePage
-                Return TextEncodingMode.SystemDefault
-            Case System.Text.Encoding.UTF8.CodePage
-                Return TextEncodingMode.UTF8
-            Case System.Text.Encoding.Unicode.CodePage
-                Return TextEncodingMode.UTF16LE
-            Case System.Text.Encoding.BigEndianUnicode.CodePage
-                Return TextEncodingMode.UTF16BE
-            Case System.Text.Encoding.UTF32.CodePage
-                Return TextEncodingMode.UTF32LE
-        End Select
-
-        If xEncoding.WebName = "utf-32BE" OrElse xEncoding.WebName = "utf-32be" Then Return TextEncodingMode.UTF32BE
-        Return TextEncodingMode.SJIS
+        Return ChartTextEncodings.FromEncoding(xEncoding)
     End Function
 
     Private Sub ResetChartTextEncoding()
@@ -3059,149 +2952,13 @@ Public Class MainWindow
         SetIsSaved(IsSaved)
     End Sub
 
-    Private Function HasBom(ByVal xBytes() As Byte, ByVal xBom() As Byte) As Boolean
-        If xBytes.Length < xBom.Length Then Return False
-        For xI1 As Integer = 0 To xBom.Length - 1
-            If xBytes(xI1) <> xBom(xI1) Then Return False
-        Next
-        Return True
-    End Function
-
-    Private Function EncodingFromBom(ByVal xBytes() As Byte) As System.Text.Encoding
-        If HasBom(xBytes, New Byte() {&H0, &H0, &HFE, &HFF}) Then Return New System.Text.UTF32Encoding(True, True)
-        If HasBom(xBytes, New Byte() {&HFF, &HFE, &H0, &H0}) Then Return New System.Text.UTF32Encoding(False, True)
-        If HasBom(xBytes, New Byte() {&HEF, &HBB, &HBF}) Then Return New System.Text.UTF8Encoding(True, False)
-        If HasBom(xBytes, New Byte() {&HFE, &HFF}) Then Return New System.Text.UnicodeEncoding(True, True)
-        If HasBom(xBytes, New Byte() {&HFF, &HFE}) Then Return New System.Text.UnicodeEncoding(False, True)
-        Return Nothing
-    End Function
-
-    Private Function PreambleLength(ByVal xBytes() As Byte, ByVal xEncoding As System.Text.Encoding) As Integer
-        Dim xPreamble() As Byte = xEncoding.GetPreamble()
-        If xPreamble Is Nothing OrElse xPreamble.Length = 0 Then Return 0
-        If HasBom(xBytes, xPreamble) Then Return xPreamble.Length
-        Return 0
-    End Function
-
-    Private Function IsValidShiftJis(ByVal xBytes() As Byte, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
-        If xBytes.Length < 2 Then Return False
-
-        Dim xLimit As Integer = Math.Min(xBytes.Length, xSize)
-        Dim xI1 As Integer = 0
-        While xI1 < xLimit
-            Dim xByte As Byte = xBytes(xI1)
-            If xByte <= &H7F OrElse (xByte >= &HA1 AndAlso xByte <= &HDF) Then
-                xI1 += 1
-            ElseIf (xByte >= &H81 AndAlso xByte <= &H9F) OrElse (xByte >= &HE0 AndAlso xByte <= &HEF) Then
-                If xI1 + 1 >= xLimit Then Return False
-
-                Dim xNext As Byte = xBytes(xI1 + 1)
-                If (xNext >= &H40 AndAlso xNext <= &H7E) OrElse (xNext >= &H80 AndAlso xNext <= &HFC) Then
-                    xI1 += 2
-                Else
-                    Return False
-                End If
-            Else
-                Return False
-            End If
-        End While
-
-        Return True
-    End Function
-
-    Private Function IsValidEucKr(ByVal xBytes() As Byte, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
-        If xBytes.Length < 2 Then Return False
-
-        Dim xLimit As Integer = Math.Min(xBytes.Length, xSize)
-        Dim xI1 As Integer = 0
-        While xI1 < xLimit
-            Dim xByte As Byte = xBytes(xI1)
-            If xByte <= &H7F Then
-                xI1 += 1
-            ElseIf xByte >= &H81 AndAlso xByte <= &HFE Then
-                If xI1 + 1 >= xLimit Then Return False
-
-                Dim xNext As Byte = xBytes(xI1 + 1)
-                If xNext >= &H81 AndAlso xNext <= &HFE Then
-                    xI1 += 2
-                Else
-                    Return False
-                End If
-            Else
-                Return False
-            End If
-        End While
-
-        Return True
-    End Function
-
-    Private Function IsValidUtf8(ByVal xBytes() As Byte) As Boolean
-        Try
-            Dim xUtf8 As New System.Text.UTF8Encoding(False, True)
-            xUtf8.GetString(xBytes)
-            Return True
-        Catch ex As System.Text.DecoderFallbackException
-            Return False
-        End Try
-    End Function
-
-    Private Function LooksLikeChartText(ByVal xText As String) As Boolean
-        Return xText.Contains("#") AndAlso
-               (xText.Contains(vbCrLf) OrElse xText.Contains(vbCr) OrElse xText.Contains(vbLf))
-    End Function
-
-    Private Function IsRoundTripEncoding(ByVal xBytes() As Byte, ByVal xEncoding As System.Text.Encoding, Optional ByVal xSize As Integer = 1024 * 64) As Boolean
-        Try
-            Dim xLength As Integer = Math.Min(xBytes.Length, xSize)
-            If xLength = 0 Then Return False
-            Dim xSample(xLength - 1) As Byte
-            Array.Copy(xBytes, xSample, xLength)
-            Dim xText As String = xEncoding.GetString(xSample)
-            If Not LooksLikeChartText(xText) Then Return False
-
-            Dim xRoundTrip() As Byte = xEncoding.GetBytes(xText)
-            If xRoundTrip.Length <> xSample.Length Then Return False
-            For xI1 As Integer = 0 To xSample.Length - 1
-                If xSample(xI1) <> xRoundTrip(xI1) Then Return False
-            Next
-            Return True
-        Catch ex As Exception
-            Return False
-        End Try
-    End Function
-
-    Private Function DetectChartTextEncoding(ByVal xBytes() As Byte) As System.Text.Encoding
-        Dim xEncoding As System.Text.Encoding = EncodingFromBom(xBytes)
-        If xEncoding IsNot Nothing Then Return xEncoding
-
-        If IsValidShiftJis(xBytes) Then Return ShiftJisEncoding()
-        If IsValidEucKr(xBytes) Then Return System.Text.Encoding.GetEncoding("EUC-KR")
-        If IsValidUtf8(xBytes) Then Return New System.Text.UTF8Encoding(True, False)
-
-        Dim xEncodings() As System.Text.Encoding = {
-            New System.Text.UnicodeEncoding(True, True, True),
-            New System.Text.UnicodeEncoding(False, True, True),
-            New System.Text.UTF32Encoding(True, True, True),
-            New System.Text.UTF32Encoding(False, True, True)
-        }
-        For Each xCandidate As System.Text.Encoding In xEncodings
-            If IsRoundTripEncoding(xBytes, xCandidate) Then Return xCandidate
-        Next
-
-        Return ShiftJisEncoding()
-    End Function
-
     Private Function ReadChartText(ByVal xPath As String, Optional ByVal xMode As TextEncodingMode = TextEncodingMode.Auto) As String
         Dim xBytes() As Byte = File.ReadAllBytes(xPath)
-        If xMode = TextEncodingMode.Auto Then
-            ChartTextEncoding = DetectChartTextEncoding(xBytes)
-        Else
-            ChartTextEncoding = TextEncodingModeToEncoding(xMode)
-        End If
-
-        Dim xOffset As Integer = PreambleLength(xBytes, ChartTextEncoding)
+        Dim xEncoding As System.Text.Encoding = Nothing
+        Dim xText As String = ChartTextEncodings.DecodeText(xBytes, xMode, xEncoding)
+        ChartTextEncoding = xEncoding
         SetIsSaved(IsSaved)
-        Return ChartTextEncoding.GetString(xBytes, xOffset, xBytes.Length - xOffset)
+        Return xText
     End Function
 
     Private Function CurrentSaveEncoding() As System.Text.Encoding
@@ -3844,99 +3601,39 @@ EndSearch:
     End Sub
 
     Private Function DefinitionDisplayMax() As Integer
-        If UseBase62Definitions Then Return MaxDefinition
-
-        Return MaxBase36Definition
+        Return BmsDefinitionLabels.DisplayMax(UseBase62Definitions)
     End Function
 
     Private Function DefinitionLastListIndex() As Integer
-        Return DefinitionDisplayMax() - 1
+        Return BmsDefinitionLabels.LastListIndex(UseBase62Definitions)
     End Function
 
     Private Function DefinitionLabel(ByVal xValue As Long) As String
-        If UseBase62Definitions Then Return C10to36(xValue)
-
-        Return C10toBase36(xValue)
+        Return BmsDefinitionLabels.Label(xValue, UseBase62Definitions)
     End Function
 
     Private Function DefinitionIndex(ByVal xLabel As String) As Integer
-        If UseBase62Definitions Then Return C36to10(xLabel)
-
-        Return CBase36to10(xLabel)
+        Return BmsDefinitionLabels.Index(xLabel, UseBase62Definitions)
     End Function
 
     Private Function IsDefinitionLabel(ByVal xLabel As String) As Boolean
-        If UseBase62Definitions Then Return IsBase62(xLabel)
-
-        Return IsBase36(xLabel)
+        Return BmsDefinitionLabels.IsLabel(xLabel, UseBase62Definitions)
     End Function
 
     Private Function DefinitionModeMax(ByVal xMode As Integer) As Integer
-        Select Case xMode
-            Case DefinitionModeBase62
-                Return MaxDefinition
-            Case DefinitionModeBase36
-                Return MaxBase36Definition
-        End Select
-
-        Return MaxLegacyDefinition
+        Return BmsDefinitionLabels.ModeMax(xMode)
     End Function
 
     Private Function DefinitionModeLabel(ByVal xValue As Long, ByVal xMode As Integer) As String
-        Select Case xMode
-            Case DefinitionModeBase62
-                Return C10to36(xValue)
-            Case DefinitionModeBase36
-                Return C10toBase36(xValue)
-        End Select
-
-        Return Mid("0" & Hex(xValue), Len(Hex(xValue)))
+        Return BmsDefinitionLabels.ModeLabel(xValue, xMode)
     End Function
 
     Private Function DefinitionModeIndex(ByVal xLabel As String, ByVal xMode As Integer) As Integer
-        Select Case xMode
-            Case DefinitionModeBase62
-                Return C36to10(xLabel)
-            Case DefinitionModeBase36
-                Return CBase36to10(xLabel)
-        End Select
-
-        Return Convert.ToInt32(xLabel, 16)
-    End Function
-
-    Private Function ContainsBase62Definition(ByVal xLabel As String) As Boolean
-        For Each xChar As Char In xLabel
-            If xChar >= "a"c AndAlso xChar <= "z"c Then Return True
-        Next
-
-        Return False
+        Return BmsDefinitionLabels.ModeIndex(xLabel, xMode)
     End Function
 
     Private Function ContainsBase62Definitions(ByVal xLines() As String) As Boolean
-        For Each xLine As String In xLines
-            Dim xLineTrim As String = xLine.Trim
-
-            If xLineTrim.StartsWith("#WAV", StringComparison.CurrentCultureIgnoreCase) OrElse _
-               xLineTrim.StartsWith("#BMP", StringComparison.CurrentCultureIgnoreCase) OrElse _
-               xLineTrim.StartsWith("#BPM", StringComparison.CurrentCultureIgnoreCase) OrElse _
-               xLineTrim.StartsWith("#STOP", StringComparison.CurrentCultureIgnoreCase) OrElse _
-               xLineTrim.StartsWith("#SCROLL", StringComparison.CurrentCultureIgnoreCase) Then
-                If ContainsBase62Definition(Mid(xLineTrim, 5, 2)) Then Return True
-
-            ElseIf xLineTrim.StartsWith("#LNOBJ", StringComparison.CurrentCultureIgnoreCase) Then
-                If ContainsBase62Definition(Mid(xLineTrim, Len("#LNOBJ") + 1).Trim) Then Return True
-
-            ElseIf xLineTrim.StartsWith("#") AndAlso Mid(xLineTrim, 7, 1) = ":" Then
-                If Mid(xLineTrim, 5, 2) = "03" Then Continue For
-
-                For xI As Integer = 8 To Len(xLineTrim) - 1 Step 2
-                    Dim xLabel As String = Mid(xLineTrim, xI, 2)
-                    If xLabel <> "00" AndAlso ContainsBase62Definition(xLabel) Then Return True
-                Next
-            End If
-        Next
-
-        Return False
+        Return BmsDefinitionLabels.ContainsBase62Definitions(xLines)
     End Function
 
     Private Sub SetUseBase62Definitions(ByVal xValue As Boolean)
@@ -4843,16 +4540,11 @@ EndSearch:
     'End Function
 
     Private Function GetFileName(ByVal s As String) As String
-        Dim fslash As Integer = InStrRev(s, "/")
-        Dim bslash As Integer = InStrRev(s, "\")
-        Return Mid(s, IIf(fslash > bslash, fslash, bslash) + 1)
+        Return ChartPaths.GetFileName(s)
     End Function
 
     Private Function ExcludeFileName(ByVal s As String) As String
-        Dim fslash As Integer = InStrRev(s, "/")
-        Dim bslash As Integer = InStrRev(s, "\")
-        If (bslash Or fslash) = 0 Then Return ""
-        Return Mid(s, 1, IIf(fslash > bslash, fslash, bslash) - 1)
+        Return ChartPaths.ExcludeFileName(s)
     End Function
 
     Private Function GetBMSDirectory() As String
@@ -4865,79 +4557,11 @@ EndSearch:
     End Function
 
     Private Function GetBMSFilePath(ByVal xPath As String) As String
-        If xPath = "" Then
-            Return ""
-        End If
-
-        If Path.IsPathRooted(xPath) Then
-            Return xPath
-        End If
-
-        Dim xDir As String = GetBMSDirectory()
-        If xDir = "" Then
-            Return xPath
-        End If
-
-        Try
-            Return Path.GetFullPath(Path.Combine(xDir, xPath))
-        Catch
-            Return xPath
-        End Try
+        Return ChartPaths.ResolveBmsFilePath(GetBMSDirectory(), xPath)
     End Function
 
     Private Function GetBMSRefPath(ByVal xPath As String) As String
-        If xPath = "" Then
-            Return ""
-        End If
-
-        If Not Path.IsPathRooted(xPath) Then
-            Return xPath
-        End If
-
-        Dim xDir As String = GetBMSDirectory()
-        If xDir = "" Then
-            Return GetFileName(xPath)
-        End If
-
-        Try
-            Dim xBase As String = Path.GetFullPath(xDir)
-            Dim xFull As String = Path.GetFullPath(xPath)
-
-            If Not String.Equals(Path.GetPathRoot(xBase), Path.GetPathRoot(xFull), StringComparison.OrdinalIgnoreCase) Then
-                Return xFull
-            End If
-
-            Return MakeRelativePath(xBase, xFull)
-        Catch
-            Return GetFileName(xPath)
-        End Try
-    End Function
-
-    Private Function MakeRelativePath(ByVal xBase As String, ByVal xFull As String) As String
-        Dim xSeparators As Char() = {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar}
-        Dim xBaseParts As String() = Path.GetFullPath(xBase).TrimEnd(xSeparators).Split(xSeparators, StringSplitOptions.RemoveEmptyEntries)
-        Dim xFullParts As String() = Path.GetFullPath(xFull).Split(xSeparators, StringSplitOptions.RemoveEmptyEntries)
-        Dim xSame As Integer = 0
-
-        Do While xSame < xBaseParts.Length AndAlso
-                 xSame < xFullParts.Length AndAlso
-                 String.Equals(xBaseParts(xSame), xFullParts(xSame), StringComparison.OrdinalIgnoreCase)
-            xSame += 1
-        Loop
-
-        Dim xRel As New List(Of String)
-        For xI As Integer = xSame To xBaseParts.Length - 1
-            xRel.Add("..")
-        Next
-        For xI As Integer = xSame To xFullParts.Length - 1
-            xRel.Add(xFullParts(xI))
-        Next
-
-        If xRel.Count = 0 Then
-            Return GetFileName(xFull)
-        End If
-
-        Return String.Join("\", xRel.ToArray())
+        Return ChartPaths.MakeBmsReferencePath(GetBMSDirectory(), xPath)
     End Function
 
     Private Sub PlayerMissingPrompt()
@@ -5147,7 +4771,7 @@ StartCount:     If Not NTInput Then
     End Function
 
     Private Function CalculateRecommendedTotal(ByVal xNotes As Integer) As Integer
-        Return Math.Max(RecommendedTotalMin, CInt(Math.Floor(760.5R * xNotes / (xNotes + 650.0R))))
+        Return ChartCalculations.CalculateRecommendedTotal(xNotes)
     End Function
 
     Private Function CalculateRecommendedTotalNotes() As Integer

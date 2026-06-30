@@ -112,7 +112,9 @@
   <ItemGroup>
     <Compile Include="Core\Audio.vb" />
     <Compile Include="Core\BMS.vb" />
+    <Compile Include="Core\BmsDefinitionLabels.vb" />
     <Compile Include="Core\BMSONFormat.vb" />
+    <Compile Include="Core\ChartPaths.vb" />
     <Compile Include="Editor\ChartIO.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -178,8 +180,11 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Core\Utilities.vb" />
+    <Compile Include="Core\ChartCalculations.vb" />
     <Compile Include="Options\Note.vb" />
+    <Compile Include="Support\ChartTextEncodings.vb" />
     <Compile Include="Support\Strings.vb" />
+    <Compile Include="Support\ThemeMetadata.vb" />
     <Compile Include="Support\UpdateChecker.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

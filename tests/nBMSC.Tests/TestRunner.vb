@@ -1,6 +1,8 @@
 Option Strict On
 
 Imports System
+Imports System.IO
+Imports System.Text
 Imports nBMSC
 Imports nBMSC.Editor
 
@@ -12,6 +14,12 @@ Module TestRunner
         Run("definition label conversion", AddressOf DefinitionLabelConversion)
         Run("channel label conversion", AddressOf ChannelLabelConversion)
         Run("label validation", AddressOf LabelValidation)
+        Run("BMS definition labels", AddressOf BmsDefinitionLabels)
+        Run("chart calculations", AddressOf ChartCalculations)
+        Run("chart paths", AddressOf ChartPaths)
+        Run("theme metadata", AddressOf ThemeMetadata)
+        Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
+        Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
         Run("undo redo serialization", AddressOf UndoRedoSerialization)
 
@@ -64,6 +72,100 @@ Module TestRunner
         AssertFalse(Functions.IsBase36("0Az"), "lowercase should not be valid base36")
         AssertTrue(Functions.IsBase62("0Az"), "mixed case base62 should be valid")
         AssertFalse(Functions.IsBase62("0A-"), "symbols should not be valid base62")
+    End Sub
+
+    Private Sub BmsDefinitionLabels()
+        AssertEqual(Functions.MaxBase36Definition, nBMSC.Editor.BmsDefinitionLabels.DisplayMax(False), "base36 display max")
+        AssertEqual(Functions.MaxDefinition, nBMSC.Editor.BmsDefinitionLabels.DisplayMax(True), "base62 display max")
+        AssertEqual("0A", nBMSC.Editor.BmsDefinitionLabels.Label(10, False), "base36 label")
+        AssertEqual("0a", nBMSC.Editor.BmsDefinitionLabels.Label(36, True), "base62 label")
+        AssertEqual(10, nBMSC.Editor.BmsDefinitionLabels.Index("0A", False), "base36 index")
+        AssertEqual(36, nBMSC.Editor.BmsDefinitionLabels.Index("0a", True), "base62 index")
+        AssertFalse(nBMSC.Editor.BmsDefinitionLabels.IsLabel("0a", False), "base36 rejects lowercase")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.IsLabel("0a", True), "base62 accepts lowercase")
+
+        AssertEqual(Functions.MaxLegacyDefinition, nBMSC.Editor.BmsDefinitionLabels.ModeMax(nBMSC.Editor.BmsDefinitionLabels.ModeLegacy), "legacy mode max")
+        AssertEqual("FF", nBMSC.Editor.BmsDefinitionLabels.ModeLabel(255, nBMSC.Editor.BmsDefinitionLabels.ModeLegacy), "legacy mode label")
+        AssertEqual(255, nBMSC.Editor.BmsDefinitionLabels.ModeIndex("FF", nBMSC.Editor.BmsDefinitionLabels.ModeLegacy), "legacy mode index")
+        AssertEqual("zz", nBMSC.Editor.BmsDefinitionLabels.ModeLabel(Functions.MaxDefinition, nBMSC.Editor.BmsDefinitionLabels.ModeBase62), "base62 mode label")
+
+        AssertFalse(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#WAV0A sound.wav", "#00111:000A"}), "uppercase labels are base36-compatible")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#WAV0a sound.wav"}), "lowercase definition label requires base62")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#LNOBJ 0a"}), "lowercase LNOBJ requires base62")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#00111:000a"}), "lowercase note label requires base62")
+        AssertFalse(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#00103:000a"}), "BPM hex channel should not force base62")
+    End Sub
+
+    Private Sub ChartCalculations()
+        AssertEqual(260, nBMSC.Editor.ChartCalculations.CalculateRecommendedTotal(0), "zero notes recommended total")
+        AssertEqual(260, nBMSC.Editor.ChartCalculations.CalculateRecommendedTotal(50), "low note count minimum")
+        AssertEqual(380, nBMSC.Editor.ChartCalculations.CalculateRecommendedTotal(650), "nominal recommended total")
+    End Sub
+
+    Private Sub ChartPaths()
+        AssertEqual("sound.wav", nBMSC.Editor.ChartPaths.GetFileName("C:\Charts\Song\sound.wav"), "windows file name")
+        AssertEqual("C:\Charts\Song", nBMSC.Editor.ChartPaths.ExcludeFileName("C:\Charts\Song\sound.wav"), "windows directory")
+        AssertEqual("sound.wav", nBMSC.Editor.ChartPaths.MakeBmsReferencePath("", "C:\Charts\Song\sound.wav"), "rooted path without base should become file name")
+        AssertEqual("audio\sound.wav", nBMSC.Editor.ChartPaths.MakeBmsReferencePath("C:\Charts\Song", "C:\Charts\Song\audio\sound.wav"), "child path should be relative")
+        AssertEqual("..\Shared\sound.wav", nBMSC.Editor.ChartPaths.MakeBmsReferencePath("C:\Charts\Song", "C:\Charts\Shared\sound.wav"), "sibling path should be relative")
+        AssertEqual("audio\sound.wav", nBMSC.Editor.ChartPaths.ResolveBmsFilePath("", "audio\sound.wav"), "relative path without base should stay relative")
+        AssertEqual("C:\Charts\Song\audio\sound.wav", nBMSC.Editor.ChartPaths.ResolveBmsFilePath("C:\Charts\Song", "audio\sound.wav"), "relative path should resolve against base")
+    End Sub
+
+    Private Sub ThemeMetadata()
+        Dim themePath As String = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") & ".xml")
+
+        Try
+            File.WriteAllText(themePath, "<nBMSCTheme version=""1"" name=""Compact"" />", Encoding.UTF8)
+
+            Dim themeName As String = ""
+            AssertTrue(nBMSC.ThemeMetadata.TryReadThemeName(themePath, themeName), "valid theme should read")
+            AssertEqual("Compact", themeName, "theme name")
+
+            File.WriteAllText(themePath, "<nBMSCTheme version=""1"" />", Encoding.UTF8)
+            themeName = ""
+            AssertTrue(nBMSC.ThemeMetadata.TryReadThemeName(themePath, themeName), "valid unnamed theme should read")
+            AssertEqual(Path.GetFileNameWithoutExtension(themePath), themeName, "fallback theme name")
+
+            File.WriteAllText(themePath, "<nBMSCTheme version=""2"" name=""Compact"" />", Encoding.UTF8)
+            themeName = ""
+            AssertFalse(nBMSC.ThemeMetadata.TryReadThemeName(themePath, themeName), "unsupported theme version should fail")
+        Finally
+            If File.Exists(themePath) Then File.Delete(themePath)
+        End Try
+    End Sub
+
+    Private Sub ChartTextEncodingModes()
+        AssertEqual(TextEncodingMode.SJIS, ChartTextEncodings.ParseMode("Shift-JIS", TextEncodingMode.Auto), "Shift-JIS alias")
+        AssertEqual(TextEncodingMode.EUCKR, ChartTextEncodings.ParseMode("cp949", TextEncodingMode.Auto), "EUC-KR alias")
+        AssertEqual(TextEncodingMode.UTF16LE, ChartTextEncodings.ParseMode("little endian utf16", TextEncodingMode.Auto), "UTF-16LE alias")
+        AssertEqual(TextEncodingMode.SJIS, ChartTextEncodings.ParseMode("ascii", TextEncodingMode.Auto), "ASCII compatibility")
+        AssertEqual(TextEncodingMode.UTF8, ChartTextEncodings.ParseMode("unknown", TextEncodingMode.UTF8), "unknown value should use default")
+
+        AssertEqual(3, ChartTextEncodings.OutputModeToIndex(TextEncodingMode.UTF8), "UTF-8 output index")
+        AssertEqual(TextEncodingMode.SystemDefault, ChartTextEncodings.OutputIndexToMode(99), "invalid output index")
+        AssertEqual(TextEncodingMode.SystemDefault, ChartTextEncodings.CoerceOutputMode(TextEncodingMode.UTF16BE), "unsupported output mode")
+        AssertEqual("UTF32BE", ChartTextEncodings.ModeToString(TextEncodingMode.UTF32BE), "mode config text")
+    End Sub
+
+    Private Sub ChartTextEncodingDetection()
+        Dim text As String = "#TITLE Test" & vbCrLf
+        Dim utf8Bom() As Byte = Combine(New Byte() {&HEF, &HBB, &HBF}, Encoding.UTF8.GetBytes(text))
+        Dim detected As Encoding = ChartTextEncodings.DetectEncoding(utf8Bom)
+
+        AssertEqual(TextEncodingMode.UTF8, ChartTextEncodings.FromEncoding(detected), "UTF-8 BOM detection")
+        AssertEqual(3, ChartTextEncodings.PreambleLength(utf8Bom, detected), "UTF-8 BOM length")
+
+        Dim decodedEncoding As Encoding = Nothing
+        AssertEqual(text, ChartTextEncodings.DecodeText(utf8Bom, TextEncodingMode.Auto, decodedEncoding), "UTF-8 BOM should be stripped")
+        AssertEqual(TextEncodingMode.UTF8, ChartTextEncodings.FromEncoding(decodedEncoding), "decoded UTF-8 mode")
+
+        Dim sjisText As String = "#TITLE テスト" & vbCrLf
+        Dim sjisBytes() As Byte = ChartTextEncodings.ShiftJisEncoding().GetBytes(sjisText)
+        AssertEqual(TextEncodingMode.SJIS, ChartTextEncodings.FromEncoding(ChartTextEncodings.DetectEncoding(sjisBytes)), "Shift-JIS detection")
+
+        AssertEqual(TextEncodingMode.EUCKR, ChartTextEncodings.FromEncoding(ChartTextEncodings.DetectEncoding(New Byte() {&HF0, &HA1})), "EUC-KR byte validation fallback")
+        AssertFalse(ChartTextEncodings.IsValidUtf8(New Byte() {&HC3, &H28}), "invalid UTF-8 should be rejected")
     End Sub
 
     Private Sub VersionTagParsing()
@@ -164,4 +266,11 @@ Module TestRunner
             Throw New InvalidOperationException(message & ": expected <" & expected.ToString() & "> but was <" & actual.ToString() & ">")
         End If
     End Sub
+
+    Private Function Combine(ByVal first() As Byte, ByVal second() As Byte) As Byte()
+        Dim result(first.Length + second.Length - 1) As Byte
+        Array.Copy(first, 0, result, 0, first.Length)
+        Array.Copy(second, 0, result, first.Length, second.Length)
+        Return result
+    End Function
 End Module

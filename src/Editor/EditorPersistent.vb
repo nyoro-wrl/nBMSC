@@ -689,22 +689,7 @@ Partial Public Class MainWindow
     End Function
 
     Private Function TryGetThemeName(ByVal xStr As FileInfo, ByRef themeName As String) As Boolean
-        Try
-            Dim Doc As New XmlDocument
-            Using FileStream As New IO.FileStream(xStr.FullName, FileMode.Open, FileAccess.Read)
-                Doc.Load(FileStream)
-            End Using
-
-            Dim Root As XmlElement = Doc.Item("nBMSCTheme")
-            If Root Is Nothing OrElse Root.GetAttribute("version") <> "1" Then Return False
-
-            themeName = Root.GetAttribute("name")
-            If themeName = "" Then themeName = IO.Path.GetFileNameWithoutExtension(xStr.Name)
-            Return True
-
-        Catch ex As Exception
-            Return False
-        End Try
+        Return ThemeMetadata.TryReadThemeName(xStr.FullName, themeName)
     End Function
 
     Private Sub XMLLoadPlayer(ByVal n As XmlElement)
