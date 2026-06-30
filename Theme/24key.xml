@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nBMSCTheme version="1" name="24key">
+    <layout>
+        <measure width="35" colors="measure" />
+        <channel label="SCR" channel="SC" width="35" colors="meta" />
+        <channel label="STOP" channel="09" width="35" colors="meta" />
+        <bpm label="BPM" width="35" colors="meta" />
+        <lane label="W1" channel="16" width="50" colors="wheel" />
+        <lane label="W2" channel="17" width="50" colors="wheel" />
+        <lane label="C1" channel="11" width="35" colors="whiteLaneBright" />
+        <lane label="C#1" channel="12" width="30" colors="blueLaneBright" />
+        <lane label="D1" channel="13" width="35" colors="whiteLaneBright" />
+        <lane label="D#1" channel="14" width="30" colors="blueLaneBright" />
+        <lane label="E1" channel="15" width="35" colors="whiteLaneBright" />
+        <lane label="F1" channel="18" width="35" colors="whiteLane" />
+        <lane label="F#1" channel="19" width="30" colors="blueLane" />
+        <lane label="G1" channel="1A" width="35" colors="whiteLane" />
+        <lane label="G#1" channel="1B" width="30" colors="blueLane" />
+        <lane label="A1" channel="1C" width="35" colors="whiteLane" />
+        <lane label="A#1" channel="1D" width="30" colors="blueLane" />
+        <lane label="B1" channel="1E" width="35" colors="whiteLane" />
+        <lane label="C2" channel="1F" width="35" colors="whiteLaneBright" />
+        <lane label="C#2" channel="1G" width="30" colors="blueLaneBright" />
+        <lane label="D2" channel="1H" width="35" colors="whiteLaneBright" />
+        <lane label="D#2" channel="1I" width="30" colors="blueLaneBright" />
+        <lane label="E2" channel="1J" width="35" colors="whiteLaneBright" />
+        <lane label="F2" channel="1K" width="35" colors="whiteLane" />
+        <lane label="F#2" channel="1L" width="30" colors="blueLane" />
+        <lane label="G2" channel="1M" width="35" colors="whiteLane" />
+        <lane label="G#2" channel="1N" width="30" colors="blueLane" />
+        <lane label="A2" channel="1O" width="35" colors="whiteLane" />
+        <lane label="A#2" channel="1P" width="30" colors="blueLane" />
+        <lane label="B2" channel="1Q" width="35" colors="whiteLane" />
+        <lane label="C3" channel="21" width="35" colors="whiteLaneBright" />
+        <lane label="C#3" channel="22" width="30" colors="blueLaneBright" />
+        <lane label="D3" channel="23" width="35" colors="whiteLaneBright" />
+        <lane label="D#3" channel="24" width="30" colors="blueLaneBright" />
+        <lane label="E3" channel="25" width="35" colors="whiteLaneBright" />
+        <lane label="F3" channel="28" width="35" colors="whiteLane" />
+        <lane label="F#3" channel="29" width="30" colors="blueLane" />
+        <lane label="G3" channel="2A" width="35" colors="whiteLane" />
+        <lane label="G#3" channel="2B" width="30" colors="blueLane" />
+        <lane label="A3" channel="2C" width="35" colors="whiteLane" />
+        <lane label="A#3" channel="2D" width="30" colors="blueLane" />
+        <lane label="B3" channel="2E" width="35" colors="whiteLane" />
+        <lane label="C4" channel="2F" width="35" colors="whiteLaneBright" />
+        <lane label="C#4" channel="2G" width="30" colors="blueLaneBright" />
+        <lane label="D4" channel="2H" width="35" colors="whiteLaneBright" />
+        <lane label="D#4" channel="2I" width="30" colors="blueLaneBright" />
+        <lane label="E4" channel="2J" width="35" colors="whiteLaneBright" />
+        <lane label="F4" channel="2K" width="35" colors="whiteLane" />
+        <lane label="F#4" channel="2L" width="30" colors="blueLane" />
+        <lane label="G4" channel="2M" width="35" colors="whiteLane" />
+        <lane label="G#4" channel="2N" width="30" colors="blueLane" />
+        <lane label="A4" channel="2O" width="35" colors="whiteLane" />
+        <lane label="A#4" channel="2P" width="30" colors="blueLane" />
+        <lane label="B4" channel="2Q" width="35" colors="whiteLane" />
+        <lane label="W3" channel="26" width="50" colors="wheel" />
+        <lane label="W4" channel="27" width="50" colors="wheel" />
+        <channel label="BGA" channel="04" width="35" colors="bga" />
+        <channel label="LAYER" channel="07" width="35" colors="bga" />
+        <channel label="POOR" channel="06" width="35" colors="bga" />
+        <bgm label="B" width="35" colors="bgm" />
+    </layout>
+    <palette>
+        <colors id="measure" note="#00000000" text="#00FFFFFF" bg="#FFFC0000" />
+        <colors id="meta" note="#00000000" text="#FF0000FF" bg="#FFFC0000" />
+        <colors id="wheel" note="#F55959FF" text="#000000FF" longNote="#E66868FF" bg="#BF40401A" />
+        <colors id="whiteLane" note="#AAAAAAFF" text="#000000FF" longNote="#C0C0C0FF" bg="#80808026" />
+        <colors id="whiteLaneBright" note="#AAAAAAFF" text="#000000FF" longNote="#C0C0C0FF" bg="#80808039" />
+        <colors id="blueLane" note="#6289FFFF" text="#000000FF" longNote="#7291EFFF" bg="#6289FF12" />
+        <colors id="blueLaneBright" note="#6289FFFF" text="#000000FF" longNote="#7291EFFF" bg="#6289FF1B" />
+        <colors id="bga" note="#8CD78AFF" text="#000000FF" longNote="#90D38EFF" bg="#00FF000B" />
+        <colors id="bgm" note="#E18080FF" text="#000000FF" longNote="#DC8585FF" bg="#BF40401A" />
+    </palette>
+    <visual>
+        <color id="columnTitle" value="#00FF00FF" />
+        <font id="columnTitle" name="Tahoma" size="8" style="Regular" />
+        <color id="background" value="#000000FF" />
+        <color id="grid" value="#3A3A3A35" />
+        <color id="subGrid" value="#3A3A3A5B" />
+        <color id="verticalLine" value="#373737FF" />
+        <color id="measureLine" value="#5252525F" />
+        <color id="bgmWave" value="#C0C0C050" />
+        <color id="selectionBox" value="#FFFFFFC0" />
+        <color id="timeCursor" value="#FF8080C0" />
+        <color id="timeHalf" value="#8080FF80" />
+        <color id="timeMouseOver" value="#FF808080" />
+        <color id="timeSelection" value="#FF808032" />
+        <color id="timeBpm" value="#FF808032" />
+        <font id="timeBpm" name="Verdana" size="9" style="Bold" />
+        <spacing columnGap="5" />
+        <note height="10" hiddenOpacity="0.5" />
+        <font id="noteLabel" name="Verdana" size="9" style="Bold" />
+        <font id="measureLabel" name="Verdana" size="8" style="Regular" />
+        <labelOffset vertical="-2" horizontal="0" longHorizontal="2" />
+        <color id="noteMouseOver" value="#00FF00FF" />
+        <color id="noteAdjustBorder" value="#00FFFFFF" />
+        <color id="noteSelected" value="#FF0000FF" />
+    </visual>
+</nBMSCTheme>

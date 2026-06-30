@@ -1721,20 +1721,13 @@ Partial Public Class MainWindow
         If DisableVerticalMove Then mouseVPosition = SelectedNotes(0).VPosition
         Dim dVPosition = mouseVPosition - Notes(xITemp).VPosition  'delta VPosition
 
-        Dim mouseColumn As Integer
         Dim xI1 = 0
-        Dim mLeft As Integer = e.X / gxWidth + xHS 'horizontal position of the mouse
-        If mLeft >= 0 Then
-            Do
-                If mLeft < nLeft(xI1 + 1) Or xI1 >= gColumns Then mouseColumn = ColumnArrayIndexToEnabledColumnIndex(xI1) : Exit Do 'get the column where mouse is 
-                xI1 += 1
-            Loop
-        End If
+        Dim mouseColumn As Integer = ColumnArrayIndexToEnabledColumnIndex(GetColumnAtX(e.X, CInt(xHS)))
 
         Dim dColumn = mouseColumn - ColumnArrayIndexToEnabledColumnIndex(Notes(xITemp).ColumnIndex) 'get the enabled delta column where mouse is 
 
         'Ks cannot be beyond the left, the upper and the lower boundary
-        mLeft = 0
+        Dim mLeft As Integer = 0
         Dim mVPosition As Double = 0
         Dim muVPosition As Double = 191999
         For xI1 = 1 To UBound(Notes)
@@ -1862,15 +1855,14 @@ Partial Public Class MainWindow
     End Sub
 
     Private Function GetColumnAtX(x As Integer, xHS As Integer) As Integer
-        Dim xI1 As Integer = 0
         Dim mLeft As Integer = x / gxWidth + xHS 'horizontal position of the mouse
-        Dim xColumn = 0
-        If mLeft >= 0 Then
-            Do
-                If mLeft < nLeft(xI1 + 1) Or xI1 >= gColumns Then xColumn = xI1 : Exit Do 'get the column where mouse is 
-                xI1 += 1
-            Loop
-        End If
+        Dim xColumn As Integer = 0
+        For Each i As Integer In ThemeColumnDisplayOrder(gColumns)
+            If GetColumnWidth(i) <= 0 Then Continue For
+            If mLeft < nLeft(i) OrElse mLeft >= nLeft(i) + GetColumnWidth(i) Then Continue For
+            xColumn = i
+            Exit For
+        Next
 
         Return EnabledColumnIndexToColumnArrayIndex(ColumnArrayIndexToEnabledColumnIndex(xColumn))  'get the enabled column where mouse is 
     End Function

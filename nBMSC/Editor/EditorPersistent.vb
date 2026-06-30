@@ -26,29 +26,6 @@ Partial Public Class MainWindow
         w.WriteEndElement()
     End Sub
 
-    Private Function ThemeColumnIds() As String()
-        Return New String() {
-            "measure", "scroll", "bpm", "stop", "s1",
-            "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq",
-            "s2",
-            "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "da", "db", "dc", "dd", "de", "df", "dg", "dh", "di", "dj", "dk", "dl", "dm", "dn", "do", "dp", "dq",
-            "s3", "bga", "layer", "poor", "s4", "b"}
-    End Function
-
-    Private Function ThemeColumnId(ByVal index As Integer) As String
-        Dim ids() As String = ThemeColumnIds()
-        If index < 0 OrElse index > UBound(ids) Then Return ""
-        Return ids(index)
-    End Function
-
-    Private Function ThemeColumnIndex(ByVal id As String) As Integer
-        Dim ids() As String = ThemeColumnIds()
-        For i As Integer = 0 To UBound(ids)
-            If String.Equals(ids(i), id, StringComparison.OrdinalIgnoreCase) Then Return i
-        Next
-        Return -1
-    End Function
-
     Private Function ThemeColorText(ByVal color As Color) As String
         Return String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", color.R, color.G, color.B, color.A)
     End Function
@@ -75,38 +52,182 @@ Partial Public Class MainWindow
         Return Single.Parse(value, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture)
     End Function
 
-    Private Sub XMLWriteThemeColumn(ByVal w As XmlTextWriter, ByVal index As Integer)
-        w.WriteStartElement("Column")
-        w.WriteAttributeString("Id", ThemeColumnId(index))
+    Private Structure ThemeColumnColors
+        Public Note As Integer
+        Public Text As Color
+        Public LongNote As Integer
+        Public LongText As Color
+        Public Bg As Color
+    End Structure
+
+    Private Function ThemeColumnColorsFromColumn(ByVal c As Column) As ThemeColumnColors
+        Dim colors As New ThemeColumnColors
+        colors.Note = c.cNote
+        colors.Text = c.cText
+        colors.LongNote = c.cNote
+        colors.LongText = c.cText
+        colors.Bg = c.cBG
+        Return colors
+    End Function
+
+    Private Function LoadThemeColors(ByVal n As XmlElement) As ThemeColumnColors
+        If Not n.HasAttribute("note") Then Throw New FormatException("Theme colors note is missing.")
+        If Not n.HasAttribute("text") Then Throw New FormatException("Theme colors text is missing.")
+        If Not n.HasAttribute("bg") Then Throw New FormatException("Theme colors bg is missing.")
+
+        Dim colors As New ThemeColumnColors
+        colors.Note = ParseThemeColor(n.GetAttribute("note")).ToArgb
+        colors.Text = ParseThemeColor(n.GetAttribute("text"))
+        colors.LongNote = colors.Note
+        colors.LongText = colors.Text
+        colors.Bg = ParseThemeColor(n.GetAttribute("bg"))
+
+        If n.HasAttribute("longNote") Then colors.LongNote = ParseThemeColor(n.GetAttribute("longNote")).ToArgb
+        If n.HasAttribute("longText") Then colors.LongText = ParseThemeColor(n.GetAttribute("longText"))
+        Return colors
+    End Function
+
+    Private Function LoadThemePalette(ByVal root As XmlElement) As Dictionary(Of String, ThemeColumnColors)
+        Dim palette As New Dictionary(Of String, ThemeColumnColors)(StringComparer.OrdinalIgnoreCase)
+        Dim ePalette As XmlElement = root.Item("palette")
+        If ePalette Is Nothing Then Return palette
+
+        For Each node As XmlNode In ePalette.ChildNodes
+            If node.NodeType <> XmlNodeType.Element Then Continue For
+
+            Dim eColors As XmlElement = CType(node, XmlElement)
+            If eColors.Name <> "colors" Then Throw New FormatException("Unknown theme palette element: " & eColors.Name)
+            If Not eColors.HasAttribute("id") OrElse eColors.GetAttribute("id") = "" Then Throw New FormatException("Theme colors id is missing.")
+
+            Dim id As String = eColors.GetAttribute("id")
+            If palette.ContainsKey(id) Then Throw New FormatException("Duplicate theme colors id: " & id)
+            palette.Add(id, LoadThemeColors(eColors))
+        Next
+
+        Return palette
+    End Function
+
+    Private Function ResolveThemeLayoutColors(ByVal n As XmlElement, ByVal palette As Dictionary(Of String, ThemeColumnColors), ByVal baseColumn As Column) As ThemeColumnColors
+        Dim colors As ThemeColumnColors = ThemeColumnColorsFromColumn(baseColumn)
+
+        If n.HasAttribute("colors") Then
+            Dim colorsId As String = n.GetAttribute("colors")
+            If colorsId = "" Then Throw New FormatException("Theme colors reference is empty.")
+            If Not palette.ContainsKey(colorsId) Then Throw New FormatException("Unknown theme colors: " & colorsId)
+            colors = palette(colorsId)
+        End If
+
+        If n.HasAttribute("note") Then
+            colors.Note = ParseThemeColor(n.GetAttribute("note")).ToArgb
+            If Not n.HasAttribute("longNote") Then colors.LongNote = colors.Note
+        End If
+        If n.HasAttribute("text") Then
+            colors.Text = ParseThemeColor(n.GetAttribute("text"))
+            If Not n.HasAttribute("longText") Then colors.LongText = colors.Text
+        End If
+        If n.HasAttribute("longNote") Then colors.LongNote = ParseThemeColor(n.GetAttribute("longNote")).ToArgb
+        If n.HasAttribute("longText") Then colors.LongText = ParseThemeColor(n.GetAttribute("longText"))
+        If n.HasAttribute("bg") Then colors.Bg = ParseThemeColor(n.GetAttribute("bg"))
+
+        Return colors
+    End Function
+
+    Private Function ThemeLaneColumnIndex(ByVal channel As String) As Integer
+        channel = channel.Trim().ToUpperInvariant()
+        If channel.Length <> 2 Then Throw New FormatException("Invalid lane channel: " & channel)
+
+        Dim keyIndex As Integer = "123456789ABCDEFGHIJKLMNOPQ".IndexOf(channel.Chars(1))
+        If keyIndex < 0 Then Throw New FormatException("Invalid lane channel: " & channel)
+
+        Dim p1Columns() As Integer = {
+            niA3, niA4, niA5, niA6, niA7, niA1, niA2, niA8, niA9,
+            niAA, niAB, niAC, niAD, niAE, niAF, niAG, niAH, niAI,
+            niAJ, niAK, niAL, niAM, niAN, niAO, niAP, niAQ}
+        Dim p2Columns() As Integer = {
+            niD1, niD2, niD3, niD4, niD5, niDP, niDQ, niD6, niD7,
+            niD8, niD9, niDA, niDB, niDC, niDD, niDE, niDF, niDG,
+            niDH, niDI, niDJ, niDK, niDL, niDM, niDN, niDO}
+
+        Select Case channel.Chars(0)
+            Case "1"c : Return p1Columns(keyIndex)
+            Case "2"c : Return p2Columns(keyIndex)
+        End Select
+
+        Throw New FormatException("Invalid lane channel: " & channel)
+    End Function
+
+    Private Function ThemeSingleChannelColumnIndex(ByVal channel As String) As Integer
+        Select Case channel.Trim().ToUpperInvariant()
+            Case "SC" : Return niSCROLL
+            Case "09" : Return niSTOP
+            Case "04" : Return niBGA
+            Case "07" : Return niLAYER
+            Case "06" : Return niPOOR
+        End Select
+
+        Throw New FormatException("Unsupported theme channel: " & channel)
+    End Function
+
+    Private Function ThemeSingleChannel(ByVal index As Integer) As String
+        Select Case index
+            Case niSCROLL : Return "SC"
+            Case niSTOP : Return "09"
+            Case niBGA : Return "04"
+            Case niLAYER : Return "07"
+            Case niPOOR : Return "06"
+        End Select
+
+        Return ""
+    End Function
+
+    Private Function ThemeElementName(ByVal index As Integer) As String
+        If index = niMeasure Then Return "measure"
+        If index = niBPM Then Return "bpm"
+        If index = niB Then Return "bgm"
+        If index >= niA1 AndAlso index <= niAQ Then Return "lane"
+        If index >= niD1 AndAlso index <= niDQ Then Return "lane"
+        If ThemeSingleChannel(index) <> "" Then Return "channel"
+        Return ""
+    End Function
+
+    Private Sub XMLWriteThemeLayoutElement(ByVal w As XmlTextWriter, ByVal index As Integer)
+        Dim elementName As String = ThemeElementName(index)
+        If elementName = "" Then Return
+
+        w.WriteStartElement(elementName)
         With column(index)
-            w.WriteAttributeString("Width", .Width)
-            w.WriteAttributeString("Title", .Title)
-            w.WriteAttributeString("Note", ThemeColorText(.cNote))
-            w.WriteAttributeString("Text", ThemeColorText(.cText))
-            w.WriteAttributeString("LongNote", ThemeColorText(.cLNote))
-            w.WriteAttributeString("LongText", ThemeColorText(.cLText))
-            w.WriteAttributeString("Bg", ThemeColorText(.cBG))
+            If .Title <> "" Then w.WriteAttributeString("label", .Title)
+            If elementName = "lane" Then w.WriteAttributeString("channel", C10to36Channel(.Identifier))
+            If elementName = "channel" Then w.WriteAttributeString("channel", ThemeSingleChannel(index))
+            w.WriteAttributeString("width", .Width)
+            w.WriteAttributeString("note", ThemeColorText(.cNote))
+            w.WriteAttributeString("text", ThemeColorText(.cText))
+            If .cLNote <> .cNote Then w.WriteAttributeString("longNote", ThemeColorText(.cLNote))
+            If .cLText.ToArgb <> .cText.ToArgb Then w.WriteAttributeString("longText", ThemeColorText(.cLText))
+            w.WriteAttributeString("bg", ThemeColorText(.cBG))
         End With
         w.WriteEndElement()
     End Sub
 
     Private Sub XMLWriteThemeColor(ByVal w As XmlTextWriter, ByVal id As String, ByVal color As Color)
-        w.WriteStartElement("Color")
-        w.WriteAttributeString("Id", id)
-        w.WriteAttributeString("Value", ThemeColorText(color))
+        w.WriteStartElement("color")
+        w.WriteAttributeString("id", id)
+        w.WriteAttributeString("value", ThemeColorText(color))
         w.WriteEndElement()
     End Sub
 
     Private Sub XMLWriteThemeFont(ByVal w As XmlTextWriter, ByVal id As String, ByVal font As Font)
-        w.WriteStartElement("Font")
-        w.WriteAttributeString("Id", id)
-        w.WriteAttributeString("Name", font.FontFamily.Name)
-        w.WriteAttributeString("Size", WriteDecimalWithDot(font.SizeInPoints))
-        w.WriteAttributeString("Style", font.Style.ToString())
+        w.WriteStartElement("font")
+        w.WriteAttributeString("id", id)
+        w.WriteAttributeString("name", font.FontFamily.Name)
+        w.WriteAttributeString("size", WriteDecimalWithDot(font.SizeInPoints))
+        w.WriteAttributeString("style", font.Style.ToString())
         w.WriteEndElement()
     End Sub
 
     Private Sub SaveTheme(ByVal filePath As String)
+        Dim xSavedThemeColumnOrder As New List(Of Integer)
+
         Using w As New XmlTextWriter(filePath, New System.Text.UTF8Encoding(False))
             With w
                 .WriteStartDocument()
@@ -114,17 +235,21 @@ Partial Public Class MainWindow
                 .Indentation = 4
 
                 .WriteStartElement("nBMSCTheme")
-                .WriteAttributeString("Version", "1")
-                .WriteAttributeString("Name", IO.Path.GetFileNameWithoutExtension(filePath))
+                .WriteAttributeString("version", "1")
+                .WriteAttributeString("name", IO.Path.GetFileNameWithoutExtension(filePath))
 
-                .WriteStartElement("Layout")
-                For i As Integer = 0 To UBound(column)
+                .WriteStartElement("layout")
+                If Not ThemePlayerGap Then .WriteAttributeString("playerGap", "false")
+                If ThemeAlwaysShow2P Then .WriteAttributeString("alwaysShow2P", "true")
+                For Each i As Integer In ThemeColumnDisplayOrder()
                     If Not column(i).isVisible Then Continue For
-                    XMLWriteThemeColumn(w, i)
+                    If IsThemeSpacerColumn(i) Then Continue For
+                    XMLWriteThemeLayoutElement(w, i)
+                    xSavedThemeColumnOrder.Add(i)
                 Next
                 .WriteEndElement()
 
-                .WriteStartElement("Visual")
+                .WriteStartElement("visual")
                 XMLWriteThemeColor(w, "columnTitle", vo.ColumnTitle.Color)
                 XMLWriteThemeFont(w, "columnTitle", vo.ColumnTitleFont)
                 XMLWriteThemeColor(w, "background", vo.Bg.Color)
@@ -140,16 +265,19 @@ Partial Public Class MainWindow
                 XMLWriteThemeColor(w, "timeSelection", vo.PESel.Color)
                 XMLWriteThemeColor(w, "timeBpm", vo.PEBPM.Color)
                 XMLWriteThemeFont(w, "timeBpm", vo.PEBPMFont)
-                .WriteStartElement("Note")
-                .WriteAttributeString("Height", vo.kHeight)
-                .WriteAttributeString("HiddenOpacity", WriteDecimalWithDot(vo.kOpacity))
+                .WriteStartElement("spacing")
+                .WriteAttributeString("columnGap", ThemeColumnGap)
+                .WriteEndElement()
+                .WriteStartElement("note")
+                .WriteAttributeString("height", vo.kHeight)
+                .WriteAttributeString("hiddenOpacity", WriteDecimalWithDot(vo.kOpacity))
                 .WriteEndElement()
                 XMLWriteThemeFont(w, "noteLabel", vo.kFont)
                 XMLWriteThemeFont(w, "measureLabel", vo.kMFont)
-                .WriteStartElement("LabelOffset")
-                .WriteAttributeString("Vertical", vo.kLabelVShift)
-                .WriteAttributeString("Horizontal", vo.kLabelHShift)
-                .WriteAttributeString("LongHorizontal", vo.kLabelHShiftL)
+                .WriteStartElement("labelOffset")
+                .WriteAttributeString("vertical", vo.kLabelVShift)
+                .WriteAttributeString("horizontal", vo.kLabelHShift)
+                .WriteAttributeString("longHorizontal", vo.kLabelHShiftL)
                 .WriteEndElement()
                 XMLWriteThemeColor(w, "noteMouseOver", vo.kMouseOver.Color)
                 XMLWriteThemeColor(w, "noteAdjustBorder", vo.kMouseOverE.Color)
@@ -163,8 +291,9 @@ Partial Public Class MainWindow
         CurrentThemePath = IO.Path.GetFullPath(filePath)
         ReDim ThemeColumnVisible(UBound(column))
         For i As Integer = 0 To UBound(column)
-            ThemeColumnVisible(i) = column(i).isVisible
+            ThemeColumnVisible(i) = column(i).isVisible AndAlso Not IsThemeSpacerColumn(i)
         Next
+        ThemeColumnOrder = xSavedThemeColumnOrder.ToArray()
     End Sub
 
     Private Sub XMLWriteFont(ByVal w As XmlTextWriter, ByVal local As String, ByVal f As Font)
@@ -186,7 +315,7 @@ Partial Public Class MainWindow
     End Sub
 
     Private Function DefaultThemePath() As String
-        Return IO.Path.Combine(My.Application.Info.DirectoryPath, "Theme\7k.xml")
+        Return IO.Path.Combine(My.Application.Info.DirectoryPath, "Theme\7key.xml")
     End Function
 
     Private Function ResolveThemePath(ByVal filePath As String) As String
@@ -381,56 +510,74 @@ Partial Public Class MainWindow
         Dim xColumns() As Column = CType(InitialColumns.Clone(), Column())
         For i As Integer = 0 To UBound(xColumns)
             xColumns(i).isVisible = False
+            xColumns(i).Title = ""
         Next
         Return xColumns
     End Function
 
     Private Function ThemeElementById(ByVal parent As XmlElement, ByVal elementName As String, ByVal id As String) As XmlElement
         For Each n As XmlElement In parent.GetElementsByTagName(elementName)
-            If String.Equals(n.GetAttribute("Id"), id, StringComparison.OrdinalIgnoreCase) Then Return n
+            If String.Equals(n.GetAttribute("id"), id, StringComparison.OrdinalIgnoreCase) Then Return n
         Next
         Return Nothing
     End Function
 
     Private Function ThemeColor(ByVal parent As XmlElement, ByVal id As String, ByVal current As Color) As Color
-        Dim n As XmlElement = ThemeElementById(parent, "Color", id)
-        If n Is Nothing OrElse Not n.HasAttribute("Value") Then Return current
-        Return ParseThemeColor(n.GetAttribute("Value"))
+        Dim n As XmlElement = ThemeElementById(parent, "color", id)
+        If n Is Nothing OrElse Not n.HasAttribute("value") Then Return current
+        Return ParseThemeColor(n.GetAttribute("value"))
     End Function
 
     Private Function ThemeFont(ByVal parent As XmlElement, ByVal id As String, ByVal current As Font) As Font
-        Dim n As XmlElement = ThemeElementById(parent, "Font", id)
+        Dim n As XmlElement = ThemeElementById(parent, "font", id)
         If n Is Nothing Then Return current
 
         Dim xName As String = current.FontFamily.Name
         Dim xSize As Single = current.SizeInPoints
         Dim xStyle As FontStyle = current.Style
-        If n.HasAttribute("Name") Then xName = n.GetAttribute("Name")
-        If n.HasAttribute("Size") Then xSize = ParseThemeSingle(n.GetAttribute("Size"))
-        If n.HasAttribute("Style") Then xStyle = CType([Enum].Parse(GetType(FontStyle), n.GetAttribute("Style"), True), FontStyle)
+        If n.HasAttribute("name") Then xName = n.GetAttribute("name")
+        If n.HasAttribute("size") Then xSize = ParseThemeSingle(n.GetAttribute("size"))
+        If n.HasAttribute("style") Then xStyle = CType([Enum].Parse(GetType(FontStyle), n.GetAttribute("style"), True), FontStyle)
         Return New Font(xName, xSize, xStyle)
     End Function
 
-    Private Function LoadThemeColumn(ByVal n As XmlElement, ByVal xColumns() As Column) As Integer
-        If Not n.HasAttribute("Id") Then Throw New FormatException("Theme column Id is missing.")
+    Private Function LoadThemeLayoutElement(ByVal n As XmlElement, ByVal xColumns() As Column, ByVal palette As Dictionary(Of String, ThemeColumnColors)) As Integer
+        Dim index As Integer = -1
+        Select Case n.Name
+            Case "measure"
+                index = niMeasure
+            Case "bpm"
+                index = niBPM
+            Case "bgm"
+                index = niB
+            Case "lane"
+                If Not n.HasAttribute("channel") Then Throw New FormatException("Theme lane channel is missing.")
+                index = ThemeLaneColumnIndex(n.GetAttribute("channel"))
+                xColumns(index).Identifier = C36ChannelTo10(n.GetAttribute("channel"))
+            Case "channel"
+                If Not n.HasAttribute("channel") Then Throw New FormatException("Theme channel is missing.")
+                index = ThemeSingleChannelColumnIndex(n.GetAttribute("channel"))
+            Case Else
+                Throw New FormatException("Unknown theme layout element: " & n.Name)
+        End Select
 
-        Dim index As Integer = ThemeColumnIndex(n.GetAttribute("Id"))
-        If index < 0 OrElse index > UBound(xColumns) Then Throw New FormatException("Unknown theme column: " & n.GetAttribute("Id"))
+        If index < 0 OrElse index > UBound(xColumns) Then Throw New FormatException("Unknown theme column.")
 
         With xColumns(index)
-            If n.HasAttribute("Width") Then .Width = ParseThemeInteger(n.GetAttribute("Width"))
-            If n.HasAttribute("Title") Then .Title = n.GetAttribute("Title")
-            If n.HasAttribute("Note") Then .setNoteColor(ParseThemeColor(n.GetAttribute("Note")).ToArgb)
-            If n.HasAttribute("Text") Then .cText = ParseThemeColor(n.GetAttribute("Text"))
-            If n.HasAttribute("LongNote") Then .setLNoteColor(ParseThemeColor(n.GetAttribute("LongNote")).ToArgb)
-            If n.HasAttribute("LongText") Then .cLText = ParseThemeColor(n.GetAttribute("LongText"))
-            If n.HasAttribute("Bg") Then .cBG = ParseThemeColor(n.GetAttribute("Bg"))
+            Dim colors As ThemeColumnColors = ResolveThemeLayoutColors(n, palette, xColumns(index))
+            If n.HasAttribute("width") Then .Width = ParseThemeInteger(n.GetAttribute("width"))
+            .Title = If(n.HasAttribute("label"), n.GetAttribute("label"), "")
+            .setNoteColor(colors.Note)
+            .cText = colors.Text
+            .setLNoteColor(colors.LongNote)
+            .cLText = colors.LongText
+            .cBG = colors.Bg
             .isVisible = True
         End With
         Return index
     End Function
 
-    Private Function LoadThemeVisual(ByVal n As XmlElement) As visualSettings
+    Private Function LoadThemeVisual(ByVal n As XmlElement, ByRef columnGap As Integer) As visualSettings
         Dim xVo As New visualSettings()
         If n Is Nothing Then Return xVo
 
@@ -450,20 +597,25 @@ Partial Public Class MainWindow
         xVo.PEBPM.Color = ThemeColor(n, "timeBpm", xVo.PEBPM.Color)
         xVo.PEBPMFont = ThemeFont(n, "timeBpm", xVo.PEBPMFont)
 
-        Dim eNote As XmlElement = n.Item("Note")
+        Dim eSpacing As XmlElement = n.Item("spacing")
+        If eSpacing IsNot Nothing AndAlso eSpacing.HasAttribute("columnGap") Then
+            columnGap = Math.Max(0, ParseThemeInteger(eSpacing.GetAttribute("columnGap")))
+        End If
+
+        Dim eNote As XmlElement = n.Item("note")
         If eNote IsNot Nothing Then
-            If eNote.HasAttribute("Height") Then xVo.kHeight = ParseThemeInteger(eNote.GetAttribute("Height"))
-            If eNote.HasAttribute("HiddenOpacity") Then xVo.kOpacity = ParseThemeSingle(eNote.GetAttribute("HiddenOpacity"))
+            If eNote.HasAttribute("height") Then xVo.kHeight = ParseThemeInteger(eNote.GetAttribute("height"))
+            If eNote.HasAttribute("hiddenOpacity") Then xVo.kOpacity = ParseThemeSingle(eNote.GetAttribute("hiddenOpacity"))
         End If
 
         xVo.kFont = ThemeFont(n, "noteLabel", xVo.kFont)
         xVo.kMFont = ThemeFont(n, "measureLabel", xVo.kMFont)
 
-        Dim eLabelOffset As XmlElement = n.Item("LabelOffset")
+        Dim eLabelOffset As XmlElement = n.Item("labelOffset")
         If eLabelOffset IsNot Nothing Then
-            If eLabelOffset.HasAttribute("Vertical") Then xVo.kLabelVShift = ParseThemeInteger(eLabelOffset.GetAttribute("Vertical"))
-            If eLabelOffset.HasAttribute("Horizontal") Then xVo.kLabelHShift = ParseThemeInteger(eLabelOffset.GetAttribute("Horizontal"))
-            If eLabelOffset.HasAttribute("LongHorizontal") Then xVo.kLabelHShiftL = ParseThemeInteger(eLabelOffset.GetAttribute("LongHorizontal"))
+            If eLabelOffset.HasAttribute("vertical") Then xVo.kLabelVShift = ParseThemeInteger(eLabelOffset.GetAttribute("vertical"))
+            If eLabelOffset.HasAttribute("horizontal") Then xVo.kLabelHShift = ParseThemeInteger(eLabelOffset.GetAttribute("horizontal"))
+            If eLabelOffset.HasAttribute("longHorizontal") Then xVo.kLabelHShiftL = ParseThemeInteger(eLabelOffset.GetAttribute("longHorizontal"))
         End If
 
         xVo.kMouseOver.Color = ThemeColor(n, "noteMouseOver", xVo.kMouseOver.Color)
@@ -487,28 +639,43 @@ Partial Public Class MainWindow
             End Using
 
             Dim Root As XmlElement = Doc.Item("nBMSCTheme")
-            If Root Is Nothing OrElse Root.GetAttribute("Version") <> "1" Then Throw New FormatException("Unsupported theme file.")
+            If Root Is Nothing OrElse Root.GetAttribute("version") <> "1" Then Throw New FormatException("Unsupported theme file.")
 
-            Dim eLayout As XmlElement = Root.Item("Layout")
+            Dim eLayout As XmlElement = Root.Item("layout")
             If eLayout Is Nothing Then Throw New FormatException("Theme layout is missing.")
 
+            Dim xThemePlayerGap As Boolean = True
+            If eLayout.HasAttribute("playerGap") Then xThemePlayerGap = Boolean.Parse(eLayout.GetAttribute("playerGap"))
+            Dim xThemeAlwaysShow2P As Boolean = False
+            If eLayout.HasAttribute("alwaysShow2P") Then xThemeAlwaysShow2P = Boolean.Parse(eLayout.GetAttribute("alwaysShow2P"))
+
+            Dim xPalette As Dictionary(Of String, ThemeColumnColors) = LoadThemePalette(Root)
             Dim xColumns() As Column = CreateThemeColumns()
             Dim xThemeColumnVisible(UBound(xColumns)) As Boolean
-            For Each eeCol As XmlElement In eLayout.ChildNodes
-                If eeCol.Name <> "Column" Then Continue For
-                xThemeColumnVisible(LoadThemeColumn(eeCol, xColumns)) = True
+            Dim xThemeColumnOrder As New List(Of Integer)
+            For Each eeNode As XmlNode In eLayout.ChildNodes
+                If eeNode.NodeType <> XmlNodeType.Element Then Continue For
+                Dim xColumnIndex As Integer = LoadThemeLayoutElement(CType(eeNode, XmlElement), xColumns, xPalette)
+                If xThemeColumnVisible(xColumnIndex) Then Throw New FormatException("Duplicate theme layout column.")
+                xThemeColumnVisible(xColumnIndex) = True
+                xThemeColumnOrder.Add(xColumnIndex)
             Next
 
-            If iPlayer = 0 Then
+            If iPlayer = 0 AndAlso Not xThemeAlwaysShow2P Then
                 For i = niD1 To niDQ
                     xColumns(i).isVisible = False
                 Next
             End If
 
-            Dim xVo As visualSettings = LoadThemeVisual(Root.Item("Visual"))
+            Dim xThemeColumnGap As Integer = 5
+            Dim xVo As visualSettings = LoadThemeVisual(Root.Item("visual"), xThemeColumnGap)
             column = xColumns
             vo = xVo
+            ThemeColumnGap = xThemeColumnGap
+            ThemePlayerGap = xThemePlayerGap
+            ThemeAlwaysShow2P = xThemeAlwaysShow2P
             ThemeColumnVisible = xThemeColumnVisible
+            ThemeColumnOrder = xThemeColumnOrder.ToArray()
             CurrentThemePath = IO.Path.GetFullPath(filePath)
             ApplyThemeVisualState()
             CalculateGreatestColumn()
@@ -528,9 +695,9 @@ Partial Public Class MainWindow
             End Using
 
             Dim Root As XmlElement = Doc.Item("nBMSCTheme")
-            If Root Is Nothing OrElse Root.GetAttribute("Version") <> "1" Then Return False
+            If Root Is Nothing OrElse Root.GetAttribute("version") <> "1" Then Return False
 
-            themeName = Root.GetAttribute("Name")
+            themeName = Root.GetAttribute("name")
             If themeName = "" Then themeName = IO.Path.GetFileNameWithoutExtension(xStr.Name)
             Return True
 

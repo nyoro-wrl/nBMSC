@@ -212,6 +212,10 @@ Public Class MainWindow
     Private ReadOnly InitialColumns() As Column
     Private CurrentThemePath As String = ""
     Private ThemeColumnVisible() As Boolean = Nothing
+    Private ThemeColumnGap As Integer = 5
+    Private ThemePlayerGap As Boolean = True
+    Private ThemeAlwaysShow2P As Boolean = False
+    Private ThemeColumnOrder() As Integer = Nothing
 
     Public Sub setVO(ByVal xvo As visualSettings)
         vo = xvo
@@ -1933,6 +1937,7 @@ Public Class MainWindow
     End Sub
 
     Private Sub CalculateGreatestColumn()
+        ApplyAutoSpacers()
         UpdateColumnLefts()
         Dim xColumns As Integer = Math.Min(MaxBGMColumns, Math.Max(1, CInt(CGB.Value)))
         xColumns = Math.Max(xColumns, CalculateVisibleBGMColumns())
@@ -2443,22 +2448,22 @@ Public Class MainWindow
     End Sub
 
     Private Function EnabledColumnIndexToColumnArrayIndex(ByVal cEnabled As Integer) As Integer
-        Dim xI1 As Integer = 0
-        Do
-            If xI1 >= gColumns Then Exit Do
-            If Not nEnabled(xI1) Then cEnabled += 1
-            If xI1 >= cEnabled Then Exit Do
-            xI1 += 1
-        Loop
-        Return cEnabled
+        Dim enabledIndex As Integer = 0
+        For Each i As Integer In ThemeColumnDisplayOrder(gColumns)
+            If Not nEnabled(i) Then Continue For
+            If enabledIndex = cEnabled Then Return i
+            enabledIndex += 1
+        Next
+        Return niB
     End Function
 
     Private Function ColumnArrayIndexToEnabledColumnIndex(ByVal cReal As Integer) As Integer
-        Dim xI1 As Integer
-        For xI1 = 0 To cReal - 1
-            If Not nEnabled(xI1) Then cReal -= 1
+        Dim enabledIndex As Integer = 0
+        For Each i As Integer In ThemeColumnDisplayOrder(gColumns)
+            If i = cReal Then Return enabledIndex
+            If nEnabled(i) Then enabledIndex += 1
         Next
-        Return cReal
+        Return enabledIndex
     End Function
 
     Private Sub Form1_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
@@ -5309,12 +5314,10 @@ StartCount:     If Not NTInput Then
 
 
     Private Sub UpdateColumnLefts()
-        column(0).Left = 0
-        'If col(0).Width = 0 Then col(0).Visible = False
-
-        For xI1 As Integer = 1 To UBound(column)
-            column(xI1).Left = column(xI1 - 1).Left + IIf(column(xI1 - 1).isVisible, column(xI1 - 1).Width, 0)
-            'If col(xI1).Width = 0 Then col(xI1).Visible = False
+        Dim xLeft As Integer = 0
+        For Each xI1 As Integer In ThemeColumnDisplayOrder()
+            column(xI1).Left = xLeft
+            If column(xI1).isVisible Then xLeft += column(xI1).Width
         Next
     End Sub
 
@@ -5360,12 +5363,11 @@ StartCount:     If Not NTInput Then
         If CHPlayer.SelectedIndex = -1 Then CHPlayer.SelectedIndex = 0
 
         iPlayer = CHPlayer.SelectedIndex
-        Dim xGP2 As Boolean = iPlayer <> 0
+        Dim xGP2 As Boolean = iPlayer <> 0 OrElse ThemeAlwaysShow2P
         If ThemeColumnVisible IsNot Nothing AndAlso ThemeColumnVisible.Length = column.Length Then
             For i As Integer = niD1 To niDQ
                 column(i).isVisible = xGP2 And ThemeColumnVisible(i)
             Next
-            column(niS3).isVisible = xGP2 And ThemeColumnVisible(niS3)
         Else
             column(niD8).isVisible = (xGP2 And column(niAA).isVisible)
             column(niD9).isVisible = (xGP2 And column(niAB).isVisible)
@@ -5405,7 +5407,6 @@ StartCount:     If Not NTInput Then
                 column(niDP).isVisible = (xGP2 And column(niA1).isVisible)
                 column(niDQ).isVisible = (xGP2 And column(niA2).isVisible)
             End If
-            column(niS3).isVisible = xGP2
         End If
 
         For xI1 As Integer = 1 To UBound(Notes)
@@ -6084,7 +6085,7 @@ Jump2:
     End Sub
 
     Private Sub TBThemeDef_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBThemeDef.Click
-        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Theme\7k.xml"
+        Dim xThemePath As String = My.Application.Info.DirectoryPath & "\Theme\7key.xml"
 
         If Not My.Computer.FileSystem.FileExists(xThemePath) Then Return
 
@@ -7108,10 +7109,9 @@ Jump2:
     Private Sub CGBLP_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGBLP.CheckedChanged
         gDisplayBGAColumn = CGBLP.Checked
 
-        column(niBGA).isVisible = gDisplayBGAColumn
-        column(niLAYER).isVisible = gDisplayBGAColumn
-        column(niPOOR).isVisible = gDisplayBGAColumn
-        column(niS4).isVisible = gDisplayBGAColumn
+        column(niBGA).isVisible = gDisplayBGAColumn And ThemeAllowsColumn(niBGA)
+        column(niLAYER).isVisible = gDisplayBGAColumn And ThemeAllowsColumn(niLAYER)
+        column(niPOOR).isVisible = gDisplayBGAColumn And ThemeAllowsColumn(niPOOR)
 
         If IsInitializing Then Exit Sub
         For xI1 As Integer = 1 To UBound(Notes)
@@ -7124,7 +7124,7 @@ Jump2:
     Private Sub CGSCROLL_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGSCROLL.CheckedChanged
         gSCROLL = CGSCROLL.Checked
 
-        column(niSCROLL).isVisible = gSCROLL
+        column(niSCROLL).isVisible = gSCROLL And ThemeAllowsColumn(niSCROLL)
 
         If IsInitializing Then Exit Sub
         For xI1 As Integer = 1 To UBound(Notes)
@@ -7137,7 +7137,7 @@ Jump2:
     Private Sub CGSTOP_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGSTOP.CheckedChanged
         gSTOP = CGSTOP.Checked
 
-        column(niSTOP).isVisible = gSTOP
+        column(niSTOP).isVisible = gSTOP And ThemeAllowsColumn(niSTOP)
 
         If IsInitializing Then Exit Sub
         For xI1 As Integer = 1 To UBound(Notes)
@@ -7153,7 +7153,7 @@ Jump2:
         'Me.RedoChangeVisibleColumns(gBLP, gSTOP, iPlayer, gBLP, CGSTOP.Checked, iPlayer, xUndo, xRedo)
         gBPM = CGBPM.Checked
 
-        column(niBPM).isVisible = gBPM
+        column(niBPM).isVisible = gBPM And ThemeAllowsColumn(niBPM)
 
         If IsInitializing Then Exit Sub
         For xI1 As Integer = 1 To UBound(Notes)

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nBMSCTheme version="1" name="9key">
+    <layout playerGap="false" alwaysShow2P="true">
+        <measure width="35" colors="measure" />
+        <channel label="SCR" channel="SC" width="35" colors="meta" />
+        <channel label="STOP" channel="09" width="35" colors="meta" />
+        <bpm label="BPM" width="35" colors="meta" />
+        <lane label="LW" channel="11" width="35" colors="whiteLane" />
+        <lane label="LY" channel="12" width="30" colors="yellowLane" />
+        <lane label="LG" channel="13" width="35" colors="greenLane" />
+        <lane label="LB" channel="14" width="30" colors="blueLane" />
+        <lane label="RED" channel="15" width="35" colors="redLane" />
+        <lane label="RB" channel="22" width="30" colors="blueLane" />
+        <lane label="RG" channel="23" width="35" colors="greenLane" />
+        <lane label="RY" channel="24" width="30" colors="yellowLane" />
+        <lane label="RW" channel="25" width="35" colors="whiteLane" />
+        <channel label="BGA" channel="04" width="35" colors="bga" />
+        <channel label="LAYER" channel="07" width="35" colors="bga" />
+        <channel label="POOR" channel="06" width="35" colors="bga" />
+        <bgm label="B" width="35" colors="bgm" />
+    </layout>
+    <palette>
+        <colors id="measure" note="#00000000" text="#00FFFFFF" bg="#FFFC0000" />
+        <colors id="meta" note="#00000000" text="#FF0000FF" bg="#FFFC0000" />
+        <colors id="whiteLane" note="#AAAAAAFF" text="#000000FF" longNote="#C0C0C0FF" bg="#80808021" />
+        <colors id="yellowLane" note="#BBBB00FF" text="#000000FF" bg="#BF954021" />
+        <colors id="greenLane" note="#129812FF" text="#000000FF" bg="#40BF4021" />
+        <colors id="blueLane" note="#6289FFFF" text="#000000FF" bg="#6289FF21" />
+        <colors id="redLane" note="#BF4040FF" text="#000000FF" bg="#BF404026" />
+        <colors id="bga" note="#8CD78AFF" text="#000000FF" longNote="#90D38EFF" bg="#00FF000B" />
+        <colors id="bgm" note="#E18080FF" text="#000000FF" longNote="#DC8585FF" bg="#BF40401A" />
+    </palette>
+    <visual>
+        <color id="columnTitle" value="#00FF00FF" />
+        <font id="columnTitle" name="Tahoma" size="8" style="Regular" />
+        <color id="background" value="#000000FF" />
+        <color id="grid" value="#3A3A3A35" />
+        <color id="subGrid" value="#3A3A3A5B" />
+        <color id="verticalLine" value="#373737FF" />
+        <color id="measureLine" value="#5252525F" />
+        <color id="bgmWave" value="#C0C0C050" />
+        <color id="selectionBox" value="#FFFFFFC0" />
+        <color id="timeCursor" value="#FF8080C0" />
+        <color id="timeHalf" value="#8080FF80" />
+        <color id="timeMouseOver" value="#FF808080" />
+        <color id="timeSelection" value="#FF808032" />
+        <color id="timeBpm" value="#FF808032" />
+        <font id="timeBpm" name="Verdana" size="9" style="Bold" />
+        <spacing columnGap="5" />
+        <note height="10" hiddenOpacity="0.5" />
+        <font id="noteLabel" name="Verdana" size="9" style="Bold" />
+        <font id="measureLabel" name="Verdana" size="8" style="Regular" />
+        <labelOffset vertical="-2" horizontal="0" longHorizontal="2" />
+        <color id="noteMouseOver" value="#00FF00FF" />
+        <color id="noteAdjustBorder" value="#00FFFFFF" />
+        <color id="noteSelected" value="#FF0000FF" />
+    </visual>
+</nBMSCTheme>

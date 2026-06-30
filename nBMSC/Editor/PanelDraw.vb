@@ -224,9 +224,9 @@ Partial Public Class MainWindow
 
     Private Sub DrawBackgroundColor(e1 As BufferedGraphics, xTHeight As Integer, xTWidth As Integer, xHS As Integer, xI1 As Integer)
         If gShowBG Then
-            For xI1 = 0 To gColumns
-                If nLeft(xI1 + 1) * gxWidth - xHS * gxWidth + 1 < 0 Then Continue For
-                If nLeft(xI1) * gxWidth - xHS * gxWidth + 1 > xTWidth Then Exit For
+            For Each xI1 In ThemeColumnDisplayOrder(gColumns)
+                If (nLeft(xI1) + GetColumnWidth(xI1)) * gxWidth - xHS * gxWidth + 1 < 0 Then Continue For
+                If nLeft(xI1) * gxWidth - xHS * gxWidth + 1 > xTWidth Then Continue For
                 If Not GetColumn(xI1).cBG.GetBrightness = 0 And GetColumnWidth(xI1) > 0 Then
                     Dim col = GetColumn(xI1).cBG
                     If xI1 = GetColumnAtX(MouseMoveStatus.X, xHS) Then
@@ -246,9 +246,9 @@ Partial Public Class MainWindow
 
     Private Function DrawColumnCaptions(e1 As BufferedGraphics, xTWidth As Integer, xHS As Integer, xI1 As Integer) As Integer
         If gShowC Then
-            For xI1 = 0 To gColumns
-                If nLeft(xI1 + 1) * gxWidth - xHS * gxWidth + 1 < 0 Then Continue For
-                If nLeft(xI1) * gxWidth - xHS * gxWidth + 1 > xTWidth Then Exit For
+            For Each xI1 In ThemeColumnDisplayOrder(gColumns)
+                If (nLeft(xI1) + GetColumnWidth(xI1)) * gxWidth - xHS * gxWidth + 1 < 0 Then Continue For
+                If nLeft(xI1) * gxWidth - xHS * gxWidth + 1 > xTWidth Then Continue For
                 If GetColumnWidth(xI1) > 0 Then e1.Graphics.DrawString(nTitle(xI1), vo.ColumnTitleFont, vo.ColumnTitle, nLeft(xI1) * gxWidth - xHS * gxWidth, 0)
             Next
         End If
@@ -262,10 +262,10 @@ Partial Public Class MainWindow
                                xVSu As Integer) As Integer
         'Vertical line
         If gShowVerticalLine Then
-            For xI1 = 0 To gColumns
+            For Each xI1 In ThemeColumnDisplayOrder(gColumns)
                 Dim xpos = nLeft(xI1) * gxWidth - xHS * gxWidth
                 If xpos + 1 < 0 Then Continue For
-                If xpos + 1 > xTWidth Then Exit For
+                If xpos + 1 > xTWidth Then Continue For
                 If GetColumnWidth(xI1) > 0 Then e1.Graphics.DrawLine(vo.pVLine,
                                                               xpos, 0,
                                                               xpos, xTHeight)

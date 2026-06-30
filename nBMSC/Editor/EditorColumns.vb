@@ -182,17 +182,137 @@ Partial Public Class MainWindow
     Private Function nLeft(ByVal iCol As Integer) As Integer
         If iCol < niB Then Return column(iCol).Left Else Return column(niB).Left + (iCol - niB) * column(niB).Width
     End Function
+
+    Private Function NaturalThemeColumnOrder() As Integer()
+        Dim order As New List(Of Integer)
+        For i As Integer = 0 To niB
+            If Not IsThemeSpacerColumn(i) Then order.Add(i)
+        Next
+        Return order.ToArray()
+    End Function
+
+    Private Function BaseThemeColumnOrder() As Integer()
+        Dim source() As Integer = If(ThemeColumnOrder Is Nothing OrElse ThemeColumnOrder.Length = 0, NaturalThemeColumnOrder(), ThemeColumnOrder)
+        Dim order As New List(Of Integer)
+        Dim seen(niB) As Boolean
+
+        For Each i As Integer In source
+            If i < 0 OrElse i > niB Then Continue For
+            If IsThemeSpacerColumn(i) Then Continue For
+            If seen(i) Then Continue For
+
+            order.Add(i)
+            seen(i) = True
+        Next
+
+        For i As Integer = 0 To niB
+            If IsThemeSpacerColumn(i) Then Continue For
+            If seen(i) Then Continue For
+            If Not column(i).isVisible Then Continue For
+
+            order.Add(i)
+            seen(i) = True
+        Next
+
+        Return order.ToArray()
+    End Function
+
+    Private Function ThemeColumnGroup(ByVal iCol As Integer) As Integer
+        If iCol = niMeasure OrElse iCol = niSCROLL OrElse iCol = niBPM OrElse iCol = niSTOP Then Return 1
+        If iCol >= niA1 AndAlso iCol <= niAQ Then Return 2
+        If iCol >= niD1 AndAlso iCol <= niDQ Then Return 3
+        If iCol = niBGA OrElse iCol = niLAYER OrElse iCol = niPOOR Then Return 4
+        If iCol = niB Then Return 5
+        Return 0
+    End Function
+
+    Private Function IsPlayableThemeGroup(ByVal group As Integer) As Boolean
+        Return group = 2 OrElse group = 3
+    End Function
+
+    Private Function ThemeSpacerBetween(ByVal previousGroup As Integer, ByVal currentGroup As Integer) As Integer
+        If previousGroup = 0 OrElse currentGroup = 0 OrElse previousGroup = currentGroup Then Return -1
+        If (previousGroup = 1 AndAlso IsPlayableThemeGroup(currentGroup)) OrElse (IsPlayableThemeGroup(previousGroup) AndAlso currentGroup = 1) Then Return niS1
+        If IsPlayableThemeGroup(previousGroup) AndAlso IsPlayableThemeGroup(currentGroup) Then Return niS2
+        If (IsPlayableThemeGroup(previousGroup) AndAlso currentGroup = 4) OrElse (previousGroup = 4 AndAlso IsPlayableThemeGroup(currentGroup)) Then Return niS3
+        If (previousGroup = 4 AndAlso currentGroup = 5) OrElse (previousGroup = 5 AndAlso currentGroup = 4) Then Return niS4
+        Return -1
+    End Function
+
+    Private Function ThemeColumnDisplayOrder(Optional ByVal maxColumn As Integer = -1) As Integer()
+        Dim order As New List(Of Integer)
+        Dim previousGroup As Integer = 0
+
+        For Each i As Integer In BaseThemeColumnOrder()
+            If Not column(i).isVisible Then Continue For
+
+            Dim currentGroup As Integer = ThemeColumnGroup(i)
+            Dim spacer As Integer = ThemeSpacerBetween(previousGroup, currentGroup)
+            If spacer >= 0 AndAlso column(spacer).isVisible Then order.Add(spacer)
+
+            If i = niB AndAlso maxColumn >= niB Then
+                For bgmColumn As Integer = niB To maxColumn
+                    order.Add(bgmColumn)
+                Next
+            Else
+                order.Add(i)
+            End If
+
+            previousGroup = currentGroup
+        Next
+
+        Return order.ToArray()
+    End Function
+
     Private Function GetColumnWidth(ByVal iCol As Integer) As Integer
         If Not GetColumn(iCol).isVisible Then Return 0
         If iCol < niB Then Return column(iCol).Width Else Return column(niB).Width
     End Function
     Private Function nTitle(ByVal iCol As Integer) As String
-        If iCol < niB Then Return column(iCol).Title Else Return column(niB).Title & (iCol - niB + 1).ToString
+        If iCol < niB Then Return column(iCol).Title
+        If column(niB).Title = "" Then Return ""
+        Return column(niB).Title & (iCol - niB + 1).ToString
     End Function
     Private Function nEnabled(ByVal iCol As Integer) As Boolean
         'If iCol < niB Then Return col(iCol).Enabled And col(iCol).Visible Else Return col(niB).Enabled And col(niB).Visible
         If iCol < niB Then Return column(iCol).isEnabledAfterAll Else Return column(niB).isEnabledAfterAll
     End Function
+
+    Private Function IsThemeSpacerColumn(ByVal iCol As Integer) As Boolean
+        Return iCol = niS1 OrElse iCol = niS2 OrElse iCol = niS3 OrElse iCol = niS4
+    End Function
+
+    Private Function ThemeAllowsColumn(ByVal iCol As Integer) As Boolean
+        Return ThemeColumnVisible Is Nothing OrElse ThemeColumnVisible.Length <> column.Length OrElse ThemeColumnVisible(iCol)
+    End Function
+
+    Private Function HasVisibleColumn(ByVal startColumn As Integer, ByVal endColumn As Integer) As Boolean
+        For i As Integer = startColumn To endColumn
+            If column(i).isVisible Then Return True
+        Next
+        Return False
+    End Function
+
+    Private Sub SetAutoSpacer(ByVal iCol As Integer, ByVal isVisible As Boolean)
+        column(iCol).Title = ""
+        column(iCol).Width = ThemeColumnGap
+        column(iCol).isVisible = isVisible AndAlso ThemeColumnGap > 0
+    End Sub
+
+    Private Sub ApplyAutoSpacers()
+        Dim xControl As Boolean = column(niMeasure).isVisible OrElse column(niSCROLL).isVisible OrElse column(niBPM).isVisible OrElse column(niSTOP).isVisible
+        Dim xP1 As Boolean = HasVisibleColumn(niA1, niAQ)
+        Dim xP2 As Boolean = HasVisibleColumn(niD1, niDQ)
+        Dim xPlayable As Boolean = xP1 OrElse xP2
+        Dim xBga As Boolean = column(niBGA).isVisible OrElse column(niLAYER).isVisible OrElse column(niPOOR).isVisible
+        Dim xBgm As Boolean = column(niB).isVisible
+
+        SetAutoSpacer(niS1, xControl AndAlso xPlayable)
+        SetAutoSpacer(niS2, xP1 AndAlso xP2 AndAlso ThemePlayerGap)
+        SetAutoSpacer(niS3, xPlayable AndAlso xBga)
+        SetAutoSpacer(niS4, xBga AndAlso xBgm)
+    End Sub
+
     Private Function IsColumnNumeric(ByVal iCol As Integer) As Boolean
         If iCol < niB Then Return column(iCol).isNumeric Else Return column(niB).isNumeric
     End Function
