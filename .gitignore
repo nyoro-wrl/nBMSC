@@ -12,11 +12,11 @@ packages/
 [Dd]ebug/
 [Rr]elease/
 x64/
-nBMSC/build/
-nBMSC/[Bb]in/
-nBMSC/[Oo]bj/
+src/build/
+src/[Bb]in/
+src/[Oo]bj/
 Release.zip
-nBMSC/Data/
+src/Data/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

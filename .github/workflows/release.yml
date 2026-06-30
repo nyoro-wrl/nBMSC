@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - 'nBMSC/My Project/AssemblyInfo.vb'
+      - 'src/My Project/AssemblyInfo.vb'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $assemblyInfo = Get-Content -Encoding UTF8 -Raw 'nBMSC/My Project/AssemblyInfo.vb'
+          $assemblyInfo = Get-Content -Encoding UTF8 -Raw 'src/My Project/AssemblyInfo.vb'
           if ($assemblyInfo -notmatch '(?m)^\s*<Assembly:\s*AssemblyVersion\("([^"]+)"\)>') {
             throw 'AssemblyVersion was not found.'
           }
@@ -91,7 +91,7 @@ jobs:
           }
 
           New-Item -ItemType Directory -Path $packageRoot | Out-Null
-          Copy-Item -Path 'nBMSC/bin/Release/*' -Destination $packageRoot -Recurse
+          Copy-Item -Path 'src/bin/Release/*' -Destination $packageRoot -Recurse
           Compress-Archive -Path $packageRoot -DestinationPath $zipPath
           "asset=$zipPath" >> $env:GITHUB_OUTPUT
 
