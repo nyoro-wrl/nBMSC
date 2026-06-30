@@ -254,7 +254,6 @@ Partial Class MainWindow
         Me.mnWavIncrease = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator20 = New System.Windows.Forms.ToolStripSeparator()
         Me.mnGOptions = New System.Windows.Forms.ToolStripMenuItem()
-        Me.mnVOptions = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnPOptions = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnConversion = New System.Windows.Forms.ToolStripMenuItem()
         Me.cmnConversion = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -321,10 +320,6 @@ Partial Class MainWindow
         Me.TBPlayB = New System.Windows.Forms.ToolStripButton()
         Me.TBPlay = New System.Windows.Forms.ToolStripButton()
         Me.TBStop = New System.Windows.Forms.ToolStripButton()
-        Me.TBPOptions = New System.Windows.Forms.ToolStripButton()
-        Me.ToolStripSeparator7 = New System.Windows.Forms.ToolStripSeparator()
-        Me.TBVOptions = New System.Windows.Forms.ToolStripButton()
-        Me.TBGOptions = New System.Windows.Forms.ToolStripButton()
         Me.pStatus = New System.Windows.Forms.Panel()
         Me.FStatus2 = New System.Windows.Forms.StatusStrip()
         Me.FSSS = New System.Windows.Forms.ToolStripButton()
@@ -3046,7 +3041,7 @@ Partial Class MainWindow
         '
         'mnOptions
         '
-        Me.mnOptions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNTInput, Me.mnErrorCheck, Me.mnPreviewOnClick, Me.mnShowFileName, Me.mnChangePlaySide, Me.mnWavIncrease, Me.ToolStripSeparator20, Me.mnGOptions, Me.mnVOptions, Me.mnPOptions, Me.mnLanguage, Me.mnTheme})
+        Me.mnOptions.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNTInput, Me.mnErrorCheck, Me.mnPreviewOnClick, Me.mnShowFileName, Me.mnChangePlaySide, Me.mnWavIncrease, Me.ToolStripSeparator20, Me.mnGOptions, Me.mnPOptions, Me.mnLanguage, Me.mnTheme})
         Me.mnOptions.Name = "mnOptions"
         Me.mnOptions.Size = New System.Drawing.Size(61, 19)
         Me.mnOptions.Text = "&Options"
@@ -3117,13 +3112,6 @@ Partial Class MainWindow
         Me.mnGOptions.Name = "mnGOptions"
         Me.mnGOptions.Size = New System.Drawing.Size(229, 22)
         Me.mnGOptions.Text = "&General Options"
-        '
-        'mnVOptions
-        '
-        Me.mnVOptions.Image = Global.nBMSC.My.Resources.Resources.x16VisualOptions
-        Me.mnVOptions.Name = "mnVOptions"
-        Me.mnVOptions.Size = New System.Drawing.Size(229, 22)
-        Me.mnVOptions.Text = "&Visual Options"
         '
         'mnPOptions
         '
@@ -3644,38 +3632,6 @@ Partial Class MainWindow
         Me.TBStop.Name = "TBStop"
         Me.TBStop.Size = New System.Drawing.Size(23, 22)
         Me.TBStop.Text = "Stop (F7)"
-        '
-        'TBPOptions
-        '
-        Me.TBPOptions.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.TBPOptions.Image = Global.nBMSC.My.Resources.Resources.x16PlayerOptions
-        Me.TBPOptions.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.TBPOptions.Name = "TBPOptions"
-        Me.TBPOptions.Size = New System.Drawing.Size(23, 22)
-        Me.TBPOptions.Text = "Player Options"
-        '
-        'ToolStripSeparator7
-        '
-        Me.ToolStripSeparator7.Name = "ToolStripSeparator7"
-        Me.ToolStripSeparator7.Size = New System.Drawing.Size(6, 25)
-        '
-        'TBVOptions
-        '
-        Me.TBVOptions.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.TBVOptions.Image = Global.nBMSC.My.Resources.Resources.x16VisualOptions
-        Me.TBVOptions.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.TBVOptions.Name = "TBVOptions"
-        Me.TBVOptions.Size = New System.Drawing.Size(23, 22)
-        Me.TBVOptions.Text = "Visual Options"
-        '
-        'TBGOptions
-        '
-        Me.TBGOptions.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image
-        Me.TBGOptions.Image = Global.nBMSC.My.Resources.Resources.x16GeneralOptions
-        Me.TBGOptions.ImageTransparentColor = System.Drawing.Color.Magenta
-        Me.TBGOptions.Name = "TBGOptions"
-        Me.TBGOptions.Size = New System.Drawing.Size(23, 22)
-        Me.TBGOptions.Text = "General Options"
         '
         'pStatus
         '
@@ -4354,7 +4310,6 @@ Partial Class MainWindow
     Friend WithEvents mnWavIncrease As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator20 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents mnGOptions As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents mnVOptions As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnLanguage As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnTheme As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents cmnLanguage As System.Windows.Forms.ContextMenuStrip
@@ -4510,10 +4465,6 @@ Partial Class MainWindow
     Friend WithEvents TBPlayB As System.Windows.Forms.ToolStripButton
     Friend WithEvents TBPlay As System.Windows.Forms.ToolStripButton
     Friend WithEvents TBStop As System.Windows.Forms.ToolStripButton
-    Friend WithEvents TBPOptions As System.Windows.Forms.ToolStripButton
-    Friend WithEvents ToolStripSeparator7 As System.Windows.Forms.ToolStripSeparator
-    Friend WithEvents TBVOptions As System.Windows.Forms.ToolStripButton
-    Friend WithEvents TBGOptions As System.Windows.Forms.ToolStripButton
     Friend WithEvents POptions As System.Windows.Forms.Panel
     Friend WithEvents POHeader As System.Windows.Forms.Panel
     Friend WithEvents POGrid As System.Windows.Forms.Panel

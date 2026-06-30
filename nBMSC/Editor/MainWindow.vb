@@ -4830,14 +4830,6 @@ StartCount:     If Not NTInput Then
     '... 'Me.RedoRemoveNote(K(xI1), True, xUndo, xRedo)
     'AddUndo(xUndo, xBaseRedo.Next)
 
-    Private Sub TBOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBVOptions.Click, mnVOptions.Click
-
-        Dim xDiag As New OpVisual(vo, column, LWAV.Font)
-        xDiag.ShowDialog(Me)
-        CalculateGreatestColumn()
-        RefreshPanelAll()
-    End Sub
-
     Private Sub AddToPOWAV(ByVal xPath() As String)
         Dim xIndices(LWAV.SelectedIndices.Count - 1) As Integer
         LWAV.SelectedIndices.CopyTo(xIndices, 0)
@@ -5057,7 +5049,7 @@ StartCount:     If Not NTInput Then
         sender.ForeColor = Color.White
     End Sub
 
-    Private Sub TBPOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPOptions.Click, mnPOptions.Click
+    Private Sub mnPOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnPOptions.Click
         Dim xDOp As New OpPlayer(CurrentPlayer)
         If xDOp.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then RefreshPlayerSelector()
     End Sub
@@ -5424,7 +5416,7 @@ StartCount:     If Not NTInput Then
         RefreshPanelAll()
     End Sub
 
-    Private Sub TBGOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBGOptions.Click, mnGOptions.Click
+    Private Sub mnGOptions_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles mnGOptions.Click
         Dim xTE As Integer
         Select Case UCase(EncodingToString(TextEncoding)) ' az: wow seriously? is there really no better way? 
             Case "SYSTEM ANSI" : xTE = 0
