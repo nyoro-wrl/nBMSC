@@ -280,7 +280,7 @@
     <value>Stop preview if clicked on the editing panel</value>
   </data>
   <data name="GeneralOptions.Title" xml:space="preserve">
-    <value>General Options</value>
+    <value>Settings</value>
   </data>
   <data name="GeneralOptions.UndoRedoMemoryLimit" xml:space="preserve">
     <value>Undo/Redo memory limit</value>
@@ -394,7 +394,7 @@
     <value>Error Check</value>
   </data>
   <data name="Menu.Options.GeneralOptions" xml:space="preserve">
-    <value>General Options</value>
+    <value>Settings</value>
   </data>
   <data name="Menu.Options.Language" xml:space="preserve">
     <value>Language</value>
@@ -1017,7 +1017,7 @@ Open the release page?</value>
     <value>Find / Delete / Replace</value>
   </data>
   <data name="ToolBar.GeneralOptions" xml:space="preserve">
-    <value>General Options</value>
+    <value>Settings</value>
   </data>
   <data name="ToolBar.Grid" xml:space="preserve">
     <value>Grid</value>

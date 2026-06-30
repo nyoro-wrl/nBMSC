@@ -277,7 +277,7 @@
     <value>エディットパネル上をクリックするとプレビュー再生をストップ</value>
   </data>
   <data name="GeneralOptions.Title" xml:space="preserve">
-    <value>一般オプション</value>
+    <value>設定</value>
   </data>
   <data name="GeneralOptions.UndoRedoMemoryLimit" xml:space="preserve">
     <value>Undo/Redo履歴メモリ上限</value>
@@ -388,7 +388,7 @@
     <value>エラーチェック</value>
   </data>
   <data name="Menu.Options.GeneralOptions" xml:space="preserve">
-    <value>一般オプション</value>
+    <value>設定</value>
   </data>
   <data name="Menu.Options.Language" xml:space="preserve">
     <value>言語</value>
@@ -1011,7 +1011,7 @@ Release ページを開きますか？</value>
     <value>検索 / 削除 / 置換</value>
   </data>
   <data name="ToolBar.GeneralOptions" xml:space="preserve">
-    <value>一般オプション</value>
+    <value>設定</value>
   </data>
   <data name="ToolBar.Grid" xml:space="preserve">
     <value>グリッド</value>

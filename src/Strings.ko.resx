@@ -274,7 +274,7 @@
     <value>편집 패널을 클릭하면 미리보기를 중지</value>
   </data>
   <data name="GeneralOptions.Title" xml:space="preserve">
-    <value>일반 옵션</value>
+    <value>설정</value>
   </data>
   <data name="GeneralOptions.UndoRedoMemoryLimit" xml:space="preserve">
     <value>Undo/Redo 메모리 제한</value>
@@ -385,7 +385,7 @@
     <value>오류 검색</value>
   </data>
   <data name="Menu.Options.GeneralOptions" xml:space="preserve">
-    <value>일반 옵션</value>
+    <value>설정</value>
   </data>
   <data name="Menu.Options.Language" xml:space="preserve">
     <value>언어</value>
@@ -990,7 +990,7 @@ Release 페이지를 여시겠습니까?</value>
     <value>검색/삭제/교체</value>
   </data>
   <data name="ToolBar.GeneralOptions" xml:space="preserve">
-    <value>일반 옵션</value>
+    <value>설정</value>
   </data>
   <data name="ToolBar.Grid" xml:space="preserve">
     <value>격자</value>

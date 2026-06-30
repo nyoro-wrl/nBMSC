@@ -3110,7 +3110,7 @@ Partial Class MainWindow
         Me.mnGOptions.Image = Global.nBMSC.My.Resources.Resources.x16GeneralOptions
         Me.mnGOptions.Name = "mnGOptions"
         Me.mnGOptions.Size = New System.Drawing.Size(229, 22)
-        Me.mnGOptions.Text = "&General Options"
+        Me.mnGOptions.Text = "&Settings"
         '
         'mnPOptions
         '
