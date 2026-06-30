@@ -1,5 +1,7 @@
 ﻿Imports nBMSC.Editor.Functions
 
+Imports nBMSC.Editor
+
 Partial Public Class MainWindow
 
     Private Sub XMLWriteColumn(ByVal w As XmlTextWriter, ByVal I As Integer)
@@ -24,6 +26,147 @@ Partial Public Class MainWindow
         w.WriteEndElement()
     End Sub
 
+    Private Function ThemeColumnIds() As String()
+        Return New String() {
+            "measure", "scroll", "bpm", "stop", "s1",
+            "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq",
+            "s2",
+            "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9", "da", "db", "dc", "dd", "de", "df", "dg", "dh", "di", "dj", "dk", "dl", "dm", "dn", "do", "dp", "dq",
+            "s3", "bga", "layer", "poor", "s4", "b"}
+    End Function
+
+    Private Function ThemeColumnId(ByVal index As Integer) As String
+        Dim ids() As String = ThemeColumnIds()
+        If index < 0 OrElse index > UBound(ids) Then Return ""
+        Return ids(index)
+    End Function
+
+    Private Function ThemeColumnIndex(ByVal id As String) As Integer
+        Dim ids() As String = ThemeColumnIds()
+        For i As Integer = 0 To UBound(ids)
+            If String.Equals(ids(i), id, StringComparison.OrdinalIgnoreCase) Then Return i
+        Next
+        Return -1
+    End Function
+
+    Private Function ThemeColorText(ByVal color As Color) As String
+        Return String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", color.R, color.G, color.B, color.A)
+    End Function
+
+    Private Function ThemeColorText(ByVal argb As Integer) As String
+        Return ThemeColorText(Color.FromArgb(argb))
+    End Function
+
+    Private Function ParseThemeColor(ByVal value As String) As Color
+        If value.Length <> 9 OrElse Not value.StartsWith("#") Then Throw New FormatException("Invalid color: " & value)
+
+        Dim r As Integer = Integer.Parse(value.Substring(1, 2), Globalization.NumberStyles.HexNumber, Globalization.CultureInfo.InvariantCulture)
+        Dim g As Integer = Integer.Parse(value.Substring(3, 2), Globalization.NumberStyles.HexNumber, Globalization.CultureInfo.InvariantCulture)
+        Dim b As Integer = Integer.Parse(value.Substring(5, 2), Globalization.NumberStyles.HexNumber, Globalization.CultureInfo.InvariantCulture)
+        Dim a As Integer = Integer.Parse(value.Substring(7, 2), Globalization.NumberStyles.HexNumber, Globalization.CultureInfo.InvariantCulture)
+        Return Color.FromArgb(a, r, g, b)
+    End Function
+
+    Private Function ParseThemeInteger(ByVal value As String) As Integer
+        Return Integer.Parse(value, Globalization.NumberStyles.Integer, Globalization.CultureInfo.InvariantCulture)
+    End Function
+
+    Private Function ParseThemeSingle(ByVal value As String) As Single
+        Return Single.Parse(value, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture)
+    End Function
+
+    Private Sub XMLWriteThemeColumn(ByVal w As XmlTextWriter, ByVal index As Integer)
+        w.WriteStartElement("Column")
+        w.WriteAttributeString("Id", ThemeColumnId(index))
+        With column(index)
+            w.WriteAttributeString("Width", .Width)
+            w.WriteAttributeString("Title", .Title)
+            w.WriteAttributeString("Note", ThemeColorText(.cNote))
+            w.WriteAttributeString("Text", ThemeColorText(.cText))
+            w.WriteAttributeString("LongNote", ThemeColorText(.cLNote))
+            w.WriteAttributeString("LongText", ThemeColorText(.cLText))
+            w.WriteAttributeString("Bg", ThemeColorText(.cBG))
+        End With
+        w.WriteEndElement()
+    End Sub
+
+    Private Sub XMLWriteThemeColor(ByVal w As XmlTextWriter, ByVal id As String, ByVal color As Color)
+        w.WriteStartElement("Color")
+        w.WriteAttributeString("Id", id)
+        w.WriteAttributeString("Value", ThemeColorText(color))
+        w.WriteEndElement()
+    End Sub
+
+    Private Sub XMLWriteThemeFont(ByVal w As XmlTextWriter, ByVal id As String, ByVal font As Font)
+        w.WriteStartElement("Font")
+        w.WriteAttributeString("Id", id)
+        w.WriteAttributeString("Name", font.FontFamily.Name)
+        w.WriteAttributeString("Size", WriteDecimalWithDot(font.SizeInPoints))
+        w.WriteAttributeString("Style", font.Style.ToString())
+        w.WriteEndElement()
+    End Sub
+
+    Private Sub SaveTheme(ByVal filePath As String)
+        Using w As New XmlTextWriter(filePath, New System.Text.UTF8Encoding(False))
+            With w
+                .WriteStartDocument()
+                .Formatting = Formatting.Indented
+                .Indentation = 4
+
+                .WriteStartElement("nBMSCTheme")
+                .WriteAttributeString("Version", "1")
+                .WriteAttributeString("Name", IO.Path.GetFileNameWithoutExtension(filePath))
+
+                .WriteStartElement("Layout")
+                For i As Integer = 0 To UBound(column)
+                    If Not column(i).isVisible Then Continue For
+                    XMLWriteThemeColumn(w, i)
+                Next
+                .WriteEndElement()
+
+                .WriteStartElement("Visual")
+                XMLWriteThemeColor(w, "columnTitle", vo.ColumnTitle.Color)
+                XMLWriteThemeFont(w, "columnTitle", vo.ColumnTitleFont)
+                XMLWriteThemeColor(w, "background", vo.Bg.Color)
+                XMLWriteThemeColor(w, "grid", vo.pGrid.Color)
+                XMLWriteThemeColor(w, "subGrid", vo.pSub.Color)
+                XMLWriteThemeColor(w, "verticalLine", vo.pVLine.Color)
+                XMLWriteThemeColor(w, "measureLine", vo.pMLine.Color)
+                XMLWriteThemeColor(w, "bgmWave", vo.pBGMWav.Color)
+                XMLWriteThemeColor(w, "selectionBox", vo.SelBox.Color)
+                XMLWriteThemeColor(w, "timeCursor", vo.PECursor.Color)
+                XMLWriteThemeColor(w, "timeHalf", vo.PEHalf.Color)
+                XMLWriteThemeColor(w, "timeMouseOver", vo.PEMouseOver.Color)
+                XMLWriteThemeColor(w, "timeSelection", vo.PESel.Color)
+                XMLWriteThemeColor(w, "timeBpm", vo.PEBPM.Color)
+                XMLWriteThemeFont(w, "timeBpm", vo.PEBPMFont)
+                .WriteStartElement("Note")
+                .WriteAttributeString("Height", vo.kHeight)
+                .WriteAttributeString("HiddenOpacity", WriteDecimalWithDot(vo.kOpacity))
+                .WriteEndElement()
+                XMLWriteThemeFont(w, "noteLabel", vo.kFont)
+                XMLWriteThemeFont(w, "measureLabel", vo.kMFont)
+                .WriteStartElement("LabelOffset")
+                .WriteAttributeString("Vertical", vo.kLabelVShift)
+                .WriteAttributeString("Horizontal", vo.kLabelHShift)
+                .WriteAttributeString("LongHorizontal", vo.kLabelHShiftL)
+                .WriteEndElement()
+                XMLWriteThemeColor(w, "noteMouseOver", vo.kMouseOver.Color)
+                XMLWriteThemeColor(w, "noteAdjustBorder", vo.kMouseOverE.Color)
+                XMLWriteThemeColor(w, "noteSelected", vo.kSelected.Color)
+                .WriteEndElement()
+
+                .WriteEndElement()
+                .WriteEndDocument()
+            End With
+        End Using
+        CurrentThemePath = IO.Path.GetFullPath(filePath)
+        ReDim ThemeColumnVisible(UBound(column))
+        For i As Integer = 0 To UBound(column)
+            ThemeColumnVisible(i) = column(i).isVisible
+        Next
+    End Sub
+
     Private Sub XMLWriteFont(ByVal w As XmlTextWriter, ByVal local As String, ByVal f As Font)
         w.WriteStartElement(local)
         w.WriteAttributeString("Name", f.FontFamily.Name)
@@ -42,7 +185,41 @@ Partial Public Class MainWindow
         w.WriteEndElement()
     End Sub
 
+    Private Function DefaultThemePath() As String
+        Return IO.Path.Combine(My.Application.Info.DirectoryPath, "Theme\7k.xml")
+    End Function
+
+    Private Function ResolveThemePath(ByVal filePath As String) As String
+        If filePath = "" Then Return DefaultThemePath()
+        If IO.Path.IsPathRooted(filePath) Then Return filePath
+        Return IO.Path.Combine(My.Application.Info.DirectoryPath, filePath)
+    End Function
+
+    Private Function ThemePathForSettings() As String
+        Dim xThemePath As String = If(CurrentThemePath = "", DefaultThemePath(), CurrentThemePath)
+        Dim xBasePath As String = My.Application.Info.DirectoryPath.TrimEnd("\"c)
+        Dim xFullPath As String = IO.Path.GetFullPath(xThemePath)
+        If xFullPath.StartsWith(xBasePath & "\", StringComparison.OrdinalIgnoreCase) Then
+            Return xFullPath.Substring(xBasePath.Length + 1)
+        End If
+        Return xFullPath
+    End Function
+
+    Private Function LoadThemeOrDefault(ByVal filePath As String) As Boolean
+        If LoadThemeFile(ResolveThemePath(filePath)) Then Return True
+
+        Dim xDefaultThemePath As String = DefaultThemePath()
+        If String.Equals(ResolveThemePath(filePath), xDefaultThemePath, StringComparison.OrdinalIgnoreCase) Then Return False
+        Return LoadThemeFile(xDefaultThemePath)
+    End Function
+
     Private Sub SaveSettings(ByVal Path As String, ByVal ThemeOnly As Boolean)
+        If ThemeOnly Then
+            SaveTheme(Path)
+
+            Return
+        End If
+
         Dim w As New XmlTextWriter(Path, System.Text.Encoding.Unicode)
         With w
             .WriteStartDocument()
@@ -53,8 +230,6 @@ Partial Public Class MainWindow
             .WriteAttributeString("Major", My.Application.Info.Version.Major)
             .WriteAttributeString("Minor", My.Application.Info.Version.Minor)
             .WriteAttributeString("Build", My.Application.Info.Version.Build)
-
-            If ThemeOnly Then GoTo 5000
 
             .WriteStartElement("Form")
             .WriteAttributeString("WindowState", IIf(isFullScreen, previousWindowState, Me.WindowState))
@@ -162,40 +337,13 @@ Partial Public Class MainWindow
                 XMLWritePlayerArguments(w, i) : Next
             .WriteEndElement()
 
-5000:       .WriteStartElement("Columns")
-            '.WriteAttributeString("Count", col.Length)
-            For i As Integer = 0 To UBound(column)
-                XMLWriteColumn(w, i) : Next
+            .WriteStartElement("VisualOptions")
+            XMLWriteValue(w, "TSDeltaMouseOver", vo.PEDeltaMouseOver)
+            XMLWriteValue(w, "MiddleDeltaRelease", vo.MiddleDeltaRelease)
             .WriteEndElement()
 
-            .WriteStartElement("VisualSettings")
-            XMLWriteValue(w, "ColumnTitle", vo.ColumnTitle.Color.ToArgb)
-            XMLWriteFont(w, "ColumnTitleFont", vo.ColumnTitleFont)
-            XMLWriteValue(w, "Bg", vo.Bg.Color.ToArgb)
-            XMLWriteValue(w, "Grid", vo.pGrid.Color.ToArgb)
-            XMLWriteValue(w, "Sub", vo.pSub.Color.ToArgb)
-            XMLWriteValue(w, "VLine", vo.pVLine.Color.ToArgb)
-            XMLWriteValue(w, "MLine", vo.pMLine.Color.ToArgb)
-            XMLWriteValue(w, "BGMWav", vo.pBGMWav.Color.ToArgb)
-            XMLWriteValue(w, "SelBox", vo.SelBox.Color.ToArgb)
-            XMLWriteValue(w, "TSCursor", vo.PECursor.Color.ToArgb)
-            XMLWriteValue(w, "TSHalf", vo.PEHalf.Color.ToArgb)
-            XMLWriteValue(w, "TSDeltaMouseOver", vo.PEDeltaMouseOver)
-            XMLWriteValue(w, "TSMouseOver", vo.PEMouseOver.Color.ToArgb)
-            XMLWriteValue(w, "TSSel", vo.PESel.Color.ToArgb)
-            XMLWriteValue(w, "TSBPM", vo.PEBPM.Color.ToArgb)
-            XMLWriteFont(w, "TSBPMFont", vo.PEBPMFont)
-            XMLWriteValue(w, "MiddleDeltaRelease", vo.MiddleDeltaRelease)
-            XMLWriteValue(w, "kHeight", vo.kHeight)
-            XMLWriteFont(w, "kFont", vo.kFont)
-            XMLWriteFont(w, "kMFont", vo.kMFont)
-            XMLWriteValue(w, "kLabelVShift", vo.kLabelVShift)
-            XMLWriteValue(w, "kLabelHShift", vo.kLabelHShift)
-            XMLWriteValue(w, "kLabelHShiftL", vo.kLabelHShiftL)
-            XMLWriteValue(w, "kMouseOver", vo.kMouseOver.Color.ToArgb)
-            XMLWriteValue(w, "kMouseOverE", vo.kMouseOverE.Color.ToArgb)
-            XMLWriteValue(w, "kSelected", vo.kSelected.Color.ToArgb)
-            XMLWriteValue(w, "kOpacity", vo.kOpacity)
+            .WriteStartElement("Theme")
+            .WriteAttributeString("Path", ThemePathForSettings())
             .WriteEndElement()
 
             .WriteEndElement()
@@ -228,6 +376,168 @@ Partial Public Class MainWindow
         XMLLoadAttribute(n.GetAttribute("Style"), xStyle)
         v = New Font(xName, xSize, CType(xStyle, System.Drawing.FontStyle))
     End Sub
+
+    Private Function CreateThemeColumns() As Column()
+        Dim xColumns() As Column = CType(InitialColumns.Clone(), Column())
+        For i As Integer = 0 To UBound(xColumns)
+            xColumns(i).isVisible = False
+        Next
+        Return xColumns
+    End Function
+
+    Private Function ThemeElementById(ByVal parent As XmlElement, ByVal elementName As String, ByVal id As String) As XmlElement
+        For Each n As XmlElement In parent.GetElementsByTagName(elementName)
+            If String.Equals(n.GetAttribute("Id"), id, StringComparison.OrdinalIgnoreCase) Then Return n
+        Next
+        Return Nothing
+    End Function
+
+    Private Function ThemeColor(ByVal parent As XmlElement, ByVal id As String, ByVal current As Color) As Color
+        Dim n As XmlElement = ThemeElementById(parent, "Color", id)
+        If n Is Nothing OrElse Not n.HasAttribute("Value") Then Return current
+        Return ParseThemeColor(n.GetAttribute("Value"))
+    End Function
+
+    Private Function ThemeFont(ByVal parent As XmlElement, ByVal id As String, ByVal current As Font) As Font
+        Dim n As XmlElement = ThemeElementById(parent, "Font", id)
+        If n Is Nothing Then Return current
+
+        Dim xName As String = current.FontFamily.Name
+        Dim xSize As Single = current.SizeInPoints
+        Dim xStyle As FontStyle = current.Style
+        If n.HasAttribute("Name") Then xName = n.GetAttribute("Name")
+        If n.HasAttribute("Size") Then xSize = ParseThemeSingle(n.GetAttribute("Size"))
+        If n.HasAttribute("Style") Then xStyle = CType([Enum].Parse(GetType(FontStyle), n.GetAttribute("Style"), True), FontStyle)
+        Return New Font(xName, xSize, xStyle)
+    End Function
+
+    Private Function LoadThemeColumn(ByVal n As XmlElement, ByVal xColumns() As Column) As Integer
+        If Not n.HasAttribute("Id") Then Throw New FormatException("Theme column Id is missing.")
+
+        Dim index As Integer = ThemeColumnIndex(n.GetAttribute("Id"))
+        If index < 0 OrElse index > UBound(xColumns) Then Throw New FormatException("Unknown theme column: " & n.GetAttribute("Id"))
+
+        With xColumns(index)
+            If n.HasAttribute("Width") Then .Width = ParseThemeInteger(n.GetAttribute("Width"))
+            If n.HasAttribute("Title") Then .Title = n.GetAttribute("Title")
+            If n.HasAttribute("Note") Then .setNoteColor(ParseThemeColor(n.GetAttribute("Note")).ToArgb)
+            If n.HasAttribute("Text") Then .cText = ParseThemeColor(n.GetAttribute("Text"))
+            If n.HasAttribute("LongNote") Then .setLNoteColor(ParseThemeColor(n.GetAttribute("LongNote")).ToArgb)
+            If n.HasAttribute("LongText") Then .cLText = ParseThemeColor(n.GetAttribute("LongText"))
+            If n.HasAttribute("Bg") Then .cBG = ParseThemeColor(n.GetAttribute("Bg"))
+            .isVisible = True
+        End With
+        Return index
+    End Function
+
+    Private Function LoadThemeVisual(ByVal n As XmlElement) As visualSettings
+        Dim xVo As New visualSettings()
+        If n Is Nothing Then Return xVo
+
+        xVo.ColumnTitle.Color = ThemeColor(n, "columnTitle", xVo.ColumnTitle.Color)
+        xVo.ColumnTitleFont = ThemeFont(n, "columnTitle", xVo.ColumnTitleFont)
+        xVo.Bg.Color = ThemeColor(n, "background", xVo.Bg.Color)
+        xVo.pGrid.Color = ThemeColor(n, "grid", xVo.pGrid.Color)
+        xVo.pSub.Color = ThemeColor(n, "subGrid", xVo.pSub.Color)
+        xVo.pVLine.Color = ThemeColor(n, "verticalLine", xVo.pVLine.Color)
+        xVo.pMLine.Color = ThemeColor(n, "measureLine", xVo.pMLine.Color)
+        xVo.pBGMWav.Color = ThemeColor(n, "bgmWave", xVo.pBGMWav.Color)
+        xVo.SelBox.Color = ThemeColor(n, "selectionBox", xVo.SelBox.Color)
+        xVo.PECursor.Color = ThemeColor(n, "timeCursor", xVo.PECursor.Color)
+        xVo.PEHalf.Color = ThemeColor(n, "timeHalf", xVo.PEHalf.Color)
+        xVo.PEMouseOver.Color = ThemeColor(n, "timeMouseOver", xVo.PEMouseOver.Color)
+        xVo.PESel.Color = ThemeColor(n, "timeSelection", xVo.PESel.Color)
+        xVo.PEBPM.Color = ThemeColor(n, "timeBpm", xVo.PEBPM.Color)
+        xVo.PEBPMFont = ThemeFont(n, "timeBpm", xVo.PEBPMFont)
+
+        Dim eNote As XmlElement = n.Item("Note")
+        If eNote IsNot Nothing Then
+            If eNote.HasAttribute("Height") Then xVo.kHeight = ParseThemeInteger(eNote.GetAttribute("Height"))
+            If eNote.HasAttribute("HiddenOpacity") Then xVo.kOpacity = ParseThemeSingle(eNote.GetAttribute("HiddenOpacity"))
+        End If
+
+        xVo.kFont = ThemeFont(n, "noteLabel", xVo.kFont)
+        xVo.kMFont = ThemeFont(n, "measureLabel", xVo.kMFont)
+
+        Dim eLabelOffset As XmlElement = n.Item("LabelOffset")
+        If eLabelOffset IsNot Nothing Then
+            If eLabelOffset.HasAttribute("Vertical") Then xVo.kLabelVShift = ParseThemeInteger(eLabelOffset.GetAttribute("Vertical"))
+            If eLabelOffset.HasAttribute("Horizontal") Then xVo.kLabelHShift = ParseThemeInteger(eLabelOffset.GetAttribute("Horizontal"))
+            If eLabelOffset.HasAttribute("LongHorizontal") Then xVo.kLabelHShiftL = ParseThemeInteger(eLabelOffset.GetAttribute("LongHorizontal"))
+        End If
+
+        xVo.kMouseOver.Color = ThemeColor(n, "noteMouseOver", xVo.kMouseOver.Color)
+        xVo.kMouseOverE.Color = ThemeColor(n, "noteAdjustBorder", xVo.kMouseOverE.Color)
+        xVo.kSelected.Color = ThemeColor(n, "noteSelected", xVo.kSelected.Color)
+        Return xVo
+    End Function
+
+    Private Sub ApplyThemeVisualState()
+        TWTransparency.Value = vo.pBGMWav.Color.A
+        TWTransparency2.Value = vo.pBGMWav.Color.A
+        TWSaturation.Value = vo.pBGMWav.Color.GetSaturation * 1000
+        TWSaturation2.Value = vo.pBGMWav.Color.GetSaturation * 1000
+    End Sub
+
+    Private Function LoadThemeFile(ByVal filePath As String) As Boolean
+        Try
+            Dim Doc As New XmlDocument
+            Using FileStream As New IO.FileStream(filePath, FileMode.Open, FileAccess.Read)
+                Doc.Load(FileStream)
+            End Using
+
+            Dim Root As XmlElement = Doc.Item("nBMSCTheme")
+            If Root Is Nothing OrElse Root.GetAttribute("Version") <> "1" Then Throw New FormatException("Unsupported theme file.")
+
+            Dim eLayout As XmlElement = Root.Item("Layout")
+            If eLayout Is Nothing Then Throw New FormatException("Theme layout is missing.")
+
+            Dim xColumns() As Column = CreateThemeColumns()
+            Dim xThemeColumnVisible(UBound(xColumns)) As Boolean
+            For Each eeCol As XmlElement In eLayout.ChildNodes
+                If eeCol.Name <> "Column" Then Continue For
+                xThemeColumnVisible(LoadThemeColumn(eeCol, xColumns)) = True
+            Next
+
+            If iPlayer = 0 Then
+                For i = niD1 To niDQ
+                    xColumns(i).isVisible = False
+                Next
+            End If
+
+            Dim xVo As visualSettings = LoadThemeVisual(Root.Item("Visual"))
+            column = xColumns
+            vo = xVo
+            ThemeColumnVisible = xThemeColumnVisible
+            CurrentThemePath = IO.Path.GetFullPath(filePath)
+            ApplyThemeVisualState()
+            CalculateGreatestColumn()
+            Return True
+
+        Catch ex As Exception
+            MsgBox(filePath & vbCrLf & vbCrLf & ex.Message, MsgBoxStyle.Exclamation)
+            Return False
+        End Try
+    End Function
+
+    Private Function TryGetThemeName(ByVal xStr As FileInfo, ByRef themeName As String) As Boolean
+        Try
+            Dim Doc As New XmlDocument
+            Using FileStream As New IO.FileStream(xStr.FullName, FileMode.Open, FileAccess.Read)
+                Doc.Load(FileStream)
+            End Using
+
+            Dim Root As XmlElement = Doc.Item("nBMSCTheme")
+            If Root Is Nothing OrElse Root.GetAttribute("Version") <> "1" Then Return False
+
+            themeName = Root.GetAttribute("Name")
+            If themeName = "" Then themeName = IO.Path.GetFileNameWithoutExtension(xStr.Name)
+            Return True
+
+        Catch ex As Exception
+            Return False
+        End Try
+    End Function
 
     Private Sub XMLLoadPlayer(ByVal n As XmlElement)
         Dim i As Integer = -1
@@ -284,6 +594,7 @@ Partial Public Class MainWindow
         Dim Doc As New XmlDocument
         Dim FileStream As New IO.FileStream(Path, FileMode.Open, FileAccess.Read)
         Doc.Load(FileStream)
+        Dim xThemePath As String = DefaultThemePath()
 
         Dim Root As XmlElement = Doc.Item("iBMSC")
         If Root Is Nothing Then GoTo EndOfSub
@@ -526,61 +837,20 @@ Partial Public Class MainWindow
             Next
         End If
 
-        'Columns
-        Dim eColumns As XmlElement = Root.Item("Columns")
-        For i = niA1 To niAQ
-            column(i).isVisible = False
-            column(i + (niD1 - niA1)).isVisible = False
-        Next
-        If eColumns IsNot Nothing Then
-            For Each eeCol As XmlElement In eColumns.ChildNodes
-                Me.XMLLoadColumn(eeCol)
-            Next
-        End If
-        If iPlayer = 0 Then
-            For i = niD1 To niDQ
-                column(i).isVisible = False
-            Next
-        End If
+        Dim eTheme As XmlElement = Root.Item("Theme")
+        If eTheme IsNot Nothing AndAlso eTheme.HasAttribute("Path") Then xThemePath = eTheme.GetAttribute("Path")
+        If LoadThemeOrDefault(xThemePath) Then ChangePlaySideSkin(False)
 
-        'VisualSettings
-        Dim eVisualSettings As XmlElement = Root.Item("VisualSettings")
-        If eVisualSettings IsNot Nothing Then
-            With eVisualSettings
-                XMLLoadElementValue(.Item("ColumnTitle"), vo.ColumnTitle.Color)
-                XMLLoadElementValue(.Item("ColumnTitleFont"), vo.ColumnTitleFont)
-                XMLLoadElementValue(.Item("Bg"), vo.Bg.Color)
-                XMLLoadElementValue(.Item("Grid"), vo.pGrid.Color)
-                XMLLoadElementValue(.Item("Sub"), vo.pSub.Color)
-                XMLLoadElementValue(.Item("VLine"), vo.pVLine.Color)
-                XMLLoadElementValue(.Item("MLine"), vo.pMLine.Color)
-
-                XMLLoadElementValue(.Item("BGMWav"), vo.pBGMWav.Color)
-                TWTransparency.Value = vo.pBGMWav.Color.A
-                TWTransparency2.Value = vo.pBGMWav.Color.A
-                TWSaturation.Value = vo.pBGMWav.Color.GetSaturation * 1000
-                TWSaturation2.Value = vo.pBGMWav.Color.GetSaturation * 1000
-
-                XMLLoadElementValue(.Item("SelBox"), vo.SelBox.Color)
-                XMLLoadElementValue(.Item("TSCursor"), vo.PECursor.Color)
-                XMLLoadElementValue(.Item("TSHalf"), vo.PEHalf.Color)
-                XMLLoadElementValue(.Item("TSDeltaMouseOver"), vo.PEDeltaMouseOver)
-                XMLLoadElementValue(.Item("TSMouseOver"), vo.PEMouseOver.Color)
-                XMLLoadElementValue(.Item("TSSel"), vo.PESel.Color)
-                XMLLoadElementValue(.Item("TSBPM"), vo.PEBPM.Color)
-                XMLLoadElementValue(.Item("TSBPMFont"), vo.PEBPMFont)
-                XMLLoadElementValue(.Item("MiddleDeltaRelease"), vo.MiddleDeltaRelease)
-                XMLLoadElementValue(.Item("kHeight"), vo.kHeight)
-                XMLLoadElementValue(.Item("kFont"), vo.kFont)
-                XMLLoadElementValue(.Item("kMFont"), vo.kMFont)
-                XMLLoadElementValue(.Item("kLabelVShift"), vo.kLabelVShift)
-                XMLLoadElementValue(.Item("kLabelHShift"), vo.kLabelHShift)
-                XMLLoadElementValue(.Item("kLabelHShiftL"), vo.kLabelHShiftL)
-                XMLLoadElementValue(.Item("kMouseOver"), vo.kMouseOver.Color)
-                XMLLoadElementValue(.Item("kMouseOverE"), vo.kMouseOverE.Color)
-                XMLLoadElementValue(.Item("kSelected"), vo.kSelected.Color)
-                XMLLoadElementValue(.Item("kOpacity"), vo.kOpacity)
-            End With
+        Dim eVisualOptions As XmlElement = Root.Item("VisualOptions")
+        If eVisualOptions IsNot Nothing Then
+            XMLLoadElementValue(eVisualOptions.Item("TSDeltaMouseOver"), vo.PEDeltaMouseOver)
+            XMLLoadElementValue(eVisualOptions.Item("MiddleDeltaRelease"), vo.MiddleDeltaRelease)
+        Else
+            Dim eOldVisualSettings As XmlElement = Root.Item("VisualSettings")
+            If eOldVisualSettings IsNot Nothing Then
+                XMLLoadElementValue(eOldVisualSettings.Item("TSDeltaMouseOver"), vo.PEDeltaMouseOver)
+                XMLLoadElementValue(eOldVisualSettings.Item("MiddleDeltaRelease"), vo.MiddleDeltaRelease)
+            End If
         End If
 
 EndOfSub:
@@ -1270,7 +1540,7 @@ EndOfSub:
     Private Sub LoadTheme(ByVal sender As System.Object, ByVal e As System.EventArgs)
         Dim xThemePath As String = sender.ToolTipText
         'SaveTheme = True
-        LoadSettings(xThemePath)
+        If Not LoadThemeFile(xThemePath) Then Return
         ChangePlaySideSkin(False)
         RefreshPanelAll()
     End Sub

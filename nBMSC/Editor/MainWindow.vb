@@ -209,6 +209,9 @@ Public Class MainWindow
 
     '----Visual Options
     Dim vo As New visualSettings()
+    Private ReadOnly InitialColumns() As Column
+    Private CurrentThemePath As String = ""
+    Private ThemeColumnVisible() As Boolean = Nothing
 
     Public Sub setVO(ByVal xvo As visualSettings)
         vo = xvo
@@ -819,6 +822,8 @@ Public Class MainWindow
 
 
     Public Sub New()
+        InitialColumns = CType(column.Clone(), Column())
+
         InitializeComponent()
         InitializeEditorContextMenu()
         InitializeDefinitionContextMenu()
@@ -2920,6 +2925,7 @@ Public Class MainWindow
         If My.Computer.FileSystem.FileExists(xLangPath) Then
             LoadLocale(xLangPath)
         End If
+        If LoadThemeOrDefault("") Then ChangePlaySideSkin(False)
     End Sub
 
     Private Sub UpdatePairing()
@@ -5355,45 +5361,52 @@ StartCount:     If Not NTInput Then
 
         iPlayer = CHPlayer.SelectedIndex
         Dim xGP2 As Boolean = iPlayer <> 0
-        column(niD8).isVisible = (xGP2 And column(niAA).isVisible)
-        column(niD9).isVisible = (xGP2 And column(niAB).isVisible)
-        column(niDA).isVisible = (xGP2 And column(niAC).isVisible)
-        column(niDB).isVisible = (xGP2 And column(niAD).isVisible)
-        column(niDC).isVisible = (xGP2 And column(niAE).isVisible)
-        column(niDD).isVisible = (xGP2 And column(niAF).isVisible)
-        column(niDE).isVisible = (xGP2 And column(niAG).isVisible)
-        column(niDF).isVisible = (xGP2 And column(niAH).isVisible)
-        column(niDG).isVisible = (xGP2 And column(niAI).isVisible)
-        column(niDH).isVisible = (xGP2 And column(niAJ).isVisible)
-        column(niDI).isVisible = (xGP2 And column(niAK).isVisible)
-        column(niDJ).isVisible = (xGP2 And column(niAL).isVisible)
-        column(niDK).isVisible = (xGP2 And column(niAM).isVisible)
-        column(niDL).isVisible = (xGP2 And column(niAN).isVisible)
-        column(niDM).isVisible = (xGP2 And column(niAO).isVisible)
-        column(niDN).isVisible = (xGP2 And column(niAP).isVisible)
-        column(niDO).isVisible = (xGP2 And column(niAQ).isVisible)
-        If Rscratch Then
-            column(niD1).isVisible = (xGP2 And column(niA1).isVisible)
-            column(niD2).isVisible = (xGP2 And column(niA2).isVisible)
-            column(niD3).isVisible = (xGP2 And column(niA3).isVisible)
-            column(niD4).isVisible = (xGP2 And column(niA4).isVisible)
-            column(niD5).isVisible = (xGP2 And column(niA5).isVisible)
-            column(niD6).isVisible = (xGP2 And column(niA6).isVisible)
-            column(niD7).isVisible = (xGP2 And column(niA7).isVisible)
-            column(niDP).isVisible = (xGP2 And column(niA8).isVisible)
-            column(niDQ).isVisible = (xGP2 And column(niA9).isVisible)
+        If ThemeColumnVisible IsNot Nothing AndAlso ThemeColumnVisible.Length = column.Length Then
+            For i As Integer = niD1 To niDQ
+                column(i).isVisible = xGP2 And ThemeColumnVisible(i)
+            Next
+            column(niS3).isVisible = xGP2 And ThemeColumnVisible(niS3)
         Else
-            column(niD1).isVisible = (xGP2 And column(niA3).isVisible)
-            column(niD2).isVisible = (xGP2 And column(niA4).isVisible)
-            column(niD3).isVisible = (xGP2 And column(niA5).isVisible)
-            column(niD4).isVisible = (xGP2 And column(niA6).isVisible)
-            column(niD5).isVisible = (xGP2 And column(niA7).isVisible)
-            column(niD6).isVisible = (xGP2 And column(niA8).isVisible)
-            column(niD7).isVisible = (xGP2 And column(niA9).isVisible)
-            column(niDP).isVisible = (xGP2 And column(niA1).isVisible)
-            column(niDQ).isVisible = (xGP2 And column(niA2).isVisible)
+            column(niD8).isVisible = (xGP2 And column(niAA).isVisible)
+            column(niD9).isVisible = (xGP2 And column(niAB).isVisible)
+            column(niDA).isVisible = (xGP2 And column(niAC).isVisible)
+            column(niDB).isVisible = (xGP2 And column(niAD).isVisible)
+            column(niDC).isVisible = (xGP2 And column(niAE).isVisible)
+            column(niDD).isVisible = (xGP2 And column(niAF).isVisible)
+            column(niDE).isVisible = (xGP2 And column(niAG).isVisible)
+            column(niDF).isVisible = (xGP2 And column(niAH).isVisible)
+            column(niDG).isVisible = (xGP2 And column(niAI).isVisible)
+            column(niDH).isVisible = (xGP2 And column(niAJ).isVisible)
+            column(niDI).isVisible = (xGP2 And column(niAK).isVisible)
+            column(niDJ).isVisible = (xGP2 And column(niAL).isVisible)
+            column(niDK).isVisible = (xGP2 And column(niAM).isVisible)
+            column(niDL).isVisible = (xGP2 And column(niAN).isVisible)
+            column(niDM).isVisible = (xGP2 And column(niAO).isVisible)
+            column(niDN).isVisible = (xGP2 And column(niAP).isVisible)
+            column(niDO).isVisible = (xGP2 And column(niAQ).isVisible)
+            If Rscratch Then
+                column(niD1).isVisible = (xGP2 And column(niA1).isVisible)
+                column(niD2).isVisible = (xGP2 And column(niA2).isVisible)
+                column(niD3).isVisible = (xGP2 And column(niA3).isVisible)
+                column(niD4).isVisible = (xGP2 And column(niA4).isVisible)
+                column(niD5).isVisible = (xGP2 And column(niA5).isVisible)
+                column(niD6).isVisible = (xGP2 And column(niA6).isVisible)
+                column(niD7).isVisible = (xGP2 And column(niA7).isVisible)
+                column(niDP).isVisible = (xGP2 And column(niA8).isVisible)
+                column(niDQ).isVisible = (xGP2 And column(niA9).isVisible)
+            Else
+                column(niD1).isVisible = (xGP2 And column(niA3).isVisible)
+                column(niD2).isVisible = (xGP2 And column(niA4).isVisible)
+                column(niD3).isVisible = (xGP2 And column(niA5).isVisible)
+                column(niD4).isVisible = (xGP2 And column(niA6).isVisible)
+                column(niD5).isVisible = (xGP2 And column(niA7).isVisible)
+                column(niD6).isVisible = (xGP2 And column(niA8).isVisible)
+                column(niD7).isVisible = (xGP2 And column(niA9).isVisible)
+                column(niDP).isVisible = (xGP2 And column(niA1).isVisible)
+                column(niDQ).isVisible = (xGP2 And column(niA2).isVisible)
+            End If
+            column(niS3).isVisible = xGP2
         End If
-        column(niS3).isVisible = xGP2
 
         For xI1 As Integer = 1 To UBound(Notes)
             Notes(xI1).Selected = Notes(xI1).Selected And nEnabled(Notes(xI1).ColumnIndex)
@@ -6075,7 +6088,7 @@ Jump2:
 
         If Not My.Computer.FileSystem.FileExists(xThemePath) Then Return
 
-        LoadSettings(xThemePath)
+        If Not LoadThemeFile(xThemePath) Then Return
         ChangePlaySideSkin(False)
 
         RefreshPanelAll()
@@ -6091,7 +6104,7 @@ Jump2:
         xDiag.InitialDirectory = xThemePath
         If xDiag.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
 
-        Me.SaveSettings(xDiag.FileName, True)
+        Me.SaveTheme(xDiag.FileName)
         If BeepWhileSaved Then Beep()
         TBThemeRefresh_Click(TBThemeRefresh, New System.EventArgs)
     End Sub
@@ -6108,7 +6121,9 @@ Jump2:
         If Not Directory.Exists(xThemePath) Then My.Computer.FileSystem.CreateDirectory(xThemePath)
         Dim xFileNames() As FileInfo = My.Computer.FileSystem.GetDirectoryInfo(xThemePath).GetFiles("*.xml")
         For Each xStr As FileInfo In xFileNames
-            cmnTheme.Items.Add(xStr.Name, Nothing, AddressOf LoadTheme)
+            Dim xThemeName As String = ""
+            If Not TryGetThemeName(xStr, xThemeName) Then Continue For
+            cmnTheme.Items.Add(xThemeName, Nothing, AddressOf LoadTheme)
             cmnTheme.Items(cmnTheme.Items.Count - 1).ToolTipText = xStr.FullName
         Next
     End Sub

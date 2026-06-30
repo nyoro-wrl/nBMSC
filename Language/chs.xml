@@ -304,7 +304,7 @@
 		<SM>StepMania谱面文件 (*.sm)</SM>
 		<NBMSC>nBMSC二进制文件 (*.nbmsc)</NBMSC>
 		<XML>可扩展标记语言 (*.xml)</XML>
-		<THEME_XML>iBMSC 皮肤文件 (*.xml)</THEME_XML>
+		<THEME_XML>nBMSC 皮肤文件 (*.xml)</THEME_XML>
 		<_audio>所有支持的音乐文件 (*.wav, *.ogg, *.mp3, *.mid)</_audio>
 		<_wave>所有支持的音频文件 (*.wav, *.ogg, *.mp3)</_wave>
 		<WAV>波形声音 (*.wav)</WAV>

@@ -68,7 +68,7 @@ Public Class Strings
         Public Shared NBMSC As String = "nBMSC Binary Format (*.nbmsc)"
         Public Shared BMSON As String = "BMS JSON Format (*.bmson)"
         Public Shared XML As String = "Extensible Markup Language (*.xml)"
-        Public Shared THEME_XML As String = "iBMSC Theme File (*.xml)"
+        Public Shared THEME_XML As String = "nBMSC Theme File (*.xml)"
 
         Public Shared _audio As String = "Supported Audio Format (*.wav, *.ogg, *.mp3, *.flac, *.mid)"
         Public Shared _wave As String = "Supported Wave Audio Format (*.wav, *.ogg, *.mp3, *.flac)"

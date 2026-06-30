@@ -313,7 +313,7 @@ Release 페이지를 여시겠습니까?</UpdateVersionUnsupported>
 		<SM>Step Mania files (*.sm)</SM>
 		<NBMSC>nBMSC 바이너리 포맷 (*.nbmsc)</NBMSC>
 		<XML>XML files (*.xml)</XML>
-		<THEME_XML>iBMSC 테마 (*.xml)</THEME_XML>
+		<THEME_XML>nBMSC 테마 (*.xml)</THEME_XML>
 		<_audio>사용 가능한 오디오파일(*.wav, *.ogg, *.mp3, *.mid)</_audio>
 		<_wave>사용 가능한 음원 파일(*.wav, *.ogg, *.mp3)</_wave>
 		<WAV>Waveform Audio (*.wav)</WAV>
