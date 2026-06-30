@@ -856,7 +856,10 @@ Partial Public Class MainWindow
                 POBLong.Enabled = Not NTInput
                 POBLongShort.Enabled = Not NTInput
 
-                LoadLocale(My.Application.Info.DirectoryPath & "\" & .GetAttribute("Language"))
+                Dim xLanguage As String = .GetAttribute("Language")
+                If xLanguage = "" OrElse Not LoadLocale(My.Application.Info.DirectoryPath & "\" & xLanguage, True, False) Then
+                    LoadAutomaticLocale()
+                End If
 
                 'XMLLoadAttribute(.GetAttribute("SortingMethod"), SortingMethod)
 
@@ -1071,8 +1074,37 @@ EndOfSub:
         ToolTipUniversal.SetToolTip(target, n.InnerText)
     End Sub
 
-    Private Sub LoadLocale(ByVal Path As String)
-        If Not My.Computer.FileSystem.FileExists(Path) Then Return
+    Private Function AutomaticLocalePath() As String
+        Dim xCultureName As String = Globalization.CultureInfo.CurrentUICulture.Name
+        Dim xLanguageName As String = Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
+
+        Select Case xLanguageName
+            Case "ja"
+                Return My.Application.Info.DirectoryPath & "\Language\jpn.xml"
+            Case "ko"
+                Return My.Application.Info.DirectoryPath & "\Language\kor.xml"
+            Case "zh"
+                If xCultureName.Equals("zh-Hans", StringComparison.OrdinalIgnoreCase) OrElse
+                   xCultureName.Equals("zh-CN", StringComparison.OrdinalIgnoreCase) OrElse
+                   xCultureName.Equals("zh-SG", StringComparison.OrdinalIgnoreCase) Then
+                    Return My.Application.Info.DirectoryPath & "\Language\chs.xml"
+                End If
+        End Select
+
+        Return ""
+    End Function
+
+    Private Function LoadAutomaticLocale() As Boolean
+        DispLang = ""
+
+        Dim xPath As String = AutomaticLocalePath()
+        If xPath = "" Then Return False
+
+        Return LoadLocale(xPath, False, False)
+    End Function
+
+    Private Function LoadLocale(ByVal Path As String, Optional ByVal SaveSelection As Boolean = True, Optional ByVal ShowError As Boolean = True) As Boolean
+        If Not My.Computer.FileSystem.FileExists(Path) Then Return False
 
         Dim Doc As XmlDocument = Nothing
         Dim FileStream As IO.FileStream = Nothing
@@ -1693,10 +1725,12 @@ EndOfSub:
             End If
 
             RefreshMenuShortcutDisplay()
-            DispLang = Path.Replace(My.Application.Info.DirectoryPath & "\", "")
+            If SaveSelection Then DispLang = Path.Replace(My.Application.Info.DirectoryPath & "\", "")
+            Return True
 
         Catch ex As Exception
-            MsgBox(Path & vbCrLf & vbCrLf & ex.Message, MsgBoxStyle.Exclamation)
+            If ShowError Then MsgBox(Path & vbCrLf & vbCrLf & ex.Message, MsgBoxStyle.Exclamation)
+            Return False
 
         Finally
             If FileStream IsNot Nothing Then FileStream.Close()
@@ -1705,12 +1739,12 @@ EndOfSub:
         End Try
 
         'File.Delete(xTempFileName)
-    End Sub
+    End Function
 
     Private Sub LoadLang(ByVal sender As System.Object, ByVal e As System.EventArgs)
         Dim xFN2 As String = sender.ToolTipText
         'ReadLanguagePack(xFN2)
-        LoadLocale(xFN2)
+        LoadLocale(xFN2, True, True)
     End Sub
 
     Private Sub LoadLocaleXML(xStr As FileInfo)

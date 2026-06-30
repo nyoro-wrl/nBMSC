@@ -3292,11 +3292,7 @@ Public Class MainWindow
     End Sub
 
     Private Sub LoadInitialPreferences()
-        Dim xLangPath As String = My.Application.Info.DirectoryPath & "\Language\jpn.xml"
-
-        If My.Computer.FileSystem.FileExists(xLangPath) Then
-            LoadLocale(xLangPath)
-        End If
+        LoadAutomaticLocale()
         If LoadThemeOrDefault("") Then ChangePlaySideSkin(False)
     End Sub
 
