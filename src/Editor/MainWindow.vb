@@ -318,6 +318,7 @@ Public Class MainWindow
     Dim SyncSplitViewScroll As Boolean = False
     Dim UpdatingSplitViewControls As Boolean = False
     Dim SyncingPanelScroll As Boolean = False
+    Dim SuspendPanelScrollRefresh As Boolean = False
     Dim PanelFocus As Integer = MainPanelIndex
     Dim spMouseOver As Integer = MainPanelIndex
     Private Const PreviewGlobalShortcutSuppressMilliseconds As Double = 1000.0R
@@ -4004,7 +4005,7 @@ EndSearch:
 
         If SyncingPanelScroll Then
             PanelVScroll(iI) = sender.Value
-            RefreshPanel(iI, spMain(iI).DisplayRectangle)
+            If Not SuspendPanelScrollRefresh Then RefreshPanel(iI, spMain(iI).DisplayRectangle)
             Exit Sub
         End If
 
@@ -4039,10 +4040,16 @@ EndSearch:
         End If
 
         VSValue = xOldValue + xDelta
+        If Not SuspendPanelScrollRefresh Then
+            RefreshPanelAfterScroll(iI)
+        End If
+    End Sub
+
+    Private Sub RefreshPanelAfterScroll(ByVal panelIndex As Integer)
         If SyncSplitViewScroll Then
             RefreshPanelAll()
         Else
-            RefreshPanel(iI, spMain(iI).DisplayRectangle)
+            RefreshPanel(panelIndex, spMain(panelIndex).DisplayRectangle)
         End If
     End Sub
 
@@ -4163,7 +4170,7 @@ EndSearch:
         If Not LastMouseDownLocation = New Point(-1, -1) And Not HSValue = -1 Then LastMouseDownLocation.X += (HSValue - sender.Value) * gxWidth
         PanelhBMSCROLL(iI) = sender.Value
         HSValue = sender.Value
-        RefreshPanel(iI, spMain(iI).DisplayRectangle)
+        If Not SuspendPanelScrollRefresh Then RefreshPanel(iI, spMain(iI).DisplayRectangle)
     End Sub
 
     Private Sub TBSelect_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBSelect.Click, mnSelect.Click
@@ -4289,7 +4296,7 @@ EndSearch:
 
     Private Sub Timer1_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Timer1.Tick
         If Not IsValidPanelIndex(PanelFocus) Then Return
-        ScrollPanelBy(PanelFocus, (tempY / 5) / gxHeight, (tempX / 10) / gxWidth)
+        ScrollPanelByDeferredRefresh(PanelFocus, (tempY / 5) / gxHeight, (tempX / 10) / gxWidth)
 
         Dim xMEArgs As New System.Windows.Forms.MouseEventArgs(Windows.Forms.MouseButtons.Left, 0, MouseMoveStatus.X, MouseMoveStatus.Y, 0)
         PMainInMouseMove(spMain(PanelFocus), xMEArgs)
@@ -4300,21 +4307,68 @@ EndSearch:
         If Not MiddleButtonClicked Then TimerMiddle.Enabled = False : Return
         If Not IsValidPanelIndex(PanelFocus) Then Return
 
-        ScrollPanelBy(PanelFocus,
-                      (Cursor.Position.Y - MiddleButtonLocation.Y) / 5 / gxHeight,
-                      (Cursor.Position.X - MiddleButtonLocation.X) / 5 / gxWidth)
+        Dim xScrolled As Boolean = ScrollPanelByDeferredRefresh(PanelFocus,
+                                                                (Cursor.Position.Y - MiddleButtonLocation.Y) / 5 / gxHeight,
+                                                                (Cursor.Position.X - MiddleButtonLocation.X) / 5 / gxWidth)
 
-        Dim xMEArgs As New System.Windows.Forms.MouseEventArgs(Windows.Forms.MouseButtons.Left, 0, MouseMoveStatus.X, MouseMoveStatus.Y, 0)
-        PMainInMouseMove(spMain(PanelFocus), xMEArgs)
+        UpdateMiddleScrollStatus(PanelFocus)
+        If xScrolled Then RefreshPanelAfterScroll(PanelFocus)
     End Sub
 
-    Private Sub ScrollPanelBy(ByVal panelIndex As Integer, ByVal vDelta As Double, ByVal hDelta As Double)
+    Private Function ScrollPanelByDeferredRefresh(ByVal panelIndex As Integer, ByVal vDelta As Double, ByVal hDelta As Double) As Boolean
         Dim xVScroll As EditorScrollBar = GetPanelVScrollBar(panelIndex)
         Dim xHScroll As EditorScrollBar = GetPanelHScroll(panelIndex)
-        If xVScroll Is Nothing OrElse xHScroll Is Nothing Then Return
+        If xVScroll Is Nothing OrElse xHScroll Is Nothing Then Return False
 
-        SetScrollValue(xVScroll, CInt(xVScroll.Value + vDelta))
-        SetScrollValue(xHScroll, CInt(xHScroll.Value + hDelta))
+        Dim xVValue As Integer = ClampScrollValue(xVScroll, CInt(xVScroll.Value + vDelta))
+        Dim xHValue As Integer = ClampScrollValue(xHScroll, CInt(xHScroll.Value + hDelta))
+        Return SetPanelScrollValuesDeferredRefresh(panelIndex, xVValue, xHValue)
+    End Function
+
+    Private Function SetPanelScrollValuesDeferredRefresh(ByVal panelIndex As Integer, ByVal vValue As Integer, ByVal hValue As Integer) As Boolean
+        Dim xVScroll As EditorScrollBar = GetPanelVScrollBar(panelIndex)
+        Dim xHScroll As EditorScrollBar = GetPanelHScroll(panelIndex)
+        If xVScroll Is Nothing OrElse xHScroll Is Nothing Then Return False
+
+        Dim xOldVValue As Integer = xVScroll.Value
+        Dim xOldHValue As Integer = xHScroll.Value
+        Dim xVValue As Integer = ClampScrollValue(xVScroll, vValue)
+        Dim xHValue As Integer = ClampScrollValue(xHScroll, hValue)
+        If xVScroll.Value = xVValue AndAlso xHScroll.Value = xHValue Then Return False
+
+        SuspendPanelScrollRefresh = True
+        Try
+            SetScrollValue(xVScroll, xVValue)
+            SetScrollValue(xHScroll, xHValue)
+        Finally
+            SuspendPanelScrollRefresh = False
+        End Try
+
+        Return xVScroll.Value <> xOldVValue OrElse xHScroll.Value <> xOldHValue
+    End Function
+
+    Private Sub UpdateMiddleScrollStatus(ByVal panelIndex As Integer)
+        If Not IsValidPanelIndex(panelIndex) Then Return
+
+        Dim xPanel As Panel = spMain(panelIndex)
+        Dim xLocation As Point = xPanel.PointToClient(Cursor.Position)
+        Dim xHS As Integer = PanelhBMSCROLL(panelIndex)
+        Dim xVS As Integer = PanelVScroll(panelIndex)
+        MouseMoveStatus = xLocation
+
+        If TBWrite.Checked Then
+            TempVPosition = (xPanel.Height - xVS * gxHeight - xLocation.Y - 1) / gxHeight
+            If gSnap Then TempVPosition = SnapToGrid(TempVPosition)
+            SelectedColumn = GetColumnAtX(xLocation.X, xHS)
+        End If
+
+        Dim xColumn As Integer = GetColumnAtX(xLocation.X, xHS)
+        Dim xVPosition As Double = GetMouseVPosition(gSnap)
+        If xVPosition <> lastVPos OrElse xColumn <> lastColumn Then
+            lastVPos = xVPosition
+            lastColumn = xColumn
+            POStatusRefresh()
+        End If
     End Sub
 
     Private Shared Function GetVisibleListItemCount(ByVal xList As ListBox) As Integer

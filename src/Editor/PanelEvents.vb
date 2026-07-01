@@ -1217,10 +1217,11 @@ Partial Public Class MainWindow
         Dim xHeight As Integer = spMain(iI).Height
         Dim xWidth As Integer = spMain(iI).Width
 
+        If MiddleButtonClicked Then Return
+
         Select Case e.Button
             Case MouseButtons.None
                 'If K Is Nothing Then Exit Select
-                If MiddleButtonClicked Then Exit Select
 
                 If isFullScreen Then
                     If e.Y < 5 Then ToolStripContainer1.TopToolStripPanelVisible = True Else ToolStripContainer1.TopToolStripPanelVisible = False
@@ -1340,7 +1341,8 @@ Partial Public Class MainWindow
                 End If
 
             Case MouseButtons.Middle
-                OnPanelMousePan(e)
+                If OnPanelMousePan(e) Then UpdateMiddleScrollStatus(PanelFocus)
+                Return
         End Select
         Dim col = GetColumnAtEvent(e, xHS)
         Dim vps = GetMouseVPosition(gSnap)
@@ -1401,21 +1403,18 @@ Partial Public Class MainWindow
         'Label1.Text = KInfo(KMouseDown)
     End Sub
 
-    Private Sub OnPanelMousePan(e As MouseEventArgs)
-        If MiddleButtonMoveMethod = 1 Then
-            Dim xI1 As Integer = tempV + (tempY - e.Y) / gxHeight
-            Dim xI2 As Integer = tempH + (tempX - e.X) / gxWidth
-            If xI1 > 0 Then xI1 = 0
-            If xI2 < 0 Then xI2 = 0
+    Private Function OnPanelMousePan(e As MouseEventArgs) As Boolean
+        If MiddleButtonMoveMethod <> 1 Then Return False
 
-            Dim xVScroll As EditorScrollBar = GetPanelVScrollBar(PanelFocus)
-            Dim xHScroll As EditorScrollBar = GetPanelHScroll(PanelFocus)
-            If xVScroll Is Nothing OrElse xHScroll Is Nothing Then Return
+        Dim xI1 As Integer = tempV + (tempY - e.Y) / gxHeight
+        Dim xI2 As Integer = tempH + (tempX - e.X) / gxWidth
+        If xI1 > 0 Then xI1 = 0
+        If xI2 < 0 Then xI2 = 0
 
-            SetScrollValue(xVScroll, xI1)
-            SetScrollValue(xHScroll, xI2)
-        End If
-    End Sub
+        Dim xScrolled As Boolean = SetPanelScrollValuesDeferredRefresh(PanelFocus, xI1, xI2)
+        If xScrolled Then RefreshPanelAfterScroll(PanelFocus)
+        Return xScrolled
+    End Function
 
     Private Sub OnTimeSelectClick(xHeight As Double, xHS As Double, xvs As Double, e As MouseEventArgs)
         Dim xI1 As Integer
