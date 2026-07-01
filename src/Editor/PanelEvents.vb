@@ -667,7 +667,7 @@ Partial Public Class MainWindow
         If NTInput Then bAdjustUpper = False : bAdjustLength = False
         Me.ctrlPressed = False : Me.DuplicatedSelectedNotes = False
 
-        If MiddleButtonClicked Then MiddleButtonClicked = False : Exit Sub
+        If MiddleButtonClicked Then CancelMiddleScroll() : Exit Sub
 
         Dim xHS As Long = PanelhBMSCROLL(PanelFocus)
         Dim xVS As Long = PanelVScroll(PanelFocus)
@@ -702,7 +702,7 @@ Partial Public Class MainWindow
                 Else
                     MiddleButtonLocation = Cursor.Position
                     MiddleButtonClicked = True
-                    TimerMiddle.Enabled = True
+                    StartMiddleScrollTimer()
                 End If
 
             Case Windows.Forms.MouseButtons.Right
@@ -1303,9 +1303,9 @@ Partial Public Class MainWindow
                     If e.X > xWidth Then tempX = e.X - xWidth
                     If e.Y < 0 Then tempY = e.Y
                     If e.Y > xHeight Then tempY = e.Y - xHeight
-                    Timer1.Enabled = True
+                    StartDragScrollTimer()
                 Else
-                    Timer1.Enabled = False
+                    StopDragScrollTimer()
                 End If
 
                 If TBSelect.Checked Then
@@ -1893,7 +1893,7 @@ Partial Public Class MainWindow
         tempH = 0
         VSValue = -1
         HSValue = -1
-        Timer1.Enabled = False
+        StopDragScrollTimer()
         'KMouseDown = -1
         ReDim SelectedNotes(-1)
 
@@ -1902,7 +1902,7 @@ Partial Public Class MainWindow
 
         If MiddleButtonClicked AndAlso e.Button = Windows.Forms.MouseButtons.Middle AndAlso
             (MiddleButtonLocation.X - Cursor.Position.X) ^ 2 + (MiddleButtonLocation.Y - Cursor.Position.Y) ^ 2 >= vo.MiddleDeltaRelease Then
-            MiddleButtonClicked = False
+            CancelMiddleScroll()
         End If
 
         If TBSelect.Checked Then
@@ -1992,8 +1992,22 @@ Partial Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
+    Private Const PanelWheelDelta As Integer = 120
+
+    Private Function TakePanelWheelSteps(ByVal delta As Integer, ByRef remainder As Integer) As Integer
+        If delta = 0 Then Return 0
+
+        remainder += delta
+
+        Dim xSteps As Integer = CInt(Math.Truncate(remainder / CDbl(PanelWheelDelta)))
+        If xSteps = 0 Then Return 0
+
+        remainder -= xSteps * PanelWheelDelta
+        Return xSteps
+    End Function
+
     Private Sub PMainInMouseWheel(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PMainIn.MouseWheel, PMainInL.MouseWheel, PMainInR.MouseWheel
-        If MiddleButtonClicked Then MiddleButtonClicked = False
+        If MiddleButtonClicked Then CancelMiddleScroll()
         If My.Computer.Keyboard.CtrlKeyDown Then Exit Sub
 
         If My.Computer.Keyboard.ShiftKeyDown Then
@@ -2004,7 +2018,10 @@ Partial Public Class MainWindow
         Dim xScroll As EditorScrollBar = GetPanelVScrollBar(spMouseOver)
         If xScroll Is Nothing Then Return
 
-        Dim xI1 As Integer = PanelVScroll(spMouseOver) - Math.Sign(e.Delta) * gWheel
+        Dim xSteps As Integer = TakePanelWheelSteps(e.Delta, PanelVWheelRemainder)
+        If xSteps = 0 Then Return
+
+        Dim xI1 As Integer = PanelVScroll(spMouseOver) - xSteps * gWheel
         SetScrollValue(xScroll, xI1)
     End Sub
 
@@ -2015,7 +2032,10 @@ Partial Public Class MainWindow
             Return
         End If
 
-        Dim xI1 As Integer = PanelhBMSCROLL(spMouseOver) - Math.Sign(delta) * gWheel
+        Dim xSteps As Integer = TakePanelWheelSteps(delta, PanelHWheelRemainder)
+        If xSteps = 0 Then Return
+
+        Dim xI1 As Integer = PanelhBMSCROLL(spMouseOver) - xSteps * gWheel
         SetScrollValue(xScroll, xI1)
     End Sub
 

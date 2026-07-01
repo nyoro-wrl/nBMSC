@@ -138,11 +138,19 @@ Public Class MainWindow
     Dim bAdjustUpper As Boolean      'true = Adjusting upper end, false = adjusting lower end
     Dim bAdjustSingle As Boolean     'true if there is only one note to be adjusted
     Dim tempY As Integer
+    Dim DragScrollLastTickAt As Date = Date.MinValue
+    Dim DragScrollVDeltaCarry As Double = 0
+    Dim DragScrollHDeltaCarry As Double = 0
     Dim tempV As Integer
     Dim tempX As Integer
     Dim tempH As Integer
     Dim MiddleButtonLocation As New Point(0, 0)
     Dim MiddleButtonClicked As Boolean = False
+    Dim MiddleScrollLastTickAt As Date = Date.MinValue
+    Dim MiddleScrollVDeltaCarry As Double = 0
+    Dim MiddleScrollHDeltaCarry As Double = 0
+    Dim PanelVWheelRemainder As Integer = 0
+    Dim PanelHWheelRemainder As Integer = 0
     Dim MouseMoveStatus As Point = New Point(0, 0)  'mouse is moved to which point (For Status Panel)
     'Dim uCol As Integer         'temp variables for undo, original enabled columnindex
     'Dim uVPos As Double         'temp variables for undo, original vposition
@@ -4224,24 +4232,119 @@ EndSearch:
     End Sub
 
     Private Sub Timer1_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Timer1.Tick
-        If Not IsValidPanelIndex(PanelFocus) Then Return
-        ScrollPanelByDeferredRefresh(PanelFocus, (tempY / 5) / gxHeight, (tempX / 10) / gxWidth)
+        If Not IsValidPanelIndex(PanelFocus) Then
+            StopDragScrollTimer()
+            Return
+        End If
+
+        Dim xElapsedScale As Double = GetScrollElapsedScale(DragScrollLastTickAt, Timer1.Interval)
+        Dim xVDelta As Integer = TakeTimedScrollDelta((tempY / 5) / gxHeight * xElapsedScale, DragScrollVDeltaCarry)
+        Dim xHDelta As Integer = TakeTimedScrollDelta((tempX / 10) / gxWidth * xElapsedScale, DragScrollHDeltaCarry)
+        ScrollPanelByDeferredRefresh(PanelFocus, xVDelta, xHDelta)
 
         Dim xMEArgs As New System.Windows.Forms.MouseEventArgs(Windows.Forms.MouseButtons.Left, 0, MouseMoveStatus.X, MouseMoveStatus.Y, 0)
         PMainInMouseMove(spMain(PanelFocus), xMEArgs)
 
     End Sub
 
-    Private Sub TimerMiddle_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerMiddle.Tick
-        If Not MiddleButtonClicked Then TimerMiddle.Enabled = False : Return
-        If Not IsValidPanelIndex(PanelFocus) Then Return
+    Private Sub StartDragScrollTimer()
+        If Timer1.Enabled Then Return
 
+        ResetDragScrollTiming()
+        DragScrollLastTickAt = Date.UtcNow
+        Timer1.Enabled = True
+    End Sub
+
+    Private Sub StopDragScrollTimer()
+        Timer1.Enabled = False
+        ResetDragScrollTiming()
+    End Sub
+
+    Private Sub ResetDragScrollTiming()
+        DragScrollLastTickAt = Date.MinValue
+        DragScrollVDeltaCarry = 0
+        DragScrollHDeltaCarry = 0
+    End Sub
+
+    Private Function GetScrollElapsedScale(ByRef lastTickAt As Date, ByVal interval As Integer) As Double
+        Dim xNow As Date = Date.UtcNow
+        If lastTickAt = Date.MinValue Then
+            lastTickAt = xNow
+            Return 1
+        End If
+
+        Dim xElapsed As Double = (xNow - lastTickAt).TotalMilliseconds
+        lastTickAt = xNow
+        If xElapsed <= 0 OrElse interval <= 0 Then Return 0
+
+        Return xElapsed / interval
+    End Function
+
+    Private Function TakeTimedScrollDelta(ByVal delta As Double, ByRef carry As Double) As Integer
+        If delta = 0 Then
+            carry = 0
+            Return 0
+        End If
+
+        If carry <> 0 AndAlso Math.Sign(delta) <> Math.Sign(carry) Then carry = 0
+
+        carry += delta
+
+        Dim xDelta As Integer
+        If carry > 0 Then
+            xDelta = CInt(Math.Floor(carry))
+        Else
+            xDelta = CInt(Math.Ceiling(carry))
+        End If
+
+        carry -= xDelta
+        Return xDelta
+    End Function
+
+    Private Sub TimerMiddle_Tick(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TimerMiddle.Tick
+        If Not MiddleButtonClicked Then
+            StopMiddleScrollTimer()
+            Return
+        End If
+
+        If Not IsValidPanelIndex(PanelFocus) Then
+            CancelMiddleScroll()
+            Return
+        End If
+
+        Dim xElapsedScale As Double = GetScrollElapsedScale(MiddleScrollLastTickAt, TimerMiddle.Interval)
+        Dim xVDelta As Integer = TakeTimedScrollDelta((Cursor.Position.Y - MiddleButtonLocation.Y) / 5 / gxHeight * xElapsedScale, MiddleScrollVDeltaCarry)
+        Dim xHDelta As Integer = TakeTimedScrollDelta((Cursor.Position.X - MiddleButtonLocation.X) / 5 / gxWidth * xElapsedScale, MiddleScrollHDeltaCarry)
         Dim xScrolled As Boolean = ScrollPanelByDeferredRefresh(PanelFocus,
-                                                                (Cursor.Position.Y - MiddleButtonLocation.Y) / 5 / gxHeight,
-                                                                (Cursor.Position.X - MiddleButtonLocation.X) / 5 / gxWidth)
+                                                                xVDelta,
+                                                                xHDelta)
 
         UpdateMiddleScrollStatus(PanelFocus)
         If xScrolled Then RefreshPanelAfterScroll(PanelFocus)
+    End Sub
+
+    Private Sub StartMiddleScrollTimer()
+        If TimerMiddle.Enabled Then Return
+
+        ResetMiddleScrollTiming()
+        MiddleScrollLastTickAt = Date.UtcNow
+        TimerMiddle.Enabled = True
+    End Sub
+
+    Private Sub StopMiddleScrollTimer()
+        TimerMiddle.Enabled = False
+        ResetMiddleScrollTiming()
+    End Sub
+
+    Private Sub CancelMiddleScroll()
+        MiddleButtonClicked = False
+        StopMiddleScrollTimer()
+    End Sub
+
+    Private Sub ResetMiddleScrollTiming()
+        MiddleScrollLastTickAt = Date.MinValue
+        MiddleScrollVDeltaCarry = 0
+        MiddleScrollHDeltaCarry = 0
     End Sub
 
     Private Function ScrollPanelByDeferredRefresh(ByVal panelIndex As Integer, ByVal vDelta As Double, ByVal hDelta As Double) As Boolean
