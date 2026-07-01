@@ -633,20 +633,21 @@ Partial Public Class MainWindow
     Private Sub PMainInResize(ByVal sender As Object, ByVal e As System.EventArgs) Handles PMainIn.Resize, PMainInL.Resize, PMainInR.Resize
         If Not Me.Created Then Exit Sub
 
-        Dim iI As Integer = sender.Tag
+        Dim xCanvas As Panel = DirectCast(sender, Panel)
+        Dim iI As Integer = CInt(xCanvas.Tag)
         If Not IsValidPanelIndex(iI) Then Return
 
         PanelWidth(iI) = SplitPanes(iI).Container.Width
         Dim xVScroll As EditorScrollBar = GetPanelVScrollBar(iI)
-        xVScroll.LargeChange = sender.Height * 0.9
-        xVScroll.Maximum = xVScroll.LargeChange - 1
+        Dim xLargeChange As Integer = Math.Max(1, CInt(xCanvas.Height * 0.9))
+        xVScroll.SetRange(xVScroll.Minimum, xLargeChange - 1, xLargeChange)
 
         Dim xPreviousColumns As Integer = gColumns
         UpdateHorizontalScrollMetrics()
         If xPreviousColumns <> gColumns Then
             RefreshPanelAll()
         Else
-            RefreshPanel(iI, sender.DisplayRectangle)
+            RefreshPanel(iI, xCanvas.DisplayRectangle)
         End If
     End Sub
 

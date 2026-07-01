@@ -473,6 +473,14 @@ Public Class MainWindow
             End Set
         End Property
 
+        Public Sub SetRange(ByVal minimum As Integer, ByVal maximum As Integer, ByVal largeChange As Integer)
+            _minimum = minimum
+            _maximum = maximum
+            _largeChange = Math.Max(1, largeChange)
+            ClampValue()
+            Invalidate()
+        End Sub
+
         Public Property Value As Integer
             Get
                 Return _value
