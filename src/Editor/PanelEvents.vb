@@ -472,7 +472,7 @@ Partial Public Class MainWindow
     Private Sub HandleGridWidthMouseWheel(ByVal delta As Integer)
         Dim dv = Math.Round(CGWidth2.Value + delta / 120)
         CGWidth2.Value = Math.Min(CGWidth2.Maximum, Math.Max(CGWidth2.Minimum, dv))
-        CGWidth.Value = CGWidth2.Value / 4
+        CGWidth.Value = FromGridTrackValue(CGWidth2.Value, GridWidthTrackScale)
     End Sub
 
     Private Sub SelectAllWithHoveredNoteLabel()
@@ -1890,7 +1890,7 @@ Partial Public Class MainWindow
 
         Dim dv = Math.Round(CGHeight2.Value + e.Delta / 120)
         CGHeight2.Value = Math.Min(CGHeight2.Maximum, Math.Max(CGHeight2.Minimum, dv))
-        CGHeight.Value = CGHeight2.Value / 4
+        CGHeight.Value = FromGridTrackValue(CGHeight2.Value, GridHeightTrackScale)
     End Sub
 
 

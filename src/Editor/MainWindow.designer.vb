@@ -1715,7 +1715,7 @@ Partial Class MainWindow
         Me.CGHeight2.LargeChange = 4
         Me.CGHeight2.Location = New System.Drawing.Point(30, 0)
         Me.CGHeight2.Margin = New System.Windows.Forms.Padding(0)
-        Me.CGHeight2.Maximum = 20
+        Me.CGHeight2.Maximum = 40
         Me.CGHeight2.Minimum = 1
         Me.CGHeight2.Name = "CGHeight2"
         Me.CGHeight2.Size = New System.Drawing.Size(107, 28)
@@ -1730,7 +1730,7 @@ Partial Class MainWindow
         Me.CGHeight.Increment = New Decimal(New Integer() {25, 0, 0, 131072})
         Me.CGHeight.Location = New System.Drawing.Point(137, 0)
         Me.CGHeight.Margin = New System.Windows.Forms.Padding(0, 0, 3, 0)
-        Me.CGHeight.Maximum = New Decimal(New Integer() {99, 0, 0, 0})
+        Me.CGHeight.Maximum = New Decimal(New Integer() {10, 0, 0, 0})
         Me.CGHeight.Minimum = New Decimal(New Integer() {25, 0, 0, 131072})
         Me.CGHeight.Name = "CGHeight"
         Me.CGHeight.Size = New System.Drawing.Size(43, 23)
@@ -1751,25 +1751,25 @@ Partial Class MainWindow
         'CGWidth2
         '
         Me.CGWidth2.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.CGWidth2.LargeChange = 4
+        Me.CGWidth2.LargeChange = 5
         Me.CGWidth2.Location = New System.Drawing.Point(30, 28)
         Me.CGWidth2.Margin = New System.Windows.Forms.Padding(0)
-        Me.CGWidth2.Maximum = 20
-        Me.CGWidth2.Minimum = 1
+        Me.CGWidth2.Maximum = 40
+        Me.CGWidth2.Minimum = 5
         Me.CGWidth2.Name = "CGWidth2"
         Me.CGWidth2.Size = New System.Drawing.Size(107, 28)
         Me.CGWidth2.TabIndex = 30
-        Me.CGWidth2.TickFrequency = 2
-        Me.CGWidth2.Value = 4
+        Me.CGWidth2.TickFrequency = 5
+        Me.CGWidth2.Value = 20
         '
         'CGWidth
         '
         Me.CGWidth.DecimalPlaces = 2
         Me.CGWidth.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.CGWidth.Increment = New Decimal(New Integer() {25, 0, 0, 131072})
+        Me.CGWidth.Increment = New Decimal(New Integer() {5, 0, 0, 131072})
         Me.CGWidth.Location = New System.Drawing.Point(137, 28)
         Me.CGWidth.Margin = New System.Windows.Forms.Padding(0, 0, 3, 0)
-        Me.CGWidth.Maximum = New Decimal(New Integer() {99, 0, 0, 0})
+        Me.CGWidth.Maximum = New Decimal(New Integer() {2, 0, 0, 0})
         Me.CGWidth.Minimum = New Decimal(New Integer() {25, 0, 0, 131072})
         Me.CGWidth.Name = "CGWidth"
         Me.CGWidth.Size = New System.Drawing.Size(43, 23)
@@ -3982,7 +3982,7 @@ Partial Class MainWindow
         '
         Me.TBGridHeight.AutoSize = False
         Me.TBGridHeight.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown
-        Me.TBGridHeight.Items.AddRange(New Object() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
+        Me.TBGridHeight.Items.AddRange(New Object() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0", "x6.0", "x7.0", "x8.0", "x9.0", "x10.0"})
         Me.TBGridHeight.Margin = New System.Windows.Forms.Padding(0, 0, 1, 0)
         Me.TBGridHeight.Name = "TBGridHeight"
         Me.TBGridHeight.Size = New System.Drawing.Size(50, 25)
@@ -3997,7 +3997,7 @@ Partial Class MainWindow
         '
         Me.TBGridWidth.AutoSize = False
         Me.TBGridWidth.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown
-        Me.TBGridWidth.Items.AddRange(New Object() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
+        Me.TBGridWidth.Items.AddRange(New Object() {"x0.25", "x0.3", "x0.35", "x0.4", "x0.45", "x0.5", "x0.55", "x0.6", "x0.65", "x0.7", "x0.75", "x0.8", "x0.85", "x0.9", "x0.95", "x1.0", "x1.05", "x1.1", "x1.15", "x1.2", "x1.25", "x1.3", "x1.35", "x1.4", "x1.45", "x1.5", "x1.55", "x1.6", "x1.65", "x1.7", "x1.75", "x1.8", "x1.85", "x1.9", "x1.95", "x2.0"})
         Me.TBGridWidth.Margin = New System.Windows.Forms.Padding(0, 0, 1, 0)
         Me.TBGridWidth.Name = "TBGridWidth"
         Me.TBGridWidth.Size = New System.Drawing.Size(50, 25)

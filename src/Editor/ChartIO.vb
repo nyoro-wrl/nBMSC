@@ -1300,8 +1300,8 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
                     CGDivide.Value = br.ReadInt32
                     CGSub.Value = br.ReadInt32
                     gSlash = br.ReadInt32
-                    CGHeight.Value = br.ReadSingle
-                    CGWidth.Value = br.ReadSingle
+                    SetGridScaleValue(CGHeight, CDec(br.ReadSingle))
+                    SetGridScaleValue(CGWidth, CDec(br.ReadSingle))
                     Dim xBGMColumns As Integer = br.ReadInt32
                     CGB.Value = Math.Min(CInt(CGB.Maximum), Math.Max(CInt(CGB.Minimum), xBGMColumns))
 

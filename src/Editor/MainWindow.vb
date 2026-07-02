@@ -227,6 +227,8 @@ Public Class MainWindow
     Dim gSlash As Integer = 192
     Dim gxHeight As Single = 1.0!
     Dim gxWidth As Single = 1.0!
+    Private Const GridHeightTrackScale As Decimal = 4D
+    Private Const GridWidthTrackScale As Decimal = 20D
     Dim gWheel As Integer = 96
     Dim gPgUpDn As Integer = 384
 
@@ -2496,8 +2498,8 @@ Public Class MainWindow
     Private Sub InitializeGridToolbar()
         ConfigureGridCombo(TBGridDivide, 47, GridDivideValueTexts())
         ConfigureGridCombo(TBGridSub, 47, New String() {"1", "2", "3", "4", "6", "8", "12", "16"})
-        ConfigureGridCombo(TBGridHeight, 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
-        ConfigureGridCombo(TBGridWidth, 50, New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0"})
+        ConfigureGridCombo(TBGridHeight, 50, GridHeightScaleTexts())
+        ConfigureGridCombo(TBGridWidth, 50, GridWidthScaleTexts())
         TBDisableVertical.Text = CGDisableVertical.Text
         TBGridSnap.Text = CGSnap.Text
         ApplyGridToolbarLabelFont()
@@ -2622,11 +2624,44 @@ Public Class MainWindow
         item.Text = xText
     End Sub
 
+    Private Function GridHeightScaleTexts() As String()
+        Return New String() {"x0.25", "x0.5", "x0.75", "x1.0", "x1.25", "x1.5", "x2.0", "x3.0", "x4.0", "x5.0", "x6.0", "x7.0", "x8.0", "x9.0", "x10.0"}
+    End Function
+
+    Private Function GridWidthScaleTexts() As String()
+        Dim xValues As New List(Of String)
+
+        For xI1 As Integer = 5 To 40
+            xValues.Add(GridScaleText(CDec(xI1) / GridWidthTrackScale))
+        Next
+
+        Return xValues.ToArray()
+    End Function
+
     Private Function GridScaleText(ByVal value As Decimal) As String
         Dim xText As String = value.ToString("0.##", Globalization.CultureInfo.InvariantCulture)
         If Not xText.Contains("."c) Then xText &= ".0"
         Return "x" & xText
     End Function
+
+    Private Function ToGridTrackValue(ByVal value As Decimal, ByVal scale As Decimal, ByVal track As TrackBar) As Integer
+        Dim xValue As Integer = CInt(Math.Round(value * scale, 0, MidpointRounding.AwayFromZero))
+        Return Math.Min(track.Maximum, Math.Max(track.Minimum, xValue))
+    End Function
+
+    Private Function FromGridTrackValue(ByVal value As Integer, ByVal scale As Decimal) As Decimal
+        Return CDec(value) / scale
+    End Function
+
+    Private Sub SetGridScaleValue(ByVal control As NumericUpDown, ByVal value As Decimal)
+        control.Value = Math.Min(control.Maximum, Math.Max(control.Minimum, value))
+    End Sub
+
+    Private Sub LoadGridScaleValue(ByVal control As NumericUpDown, ByVal text As String)
+        Dim xValue As Decimal = control.Value
+        XMLLoadAttribute(text, xValue)
+        SetGridScaleValue(control, xValue)
+    End Sub
 
     Private Sub ApplyGridToolbarValue(ByVal item As ToolStripComboBox)
         If UpdatingGridToolbar OrElse item Is Nothing Then Return
@@ -5335,18 +5370,18 @@ EndSearch:
 
     Private Sub CGHeight_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGHeight.ValueChanged
         gxHeight = CSng(CGHeight.Value)
-        CGHeight2.Value = IIf(CGHeight.Value * 4 < CGHeight2.Maximum, CDec(CGHeight.Value * 4), CGHeight2.Maximum)
+        CGHeight2.Value = ToGridTrackValue(CGHeight.Value, GridHeightTrackScale, CGHeight2)
         RefreshGridToolbar()
         RefreshPanelAll()
     End Sub
 
     Private Sub CGHeight2_Scroll(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGHeight2.Scroll
-        CGHeight.Value = CGHeight2.Value / 4
+        CGHeight.Value = FromGridTrackValue(CGHeight2.Value, GridHeightTrackScale)
     End Sub
 
     Private Sub CGWidth_ValueChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGWidth.ValueChanged
         gxWidth = CSng(CGWidth.Value)
-        CGWidth2.Value = IIf(CGWidth.Value * 4 < CGWidth2.Maximum, CDec(CGWidth.Value * 4), CGWidth2.Maximum)
+        CGWidth2.Value = ToGridTrackValue(CGWidth.Value, GridWidthTrackScale, CGWidth2)
         RefreshGridToolbar()
 
         UpdateHorizontalScrollMetrics()
@@ -5354,7 +5389,7 @@ EndSearch:
     End Sub
 
     Private Sub CGWidth2_Scroll(ByVal sender As Object, ByVal e As System.EventArgs) Handles CGWidth2.Scroll
-        CGWidth.Value = CGWidth2.Value / 4
+        CGWidth.Value = FromGridTrackValue(CGWidth2.Value, GridWidthTrackScale)
     End Sub
 
     Private Sub CGDivide_ValueChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CGDivide.ValueChanged

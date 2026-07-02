@@ -1021,8 +1021,8 @@ Partial Public Class MainWindow
                 XMLLoadAttribute(.GetAttribute("gBLP"), CGBLP.Checked)
                 XMLLoadAttribute(.GetAttribute("gP2"), CHPlayer.SelectedIndex)
                 XMLLoadAttribute(.GetAttribute("gCol"), CGB.Value)
-                XMLLoadAttribute(.GetAttribute("gxHeight"), CGHeight.Value)
-                XMLLoadAttribute(.GetAttribute("gxWidth"), CGWidth.Value)
+                LoadGridScaleValue(CGHeight, .GetAttribute("gxHeight"))
+                LoadGridScaleValue(CGWidth, .GetAttribute("gxWidth"))
                 XMLLoadAttribute(.GetAttribute("gSlash"), gSlash)
 
                 Dim xgDivide As Integer = CInt(.GetAttribute("gDivide"))
