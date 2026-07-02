@@ -17,6 +17,9 @@ Public Class UndoRedo
     'Public Const opChangeVisibleColumns As Byte = 19
     Public Const opWavAutoincFlag As Byte = 20
     Public Const opDefinitionChange As Byte = 21
+    Public Const opRandomBlockInsert As Byte = 22
+    Public Const opRandomBlockRemove As Byte = 23
+    Public Const opRandomDefinitionChange As Byte = 24
 
     Public Const opNoOperation As Byte = 255
 
@@ -27,6 +30,7 @@ Public Class UndoRedo
     Private Const LinkReferenceEstimateBytes As Long = 8
     Private Const NoteEstimateBytes As Long = 32
     Private Const ArrayEstimateBytes As Long = 24
+    Private Const RandomBlockEstimateBytes As Long = 40
 
 
 
@@ -77,9 +81,62 @@ Public Class UndoRedo
                 'Case opChangeVisibleColumns : Return New ChangeVisibleColumns(b)
             Case opWavAutoincFlag : Return New WavAutoincFlag(b)
             Case opDefinitionChange : Return New DefinitionChange(b)
+            Case opRandomBlockInsert : Return New RandomBlockInsert(b)
+            Case opRandomBlockRemove : Return New RandomBlockRemove(b)
+            Case opRandomDefinitionChange : Return New RandomDefinitionChange(b)
             Case opNoOperation : Return New NoOperation(b)
             Case Else : Return Nothing
         End Select
+    End Function
+
+    Private Shared Function CloneRandomBlock(ByVal block As BmsRandomBlock) As BmsRandomBlock
+        Dim copy As New BmsRandomBlock()
+        If block Is Nothing Then Return copy
+
+        copy.DefinitionValue = block.DefinitionValue
+        copy.CurrentValue = block.CurrentValue
+        copy.ViewMode = block.ViewMode
+
+        For Each pair As KeyValuePair(Of Integer, String) In block.ExtraTextByValue
+            copy.SetExtraText(pair.Key, pair.Value)
+        Next
+
+        copy.Normalize()
+        Return copy
+    End Function
+
+    Private Shared Sub WriteRandomBlock(ByVal bw As BinaryWriter, ByVal block As BmsRandomBlock)
+        Dim copy As BmsRandomBlock = CloneRandomBlock(block)
+        bw.Write(copy.DefinitionValue)
+        bw.Write(copy.CurrentValue)
+        bw.Write(CInt(copy.ViewMode))
+        bw.Write(copy.ExtraTextByValue.Count)
+
+        For Each pair As KeyValuePair(Of Integer, String) In copy.ExtraTextByValue
+            bw.Write(pair.Key)
+            bw.Write(If(pair.Value, ""))
+        Next
+    End Sub
+
+    Private Shared Function ReadRandomBlock(ByVal br As BinaryReader) As BmsRandomBlock
+        Dim block As New BmsRandomBlock()
+        block.DefinitionValue = br.ReadInt32()
+        block.CurrentValue = br.ReadInt32()
+        block.ViewMode = CType(br.ReadInt32(), BmsRandomViewMode)
+
+        Dim extraCount As Integer = br.ReadInt32()
+        For i As Integer = 1 To extraCount
+            block.SetExtraText(br.ReadInt32(), br.ReadString())
+        Next
+
+        block.Normalize()
+        Return block
+    End Function
+
+    Private Shared Function CloneNotes(ByVal notes() As Note) As Note()
+        If notes Is Nothing Then Return New Note() {}
+
+        Return DirectCast(notes.Clone(), Note())
     End Function
 
 
@@ -608,6 +665,142 @@ Public Class UndoRedo
 
         Public Overrides Function ofType() As Byte
             Return opDefinitionChange
+        End Function
+    End Class
+
+    Public Class RandomBlockInsert : Inherits LinkedURCmd
+        Public Index As Integer = 0
+        Public SelectAfter As Integer = -1
+        Public Block As BmsRandomBlock = New BmsRandomBlock()
+        Public Notes() As Note = New Note() {}
+
+        Public Sub New(ByVal index As Integer, ByVal block As BmsRandomBlock, ByVal selectAfter As Integer)
+            Me.New(index, block, New Note() {}, selectAfter)
+        End Sub
+
+        Public Sub New(ByVal index As Integer, ByVal block As BmsRandomBlock, ByVal notes() As Note, ByVal selectAfter As Integer)
+            Me.Index = index
+            Me.Block = CloneRandomBlock(block)
+            Me.Notes = CloneNotes(notes)
+            Me.SelectAfter = selectAfter
+        End Sub
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br As New BinaryReader(New MemoryStream(b))
+            br.ReadByte()
+            Index = br.ReadInt32()
+            SelectAfter = br.ReadInt32()
+            Block = ReadRandomBlock(br)
+
+            Dim noteCount As Integer = br.ReadInt32()
+            If noteCount <= 0 Then
+                Notes = New Note() {}
+            Else
+                ReDim Notes(noteCount - 1)
+                For i As Integer = 0 To noteCount - 1
+                    Notes(i) = New Note()
+                    Notes(i).FromBinReader(br)
+                Next
+            End If
+        End Sub
+
+        Public Overrides Function toBytes() As Byte()
+            Dim ms As New MemoryStream()
+            Dim bw As New BinaryWriter(ms)
+            bw.Write(ofType())
+            bw.Write(Index)
+            bw.Write(SelectAfter)
+            WriteRandomBlock(bw, Block)
+            bw.Write(If(Notes Is Nothing, 0, Notes.Length))
+
+            If Notes IsNot Nothing Then
+                For Each note As Note In Notes
+                    note.WriteBinWriter(bw)
+                Next
+            End If
+
+            Return ms.ToArray()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Dim xNoteCount As Long = 0
+            If Notes IsNot Nothing Then xNoteCount = Notes.Length
+
+            Return MyBase.EstimateBytes() + 8 + RandomBlockEstimateBytes + ArrayEstimateBytes + NoteEstimateBytes * xNoteCount
+        End Function
+
+        Public Overrides Function ofType() As Byte
+            Return opRandomBlockInsert
+        End Function
+    End Class
+
+    Public Class RandomBlockRemove : Inherits LinkedURCmd
+        Public Index As Integer = 0
+        Public SelectAfter As Integer = -1
+
+        Public Sub New(ByVal index As Integer, ByVal selectAfter As Integer)
+            Me.Index = index
+            Me.SelectAfter = selectAfter
+        End Sub
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br As New BinaryReader(New MemoryStream(b))
+            br.ReadByte()
+            Index = br.ReadInt32()
+            SelectAfter = br.ReadInt32()
+        End Sub
+
+        Public Overrides Function toBytes() As Byte()
+            Dim ms As New MemoryStream()
+            Dim bw As New BinaryWriter(ms)
+            bw.Write(ofType())
+            bw.Write(Index)
+            bw.Write(SelectAfter)
+
+            Return ms.ToArray()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Return MyBase.EstimateBytes() + 8
+        End Function
+
+        Public Overrides Function ofType() As Byte
+            Return opRandomBlockRemove
+        End Function
+    End Class
+
+    Public Class RandomDefinitionChange : Inherits LinkedURCmd
+        Public Index As Integer = 0
+        Public Value As Integer = 1
+
+        Public Sub New(ByVal index As Integer, ByVal value As Integer)
+            Me.Index = index
+            Me.Value = Math.Max(1, value)
+        End Sub
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br As New BinaryReader(New MemoryStream(b))
+            br.ReadByte()
+            Index = br.ReadInt32()
+            Value = Math.Max(1, br.ReadInt32())
+        End Sub
+
+        Public Overrides Function toBytes() As Byte()
+            Dim ms As New MemoryStream()
+            Dim bw As New BinaryWriter(ms)
+            bw.Write(ofType())
+            bw.Write(Index)
+            bw.Write(Value)
+
+            Return ms.ToArray()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Return MyBase.EstimateBytes() + 8
+        End Function
+
+        Public Overrides Function ofType() As Byte
+            Return opRandomDefinitionChange
         End Function
     End Class
 

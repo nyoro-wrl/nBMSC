@@ -485,8 +485,6 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
             Dim randomIndex As Integer = RandomBlocks.Count - 1
 
             For Each branch As BmsRandomParsedBranch In parsedBlock.Branches
-                block.DefinitionValue = Math.Max(block.DefinitionValue, branch.Value)
-
                 If BranchRequiresTextOnly(branch.Lines) Then
                     block.SetExtraText(branch.Value, JoinBmsLines(branch.Lines))
                 Else

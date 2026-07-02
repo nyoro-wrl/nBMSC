@@ -326,6 +326,7 @@ Public Class MainWindow
     Private Const MaxSplitPanelShowRatio As Single = 0.4!
     Private Const MinSplitPanelWidth As Integer = 25
     Private Const MinMainPanelWidth As Integer = 120
+    Private Const MinOptionsPanelWidth As Integer = 230
     Private Const MainPanelIndex As Integer = 0
     Private Const EditorScrollBarThickness As Integer = 8
     Private Const SplitPanelSettingSeparator As Char = ";"c
@@ -438,7 +439,6 @@ Public Class MainWindow
         Private Shared ReadOnly ThumbColor As Color = Color.FromArgb(133, 133, 133)
         Private Shared ReadOnly RandomLayerThumbColor As Color = Color.FromArgb(188, 188, 188)
         Private Shared ReadOnly HighlightColor As Color = Color.FromArgb(255, MainWindow.RandomLayerHighlightColor)
-        Private Shared ReadOnly HighlightFrontColor As Color = Color.FromArgb(48, MainWindow.RandomLayerHighlightColor)
 
         Public Event ValueChanged As EventHandler
 
@@ -647,14 +647,57 @@ Public Class MainWindow
             End Using
         End Sub
 
+        Private Function IsHighlightVisibleAtTrackPosition(ByVal y As Integer) As Boolean
+            If _orientation <> Orientation.Vertical Then Return False
+            If HighlightRanges.Count = 0 Then Return False
+
+            For Each xRange As ScrollHighlightRange In HighlightRanges
+                Dim y1 As Integer = ValueToTrackPosition(xRange.StartValue)
+                Dim y2 As Integer = ValueToTrackPosition(xRange.EndValue)
+                Dim xY As Integer = Math.Min(y1, y2)
+                Dim xHeight As Integer = Math.Max(4, Math.Abs(y2 - y1) + 1)
+                If y >= xY AndAlso y < xY + xHeight Then Return True
+            Next
+
+            Return False
+        End Function
+
+        Private Sub DrawThumbHighlightBorders(ByVal g As Graphics, ByVal xThumb As Rectangle)
+            If _orientation <> Orientation.Vertical Then Return
+            If xThumb.IsEmpty Then Return
+
+            Using xBrush As New SolidBrush(CurrentTrackColor())
+                If IsHighlightVisibleAtTrackPosition(xThumb.Top) Then
+                    g.FillRectangle(xBrush, xThumb.Left, xThumb.Top, xThumb.Width, 1)
+                End If
+
+                Dim xBottom As Integer = xThumb.Bottom - 1
+                If IsHighlightVisibleAtTrackPosition(xBottom) Then
+                    g.FillRectangle(xBrush, xThumb.Left, xBottom, xThumb.Width, 1)
+                End If
+
+                Using xRegion As Region = BuildHighlightRegion()
+                    If xRegion IsNot Nothing Then
+                        Using xLeft As Region = xRegion.Clone()
+                            xLeft.Intersect(New Rectangle(xThumb.Left, xThumb.Top, 1, xThumb.Height))
+                            g.FillRegion(xBrush, xLeft)
+                        End Using
+
+                        Using xRight As Region = xRegion.Clone()
+                            xRight.Intersect(New Rectangle(xThumb.Right - 1, xThumb.Top, 1, xThumb.Height))
+                            g.FillRegion(xBrush, xRight)
+                        End Using
+                    End If
+                End Using
+            End Using
+        End Sub
+
         Protected Overrides Sub OnPaint(e As PaintEventArgs)
             MyBase.OnPaint(e)
 
             Using xTrack As New SolidBrush(CurrentTrackColor())
                 e.Graphics.FillRectangle(xTrack, ClientRectangle)
             End Using
-
-            DrawHighlights(e.Graphics, HighlightColor)
 
             Dim xThumb As Rectangle = ThumbRect()
             If Not xThumb.IsEmpty Then
@@ -663,7 +706,8 @@ Public Class MainWindow
                 End Using
             End If
 
-            DrawHighlights(e.Graphics, HighlightFrontColor)
+            DrawHighlights(e.Graphics, HighlightColor)
+            DrawThumbHighlightBorders(e.Graphics, xThumb)
         End Sub
 
         Protected Overrides Sub OnMouseDown(e As MouseEventArgs)
@@ -985,14 +1029,15 @@ Public Class MainWindow
     Private POTabSelected As Panel = Nothing
     Private PORandom As Panel = Nothing
     Private PORandomTabButton As Button = Nothing
-    Private CRandomCommonVisible As CheckBox = Nothing
     Private LRandomBlocks As ListBox = Nothing
     Private BRandomAdd As Button = Nothing
+    Private BRandomDuplicate As Button = Nothing
     Private BRandomDelete As Button = Nothing
-    Private BRandomEditCommon As Button = Nothing
     Private NRandomDefinition As NumericUpDown = Nothing
     Private NRandomValue As NumericUpDown = Nothing
     Private CRandomViewMode As ComboBox = Nothing
+    Private LRandomDefinitionUnused As Label = Nothing
+    Private LRandomValueUnused As Label = Nothing
     Private TRandomExtra As TextBox = Nothing
     Private RandomExtraIndex As Integer = -1
     Private RandomExtraValue As Integer = 0
@@ -1813,11 +1858,11 @@ Public Class MainWindow
     End Sub
 
     Private Function GetOptionsTabPanels() As Panel()
-        Return New Panel() {POHeader, POWAV, POBMP, POBeat, POWaveForm, PORandom}
+        Return New Panel() {POHeader, POWAV, POBMP, POBeat, PORandom, POWaveForm}
     End Function
 
     Private Function GetOptionsTabButtons() As Button()
-        Return New Button() {POHeaderTabButton, POWAVTabButton, POBMPTabButton, POBeatTabButton, POWaveFormTabButton, PORandomTabButton}
+        Return New Button() {POHeaderTabButton, POWAVTabButton, POBMPTabButton, POBeatTabButton, PORandomTabButton, POWaveFormTabButton}
     End Function
 
     Private Sub OptionsTabButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles POHeaderTabButton.Click, POWAVTabButton.Click, POBMPTabButton.Click, POBeatTabButton.Click, POWaveFormTabButton.Click
@@ -1927,7 +1972,7 @@ Public Class MainWindow
             .Margin = New Padding(0, 0, 2, 1),
             .Name = "PORandomTabButton",
             .TabStop = False,
-            .Text = "RANDOM",
+            .Text = "#RANDOM",
             .UseCompatibleTextRendering = False,
             .UseVisualStyleBackColor = False
         }
@@ -1935,7 +1980,8 @@ Public Class MainWindow
         PORandomTabButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(218, 235, 249)
         PORandomTabButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(235, 245, 252)
         AddHandler PORandomTabButton.Click, AddressOf OptionsTabButton_Click
-        POTabButtons.Controls.Add(PORandomTabButton, 2, 1)
+        POTabButtons.SetCellPosition(POWaveFormTabButton, New TableLayoutPanelCellPosition(2, 1))
+        POTabButtons.Controls.Add(PORandomTabButton, 1, 1)
 
         PORandom = New Panel With {
             .AutoSize = False,
@@ -1949,64 +1995,72 @@ Public Class MainWindow
             .ColumnCount = 1,
             .Dock = DockStyle.Fill,
             .Name = "PORandomInner",
-            .RowCount = 7
+            .RowCount = 5
         }
         layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0!))
-        layout.RowStyles.Add(New RowStyle())
-        layout.RowStyles.Add(New RowStyle())
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 130.0!))
-        layout.RowStyles.Add(New RowStyle())
-        layout.RowStyles.Add(New RowStyle())
-        layout.RowStyles.Add(New RowStyle())
+        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
+        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 200.0!))
+        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 77.0!))
+        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 20.0!))
         layout.RowStyles.Add(New RowStyle(SizeType.Percent, 100.0!))
 
-        CRandomCommonVisible = New CheckBox With {.AutoSize = True, .Checked = True, .Text = "Show common layer", .Dock = DockStyle.Fill}
-        AddHandler CRandomCommonVisible.CheckedChanged, AddressOf CRandomCommonVisible_CheckedChanged
-        layout.Controls.Add(CRandomCommonVisible, 0, 0)
-
-        Dim buttonRow As New TableLayoutPanel With {.ColumnCount = 3, .Dock = DockStyle.Fill, .AutoSize = True}
+        Dim buttonRow As New TableLayoutPanel With {.ColumnCount = 3, .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(0)}
         buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3333!))
         buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3333!))
         buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3334!))
-        BRandomEditCommon = New Button With {.Text = "Common", .Dock = DockStyle.Fill, .AutoSize = True}
-        BRandomAdd = New Button With {.Text = "Add", .Dock = DockStyle.Fill, .AutoSize = True}
-        BRandomDelete = New Button With {.Text = "Delete", .Dock = DockStyle.Fill, .AutoSize = True}
-        AddHandler BRandomEditCommon.Click, AddressOf BRandomEditCommon_Click
+        BRandomAdd = New Button With {.Text = "Add", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(0, 1, 3, 1)}
+        BRandomDuplicate = New Button With {.Text = "Duplicate", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(3, 1, 3, 1)}
+        BRandomDelete = New Button With {.Text = "Delete", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(3, 1, 0, 1)}
         AddHandler BRandomAdd.Click, AddressOf BRandomAdd_Click
+        AddHandler BRandomDuplicate.Click, AddressOf BRandomDuplicate_Click
         AddHandler BRandomDelete.Click, AddressOf BRandomDelete_Click
-        buttonRow.Controls.Add(BRandomEditCommon, 0, 0)
-        buttonRow.Controls.Add(BRandomAdd, 1, 0)
+        buttonRow.Controls.Add(BRandomAdd, 0, 0)
+        buttonRow.Controls.Add(BRandomDuplicate, 1, 0)
         buttonRow.Controls.Add(BRandomDelete, 2, 0)
-        layout.Controls.Add(buttonRow, 0, 1)
+        layout.Controls.Add(buttonRow, 0, 0)
 
         LRandomBlocks = New ListBox With {.Dock = DockStyle.Fill, .IntegralHeight = False}
         AddHandler LRandomBlocks.SelectedIndexChanged, AddressOf LRandomBlocks_SelectedIndexChanged
-        layout.Controls.Add(LRandomBlocks, 0, 2)
+        layout.Controls.Add(LRandomBlocks, 0, 1)
         FastListScrollers.Add(New ImmediateListBoxScroller(LRandomBlocks))
 
-        Dim editGrid As New TableLayoutPanel With {.ColumnCount = 2, .Dock = DockStyle.Fill, .AutoSize = True}
+        Dim editGrid As New TableLayoutPanel With {
+            .ColumnCount = 2,
+            .Dock = DockStyle.Top,
+            .AutoSize = False,
+            .Height = 75,
+            .RowCount = 3,
+            .Margin = New Padding(0)
+        }
         editGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 42.0!))
         editGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 58.0!))
-        editGrid.RowStyles.Add(New RowStyle())
-        editGrid.RowStyles.Add(New RowStyle())
-        editGrid.RowStyles.Add(New RowStyle())
-        editGrid.Controls.Add(New Label With {.Text = "#RANDOM", .AutoSize = True, .Anchor = AnchorStyles.Left}, 0, 0)
-        NRandomDefinition = New NumericUpDown With {.Minimum = 1, .Maximum = 9999, .Dock = DockStyle.Fill}
+        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
+        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
+        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
+        editGrid.Controls.Add(New Label With {.Text = "#RANDOM", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 0)
+        Dim definitionCell As New Panel With {.Dock = DockStyle.Fill, .Margin = New Padding(0)}
+        NRandomDefinition = New NumericUpDown With {.Minimum = 1, .Maximum = 9999, .Dock = DockStyle.Fill, .Margin = New Padding(0)}
+        LRandomDefinitionUnused = New Label With {.Text = "", .Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleLeft, .Visible = False, .Margin = New Padding(0)}
         AddOptionWheelBlocker(NRandomDefinition)
         AddHandler NRandomDefinition.ValueChanged, AddressOf NRandomDefinition_ValueChanged
-        editGrid.Controls.Add(NRandomDefinition, 1, 0)
-        editGrid.Controls.Add(New Label With {.Text = "#IF", .AutoSize = True, .Anchor = AnchorStyles.Left}, 0, 1)
-        NRandomValue = New WheelStepNumericUpDown With {.Minimum = 1, .Maximum = 9999, .Increment = 1D, .Dock = DockStyle.Fill}
+        definitionCell.Controls.Add(LRandomDefinitionUnused)
+        definitionCell.Controls.Add(NRandomDefinition)
+        editGrid.Controls.Add(definitionCell, 1, 0)
+        editGrid.Controls.Add(New Label With {.Text = "#IF", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 1)
+        Dim valueCell As New Panel With {.Dock = DockStyle.Fill, .Margin = New Padding(0)}
+        NRandomValue = New WheelStepNumericUpDown With {.Minimum = 1, .Maximum = 9999, .Increment = 1D, .Dock = DockStyle.Fill, .Margin = New Padding(0)}
+        LRandomValueUnused = New Label With {.Text = "", .Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleLeft, .Visible = False, .Margin = New Padding(0)}
         AddHandler NRandomValue.ValueChanged, AddressOf NRandomValue_ValueChanged
-        editGrid.Controls.Add(NRandomValue, 1, 1)
-        editGrid.Controls.Add(New Label With {.Text = "View", .AutoSize = True, .Anchor = AnchorStyles.Left}, 0, 2)
-        CRandomViewMode = New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList}
-        CRandomViewMode.Items.AddRange(New Object() {"All", "Current", "Hidden"})
+        valueCell.Controls.Add(LRandomValueUnused)
+        valueCell.Controls.Add(NRandomValue)
+        editGrid.Controls.Add(valueCell, 1, 1)
+        editGrid.Controls.Add(New Label With {.Text = "View", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 2)
+        CRandomViewMode = New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList, .Margin = New Padding(0)}
         AddHandler CRandomViewMode.SelectedIndexChanged, AddressOf CRandomViewMode_SelectedIndexChanged
         editGrid.Controls.Add(CRandomViewMode, 1, 2)
-        layout.Controls.Add(editGrid, 0, 3)
+        layout.Controls.Add(editGrid, 0, 2)
 
-        layout.Controls.Add(New Label With {.Text = "Branch expansion", .AutoSize = True, .Dock = DockStyle.Fill}, 0, 4)
+        layout.Controls.Add(New Label With {.Text = "Branch expansion", .AutoSize = True, .Dock = DockStyle.Fill}, 0, 3)
         TRandomExtra = New TextBox With {
             .BorderStyle = BorderStyle.FixedSingle,
             .Dock = DockStyle.Fill,
@@ -2017,7 +2071,7 @@ Public Class MainWindow
             .WordWrap = False
         }
         AddHandler TRandomExtra.TextChanged, AddressOf TRandomExtra_TextChanged
-        layout.Controls.Add(TRandomExtra, 0, 6)
+        layout.Controls.Add(TRandomExtra, 0, 4)
 
         PORandom.Controls.Add(layout)
         POTabContent.Controls.Add(PORandom)
@@ -2030,44 +2084,86 @@ Public Class MainWindow
         RandomBlocks(RandomExtraIndex).SetExtraText(RandomExtraValue, TRandomExtra.Text)
     End Sub
 
-    Private Function RandomBranchHasDataAbove(ByVal randomIndex As Integer, ByVal maxValue As Integer) As Boolean
-        For i As Integer = 1 To UBound(Notes)
-            If Notes(i).RandomIndex = randomIndex AndAlso Notes(i).RandomValue > maxValue Then Return True
-        Next
+    Private Function RandomListIndexToRandomIndex(ByVal listIndex As Integer) As Integer
+        If listIndex <= 0 Then Return -1
 
-        For Each pair As KeyValuePair(Of Integer, String) In RandomBlocks(randomIndex).ExtraTextByValue
-            If pair.Key > maxValue AndAlso pair.Value <> "" Then Return True
-        Next
-
-        Return False
+        Return listIndex - 1
     End Function
 
+    Private Function RandomIndexToListIndex(ByVal randomIndex As Integer) As Integer
+        If IsValidRandomIndex(randomIndex) Then Return randomIndex + 1
+
+        Return 0
+    End Function
+
+    Private Function RandomViewModeText(ByVal mode As BmsRandomViewMode) As String
+        Select Case mode
+            Case BmsRandomViewMode.CurrentValue
+                Return "Visible"
+            Case BmsRandomViewMode.Hidden
+                Return "Hidden"
+            Case BmsRandomViewMode.AllBranches
+                Return "Visible All"
+        End Select
+
+        Return "Hidden"
+    End Function
+
+    Private Function RandomViewModeToComboIndex(ByVal mode As BmsRandomViewMode) As Integer
+        Select Case mode
+            Case BmsRandomViewMode.CurrentValue
+                Return 0
+            Case BmsRandomViewMode.Hidden
+                Return 1
+            Case BmsRandomViewMode.AllBranches
+                Return 2
+        End Select
+
+        Return 1
+    End Function
+
+    Private Function ComboIndexToRandomViewMode(ByVal index As Integer) As BmsRandomViewMode
+        Select Case index
+            Case 0
+                Return BmsRandomViewMode.CurrentValue
+            Case 1
+                Return BmsRandomViewMode.Hidden
+            Case 2
+                Return BmsRandomViewMode.AllBranches
+        End Select
+
+        Return BmsRandomViewMode.Hidden
+    End Function
+
+    Private Sub SetRandomViewModeItems(ByVal includeAll As Boolean)
+        CRandomViewMode.Items.Clear()
+        CRandomViewMode.Items.Add("Visible")
+        CRandomViewMode.Items.Add("Hidden")
+        If includeAll Then CRandomViewMode.Items.Add("Visible All")
+    End Sub
+
     Private Sub RefreshRandomPanel(Optional ByVal preserveListTop As Boolean = True)
-        If CRandomCommonVisible Is Nothing Then Return
+        If LRandomBlocks Is Nothing Then Return
 
         Dim xListTopIndex As Integer = -1
         If preserveListTop AndAlso LRandomBlocks IsNot Nothing Then
             xListTopIndex = LRandomBlocks.TopIndex
         End If
 
+        If Not IsValidRandomIndex(SelectedRandomIndex) Then SelectedRandomIndex = -1
         UpdatingRandomControls = True
-
-        CRandomCommonVisible.Checked = RandomCommonVisible
 
         LRandomBlocks.BeginUpdate()
         Try
             LRandomBlocks.Items.Clear()
+            LRandomBlocks.Items.Add(RandomCommonListText())
             For i As Integer = 0 To RandomBlocks.Count - 1
                 Dim block As BmsRandomBlock = RandomBlocks(i)
                 block.Normalize()
-                LRandomBlocks.Items.Add((i + 1).ToString() & ": #RANDOM " & block.DefinitionValue.ToString() & " / #IF " & block.CurrentValue.ToString() & " / " & block.ViewMode.ToString())
+                LRandomBlocks.Items.Add(RandomBlockListText(i, block))
             Next
 
-            If IsValidRandomIndex(SelectedRandomIndex) Then
-                LRandomBlocks.SelectedIndex = SelectedRandomIndex
-            Else
-                LRandomBlocks.SelectedIndex = -1
-            End If
+            LRandomBlocks.SelectedIndex = RandomIndexToListIndex(SelectedRandomIndex)
         Finally
             LRandomBlocks.EndUpdate()
         End Try
@@ -2076,9 +2172,14 @@ Public Class MainWindow
 
         Dim hasBlock As Boolean = IsValidRandomIndex(SelectedRandomIndex)
         BRandomDelete.Enabled = hasBlock
+        BRandomDuplicate.Enabled = hasBlock
         NRandomDefinition.Enabled = hasBlock
         NRandomValue.Enabled = hasBlock
-        CRandomViewMode.Enabled = hasBlock
+        NRandomDefinition.Visible = True
+        NRandomValue.Visible = True
+        LRandomDefinitionUnused.Visible = False
+        LRandomValueUnused.Visible = False
+        RefreshRandomViewModeEnabled()
         TRandomExtra.Enabled = hasBlock
 
         If hasBlock Then
@@ -2086,17 +2187,24 @@ Public Class MainWindow
             block.Normalize()
             NRandomDefinition.Maximum = Math.Max(9999D, CDec(block.DefinitionValue))
             NRandomDefinition.Value = block.DefinitionValue
+            NRandomDefinition.Text = block.DefinitionValue.ToString()
             NRandomValue.Maximum = Math.Max(9999D, CDec(block.DefinitionValue))
             NRandomValue.Value = block.CurrentValue
-            CRandomViewMode.SelectedIndex = CInt(block.ViewMode)
+            NRandomValue.Text = block.CurrentValue.ToString()
+            SetRandomViewModeItems(True)
+            CRandomViewMode.SelectedIndex = RandomViewModeToComboIndex(block.ViewMode)
             RandomExtraIndex = SelectedRandomIndex
             RandomExtraValue = block.CurrentValue
             TRandomExtra.Text = block.GetExtraText(block.CurrentValue)
         Else
-            NRandomDefinition.Value = 1
+            NRandomDefinition.Maximum = Math.Max(9999D, 2D)
+            NRandomDefinition.Value = 2
+            NRandomDefinition.Text = ""
             NRandomValue.Maximum = 1
             NRandomValue.Value = 1
-            CRandomViewMode.SelectedIndex = -1
+            NRandomValue.Text = ""
+            SetRandomViewModeItems(False)
+            CRandomViewMode.SelectedIndex = If(RandomCommonVisible, 0, 1)
             RandomExtraIndex = -1
             RandomExtraValue = 0
             TRandomExtra.Text = ""
@@ -2105,34 +2213,124 @@ Public Class MainWindow
         UpdatingRandomControls = False
     End Sub
 
-    Private Sub CRandomCommonVisible_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs)
-        If UpdatingRandomControls Then Return
-        RandomCommonVisible = CRandomCommonVisible.Checked
-        SetIsSaved(False)
-        RefreshPanelAll()
-    End Sub
+    Private Function RandomCommonListText() As String
+        If HasCommonLayerNote() Then Return "Common / " & If(RandomCommonVisible, "Visible", "Hidden")
 
-    Private Sub BRandomEditCommon_Click(ByVal sender As Object, ByVal e As EventArgs)
-        StoreRandomExtraText()
-        SelectedRandomIndex = -1
-        RefreshRandomPanel()
-        RefreshPanelAll()
+        Return "Common"
+    End Function
+
+    Private Function RandomBlockListText(ByVal randomIndex As Integer, ByVal block As BmsRandomBlock) As String
+        Dim text As String = "#RANDOM " & block.DefinitionValue.ToString() & " / #IF " & block.CurrentValue.ToString()
+        If HasRandomLayerHighlightTarget(randomIndex, block.CurrentValue) Then text &= " / " & RandomViewModeText(block.ViewMode)
+
+        Return text
+    End Function
+
+    Private Sub RefreshRandomListTexts(Optional ByVal preserveListTop As Boolean = True)
+        If LRandomBlocks Is Nothing Then Return
+        If LRandomBlocks.Items.Count <> RandomBlocks.Count + 1 Then Return
+
+        Dim xListTopIndex As Integer = -1
+        If preserveListTop Then xListTopIndex = LRandomBlocks.TopIndex
+
+        Dim xWasUpdating As Boolean = UpdatingRandomControls
+        UpdatingRandomControls = True
+        LRandomBlocks.BeginUpdate()
+        Try
+            LRandomBlocks.Items(0) = RandomCommonListText()
+            For i As Integer = 0 To RandomBlocks.Count - 1
+                Dim block As BmsRandomBlock = RandomBlocks(i)
+                block.Normalize()
+                LRandomBlocks.Items(i + 1) = RandomBlockListText(i, block)
+            Next
+        Finally
+            LRandomBlocks.EndUpdate()
+            UpdatingRandomControls = xWasUpdating
+        End Try
+
+        If xListTopIndex >= 0 Then SetListTopIndex(LRandomBlocks, xListTopIndex)
     End Sub
 
     Private Sub BRandomAdd_Click(ByVal sender As Object, ByVal e As EventArgs)
         StoreRandomExtraText()
-        RandomBlocks.Add(New BmsRandomBlock(2))
-        SelectedRandomIndex = RandomBlocks.Count - 1
+        Dim xPreviousSelectedIndex As Integer = SelectedRandomIndex
+        Dim xInsertIndex As Integer = RandomBlocks.Count
+        Dim xBlock As New BmsRandomBlock(2)
+        Dim xUndo As New UndoRedo.RandomBlockRemove(xInsertIndex, xPreviousSelectedIndex)
+        Dim xRedo As New UndoRedo.RandomBlockInsert(xInsertIndex, xBlock, xInsertIndex)
+
+        RandomBlocks.Add(xBlock)
+        SelectedRandomIndex = xInsertIndex
+        AddUndo(xUndo, xRedo)
         SetIsSaved(False)
         RefreshRandomPanel(False)
         RefreshPanelAll()
     End Sub
 
+    Private Sub BRandomDuplicate_Click(ByVal sender As Object, ByVal e As EventArgs)
+        If Not IsValidRandomIndex(SelectedRandomIndex) Then Return
+
+        StoreRandomExtraText()
+        Dim xSourceIndex As Integer = SelectedRandomIndex
+        Dim xInsertIndex As Integer = xSourceIndex + 1
+        Dim xBlock As BmsRandomBlock = CopyRandomBlock(RandomBlocks(xSourceIndex))
+        Dim xDuplicatedNotes As New List(Of Note)
+
+        For xNoteIndex As Integer = 1 To UBound(Notes)
+            If Notes(xNoteIndex).RandomIndex <> xSourceIndex Then Continue For
+
+            Dim xNote As Note = Notes(xNoteIndex)
+            xNote.RandomIndex = xInsertIndex
+            xNote.Selected = False
+            xNote.HasError = False
+            xNote.LNPair = 0
+            xNote.TempSelected = False
+            xNote.TempMouseDown = False
+            xNote.TempIndex = 0
+            xDuplicatedNotes.Add(xNote)
+        Next
+
+        Dim xUndo As New UndoRedo.RandomBlockRemove(xInsertIndex, xSourceIndex)
+        Dim xRedo As New UndoRedo.RandomBlockInsert(xInsertIndex, xBlock, xDuplicatedNotes.ToArray(), xInsertIndex)
+
+        RandomBlocks.Insert(xInsertIndex, xBlock)
+        For xNoteIndex As Integer = 1 To UBound(Notes)
+            If Notes(xNoteIndex).RandomIndex >= xInsertIndex Then Notes(xNoteIndex).RandomIndex += 1
+        Next
+
+        If xDuplicatedNotes.Count > 0 Then
+            Dim xOldUbound As Integer = UBound(Notes)
+            ReDim Preserve Notes(xOldUbound + xDuplicatedNotes.Count)
+            For i As Integer = 0 To xDuplicatedNotes.Count - 1
+                Notes(xOldUbound + i + 1) = xDuplicatedNotes(i)
+            Next
+        End If
+
+        SelectedRandomIndex = xInsertIndex
+        AddUndo(xUndo, xRedo)
+        SetIsSaved(False)
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
+        RefreshRandomPanel()
+        RefreshPanelAll()
+    End Sub
+
     Private Sub BRandomDelete_Click(ByVal sender As Object, ByVal e As EventArgs)
         If Not IsValidRandomIndex(SelectedRandomIndex) Then Return
-        If MsgBox("Delete selected RANDOM block?", MsgBoxStyle.YesNo Or MsgBoxStyle.Question, Text) <> MsgBoxResult.Yes Then Return
 
+        StoreRandomExtraText()
         Dim deleteIndex As Integer = SelectedRandomIndex
+        Dim xDeletedNotes As New List(Of Note)
+        For xNoteIndex As Integer = 1 To UBound(Notes)
+            If Notes(xNoteIndex).RandomIndex = deleteIndex Then xDeletedNotes.Add(Notes(xNoteIndex))
+        Next
+
+        Dim xSelectAfterDelete As Integer = Math.Min(deleteIndex, RandomBlocks.Count - 2)
+        If xSelectAfterDelete < 0 Then xSelectAfterDelete = -1
+        Dim xUndo As New UndoRedo.RandomBlockInsert(deleteIndex, RandomBlocks(deleteIndex), xDeletedNotes.ToArray(), deleteIndex)
+        Dim xRedo As New UndoRedo.RandomBlockRemove(deleteIndex, xSelectAfterDelete)
+
         Dim i As Integer = 1
         Do While i <= UBound(Notes)
             If Notes(i).RandomIndex = deleteIndex Then
@@ -2144,8 +2342,8 @@ Public Class MainWindow
         Loop
 
         RandomBlocks.RemoveAt(deleteIndex)
-        SelectedRandomIndex = Math.Min(deleteIndex, RandomBlocks.Count - 1)
-        If SelectedRandomIndex < 0 Then SelectedRandomIndex = -1
+        SelectedRandomIndex = xSelectAfterDelete
+        AddUndo(xUndo, xRedo)
         SetIsSaved(False)
         SortByVPositionInsertion()
         UpdatePairing()
@@ -2157,7 +2355,7 @@ Public Class MainWindow
     Private Sub LRandomBlocks_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs)
         If UpdatingRandomControls Then Return
         StoreRandomExtraText()
-        SelectedRandomIndex = LRandomBlocks.SelectedIndex
+        SelectedRandomIndex = RandomListIndexToRandomIndex(LRandomBlocks.SelectedIndex)
         RefreshRandomPanel()
         RefreshPanelAll()
     End Sub
@@ -2168,14 +2366,14 @@ Public Class MainWindow
 
         Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
         Dim newValue As Integer = CInt(NRandomDefinition.Value)
-        If newValue < block.DefinitionValue AndAlso RandomBranchHasDataAbove(SelectedRandomIndex, newValue) Then
-            MsgBox("Cannot reduce #RANDOM because higher #IF branches contain data.", MsgBoxStyle.Exclamation, Text)
-            RefreshRandomPanel()
-            Return
-        End If
+        If newValue = block.DefinitionValue Then Return
+
+        Dim xUndo As New UndoRedo.RandomDefinitionChange(SelectedRandomIndex, block.DefinitionValue)
+        Dim xRedo As New UndoRedo.RandomDefinitionChange(SelectedRandomIndex, newValue)
 
         block.DefinitionValue = newValue
         block.Normalize()
+        AddUndo(xUndo, xRedo)
         SetIsSaved(False)
         RefreshRandomPanel()
         RefreshPanelAll()
@@ -2194,10 +2392,14 @@ Public Class MainWindow
     End Sub
 
     Private Sub CRandomViewMode_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs)
-        If UpdatingRandomControls OrElse Not IsValidRandomIndex(SelectedRandomIndex) Then Return
+        If UpdatingRandomControls Then Return
         If CRandomViewMode.SelectedIndex < 0 Then Return
 
-        RandomBlocks(SelectedRandomIndex).ViewMode = CType(CRandomViewMode.SelectedIndex, BmsRandomViewMode)
+        If IsValidRandomIndex(SelectedRandomIndex) Then
+            RandomBlocks(SelectedRandomIndex).ViewMode = ComboIndexToRandomViewMode(CRandomViewMode.SelectedIndex)
+        Else
+            RandomCommonVisible = (CRandomViewMode.SelectedIndex = 0)
+        End If
         SetIsSaved(False)
         RefreshRandomPanel()
         RefreshPanelAll()
@@ -3307,22 +3509,79 @@ Public Class MainWindow
         Return IsValidRandomIndex(SelectedRandomIndex) AndAlso IsNoteCurrentRandomLayer(note)
     End Function
 
-    Private Function IsNoteRandomAllCurrentLayer(ByVal note As Note) As Boolean
-        If note.VPosition < 0 Then Return False
-        If note.RandomIndex < 0 OrElse Not IsValidRandomIndex(note.RandomIndex) Then Return False
+    Private Sub SelectRandomLayerForNote(ByVal noteIndex As Integer)
+        If Notes Is Nothing OrElse noteIndex <= 0 OrElse noteIndex > UBound(Notes) Then Return
+
+        Dim note As Note = Notes(noteIndex)
+        If note.VPosition < 0 Then Return
+
+        If note.RandomIndex < 0 Then
+            If SelectedRandomIndex = -1 Then Return
+
+            StoreRandomExtraText()
+            SelectedRandomIndex = -1
+            RefreshRandomPanel()
+            Return
+        End If
+
+        If Not IsValidRandomIndex(note.RandomIndex) Then Return
 
         Dim block As BmsRandomBlock = RandomBlocks(note.RandomIndex)
+        Dim xValue As Integer = Math.Max(1, Math.Min(block.DefinitionValue, note.RandomValue))
+        If SelectedRandomIndex = note.RandomIndex AndAlso block.CurrentValue = xValue Then Return
+
+        StoreRandomExtraText()
+        SelectedRandomIndex = note.RandomIndex
+        block.CurrentValue = xValue
+        RefreshRandomPanel()
+    End Sub
+
+    Private Function HasRandomLayerHighlightTarget() As Boolean
+        If Not IsValidRandomIndex(SelectedRandomIndex) Then Return False
+
+        Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
         block.Normalize()
-        Return block.ViewMode = BmsRandomViewMode.AllBranches AndAlso note.RandomValue = block.CurrentValue
+        Return HasRandomLayerHighlightTarget(SelectedRandomIndex, block.CurrentValue)
     End Function
 
-    Private Function IsNoteRandomAllOtherLayer(ByVal note As Note) As Boolean
+    Private Function HasRandomLayerHighlightTarget(ByVal randomIndex As Integer, ByVal randomValue As Integer) As Boolean
+        If Notes Is Nothing OrElse Notes.Length <= 1 Then Return False
+
+        For i As Integer = 1 To UBound(Notes)
+            If Notes(i).VPosition < 0 Then Continue For
+            If Notes(i).RandomIndex = randomIndex AndAlso Notes(i).RandomValue = randomValue Then Return True
+        Next
+
+        Return False
+    End Function
+
+    Private Function HasCommonLayerNote() As Boolean
+        If Notes Is Nothing OrElse Notes.Length <= 1 Then Return False
+
+        For i As Integer = 1 To UBound(Notes)
+            If Notes(i).VPosition >= 0 AndAlso Notes(i).RandomIndex < 0 Then Return True
+        Next
+
+        Return False
+    End Function
+
+    Private Sub RefreshRandomViewModeEnabled()
+        RefreshRandomViewModeEnabled(HasRandomLayerHighlightTarget())
+    End Sub
+
+    Private Sub RefreshRandomViewModeEnabled(ByVal hasHighlightTarget As Boolean)
+        If CRandomViewMode Is Nothing Then Return
+
+        Dim hasBlock As Boolean = IsValidRandomIndex(SelectedRandomIndex)
+        CRandomViewMode.Enabled = Not hasBlock OrElse hasHighlightTarget
+    End Sub
+
+    Private Function IsNoteRandomLayerOtherHintTarget(ByVal note As Note) As Boolean
         If note.VPosition < 0 Then Return False
         If note.RandomIndex < 0 OrElse Not IsValidRandomIndex(note.RandomIndex) Then Return False
+        If IsNoteRandomLayerHighlightTarget(note) Then Return False
 
-        Dim block As BmsRandomBlock = RandomBlocks(note.RandomIndex)
-        block.Normalize()
-        Return block.ViewMode = BmsRandomViewMode.AllBranches AndAlso note.RandomValue <> block.CurrentValue
+        Return IsNoteVisibleByRandom(note)
     End Function
 
     Private Function CurrentRandomLayerText() As String
@@ -7615,6 +7874,7 @@ Jump2:
         POptionsResizer.Visible = mnSOP.Checked
         If TBSidePanel IsNot Nothing Then TBSidePanel.Checked = mnSOP.Checked
         KeepOptionsPanelDockedRight()
+        If mnSOP.Checked Then EnsureOptionsPanelWidthWithinBounds()
         ResizeSplitPanelsByRatio()
         If mnSOP.Checked Then
             ResetSelectedOptionsTabScroll()
@@ -7981,6 +8241,55 @@ Jump2:
         Return xWidth
     End Function
 
+    Private Function GetOptionsPanelMinimumWidth() As Integer
+        Dim xAvailableWidth As Integer = GetOptionsPanelAvailableWidth()
+        If xAvailableWidth > 0 Then Return Math.Min(MinOptionsPanelWidth, xAvailableWidth)
+
+        Return MinOptionsPanelWidth
+    End Function
+
+    Private Function GetOptionsPanelAvailableWidth() As Integer
+        If ToolStripContainer1 Is Nothing OrElse POptionsScroll Is Nothing Then Return 0
+
+        Dim xResizerWidth As Integer = 0
+        If POptionsResizer IsNot Nothing AndAlso POptionsResizer.Visible Then xResizerWidth = POptionsResizer.Width
+
+        Dim xContentWidth As Integer = ToolStripContainer1.ContentPanel.ClientSize.Width
+        Return Math.Max(0, xContentWidth - xResizerWidth)
+    End Function
+
+    Private Function GetOptionsPanelMaximumWidth() As Integer
+        If ToolStripContainer1 Is Nothing OrElse POptionsScroll Is Nothing Then Return GetOptionsPanelMinimumWidth()
+
+        Dim xAvailableWidth As Integer = GetOptionsPanelAvailableWidth()
+        Dim xMaximum As Integer = xAvailableWidth - MinMainPanelWidth
+        Return Math.Max(GetOptionsPanelMinimumWidth(), xMaximum)
+    End Function
+
+    Private Sub SyncOptionsPanelMinimumWidth()
+        If POptionsScroll Is Nothing Then Return
+
+        Dim xMinimum As Integer = GetOptionsPanelMinimumWidth()
+        If POptionsScroll.MinimumSize.Width <> xMinimum Then POptionsScroll.MinimumSize = New Size(xMinimum, POptionsScroll.MinimumSize.Height)
+    End Sub
+
+    Private Function ClampOptionsPanelWidth(ByVal xWidth As Integer) As Integer
+        Dim xMinimum As Integer = GetOptionsPanelMinimumWidth()
+        Dim xMaximum As Integer = GetOptionsPanelMaximumWidth()
+
+        If xWidth < xMinimum Then Return xMinimum
+        If xWidth > xMaximum Then Return xMaximum
+        Return xWidth
+    End Function
+
+    Private Sub EnsureOptionsPanelWidthWithinBounds()
+        If POptionsScroll Is Nothing Then Return
+
+        SyncOptionsPanelMinimumWidth()
+        Dim xWidth As Integer = ClampOptionsPanelWidth(POptionsScroll.Width)
+        If POptionsScroll.Width <> xWidth Then POptionsScroll.Width = xWidth
+    End Sub
+
     Private Function GetSplitLayoutWidth() As Integer
         If ToolStripContainer1 Is Nothing Then Return 0
         Return Math.Max(0, ToolStripContainer1.ContentPanel.Width - GetOptionsPanelDockWidth())
@@ -8088,10 +8397,12 @@ Jump2:
 
     Private Sub ResizeSplitPanelsByRatio() Handles ToolStripContainer1.ContentPanel.Resize
         If UpdatingSplitViewControls OrElse Not Me.Created Then Return
-        If GetSplitLayoutWidth() <= 0 Then Return
 
         UpdatingSplitViewControls = True
         Try
+            EnsureOptionsPanelWidthWithinBounds()
+            If GetSplitLayoutWidth() <= 0 Then Return
+
             For i As Integer = 1 To SplitPanes.Count - 1
                 SplitPanes(i).Container.Width = GetSplitPanelWidth(i)
             Next
@@ -8563,7 +8874,8 @@ case2:              Dim xI0 As Integer
 
         Try
             Dim xWidth As Integer = POptionsScroll.Width - e.X + tempResize
-            If xWidth < 230 Then xWidth = 230
+            SyncOptionsPanelMinimumWidth()
+            xWidth = ClampOptionsPanelWidth(xWidth)
             POptionsScroll.Width = xWidth
 
             Me.Refresh()

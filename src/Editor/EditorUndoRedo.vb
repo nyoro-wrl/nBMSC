@@ -159,6 +159,15 @@ Partial Public Class MainWindow
                     Dim xCmd As UndoRedo.DefinitionChange = sCmd
                     SetDefinitionValue(xCmd.IsWav, xCmd.Index, xCmd.Value)
 
+                Case UndoRedo.opRandomBlockInsert
+                    ApplyRandomBlockInsert(DirectCast(sCmd, UndoRedo.RandomBlockInsert))
+
+                Case UndoRedo.opRandomBlockRemove
+                    ApplyRandomBlockRemove(DirectCast(sCmd, UndoRedo.RandomBlockRemove))
+
+                Case UndoRedo.opRandomDefinitionChange
+                    ApplyRandomDefinitionChange(DirectCast(sCmd, UndoRedo.RandomDefinitionChange))
+
                 Case UndoRedo.opVoid
 
                 Case UndoRedo.opNoOperation
@@ -178,6 +187,80 @@ Partial Public Class MainWindow
         CalculateGreatestVPosition()
         RefreshPanelAll()
         POStatusRefresh()
+    End Sub
+
+    Private Function CopyRandomBlock(ByVal block As BmsRandomBlock) As BmsRandomBlock
+        Dim copy As New BmsRandomBlock()
+        If block Is Nothing Then Return copy
+
+        copy.DefinitionValue = block.DefinitionValue
+        copy.CurrentValue = block.CurrentValue
+        copy.ViewMode = block.ViewMode
+
+        For Each pair As KeyValuePair(Of Integer, String) In block.ExtraTextByValue
+            copy.SetExtraText(pair.Key, pair.Value)
+        Next
+
+        copy.Normalize()
+        Return copy
+    End Function
+
+    Private Function RandomSelectAfter(ByVal index As Integer) As Integer
+        If index < 0 OrElse index >= RandomBlocks.Count Then Return -1
+
+        Return index
+    End Function
+
+    Private Sub ApplyRandomBlockInsert(ByVal cmd As UndoRedo.RandomBlockInsert)
+        StoreRandomExtraText()
+
+        Dim xIndex As Integer = Math.Max(0, Math.Min(cmd.Index, RandomBlocks.Count))
+        RandomBlocks.Insert(xIndex, CopyRandomBlock(cmd.Block))
+
+        For i As Integer = 1 To UBound(Notes)
+            If Notes(i).RandomIndex >= xIndex Then Notes(i).RandomIndex += 1
+        Next
+
+        If cmd.Notes IsNot Nothing AndAlso cmd.Notes.Length > 0 Then
+            Dim xOldUbound As Integer = UBound(Notes)
+            ReDim Preserve Notes(xOldUbound + cmd.Notes.Length)
+            For i As Integer = 0 To cmd.Notes.Length - 1
+                Notes(xOldUbound + i + 1) = cmd.Notes(i)
+            Next
+        End If
+
+        SelectedRandomIndex = RandomSelectAfter(cmd.SelectAfter)
+        RefreshRandomPanel()
+    End Sub
+
+    Private Sub ApplyRandomBlockRemove(ByVal cmd As UndoRedo.RandomBlockRemove)
+        StoreRandomExtraText()
+
+        If cmd.Index < 0 OrElse cmd.Index >= RandomBlocks.Count Then Return
+
+        Dim i As Integer = 1
+        Do While i <= UBound(Notes)
+            If Notes(i).RandomIndex = cmd.Index Then
+                RemoveNote(i, False)
+            Else
+                If Notes(i).RandomIndex > cmd.Index Then Notes(i).RandomIndex -= 1
+                i += 1
+            End If
+        Loop
+
+        RandomBlocks.RemoveAt(cmd.Index)
+        SelectedRandomIndex = RandomSelectAfter(cmd.SelectAfter)
+        RefreshRandomPanel()
+    End Sub
+
+    Private Sub ApplyRandomDefinitionChange(ByVal cmd As UndoRedo.RandomDefinitionChange)
+        StoreRandomExtraText()
+
+        If cmd.Index < 0 OrElse cmd.Index >= RandomBlocks.Count Then Return
+
+        RandomBlocks(cmd.Index).DefinitionValue = cmd.Value
+        RandomBlocks(cmd.Index).Normalize()
+        RefreshRandomPanel()
     End Sub
 
     Private Sub AddUndo(ByVal sCUndo As UndoRedo.LinkedURCmd, ByVal sCRedo As UndoRedo.LinkedURCmd, Optional ByVal OverWrite As Boolean = False)

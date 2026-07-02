@@ -11,42 +11,74 @@ Partial Public Class MainWindow
     End Sub
 
     Private Sub UpdateScrollBarHighlights()
+        Dim xRanges As List(Of ScrollHighlightRange) = BuildCurrentRandomLayerHighlightRanges()
+        Dim xTrackActive As Boolean = xRanges.Count > 0
+        RefreshRandomViewModeEnabled(xTrackActive)
+        RefreshRandomListTexts()
+
         If SplitPanes Is Nothing OrElse SplitPanes.Count = 0 Then Return
 
-        Dim xRanges As List(Of ScrollHighlightRange) = BuildCurrentRandomLayerMeasureHighlightRanges()
-        Dim xTrackActive As Boolean = xRanges.Count > 0
         For Each xPane As SplitPane In SplitPanes
             If xPane Is Nothing OrElse xPane.VScroll Is Nothing Then Continue For
             xPane.VScroll.SetHighlightRanges(xRanges, xTrackActive)
         Next
     End Sub
 
-    Private Function BuildCurrentRandomLayerMeasureHighlightRanges() As List(Of ScrollHighlightRange)
+    Private Function BuildCurrentRandomLayerHighlightRanges() As List(Of ScrollHighlightRange)
         Dim xRanges As New List(Of ScrollHighlightRange)()
         If Notes Is Nothing OrElse Notes.Length <= 1 Then Return xRanges
 
-        Dim xHasNote(999) As Boolean
         For i As Integer = 1 To UBound(Notes)
             If Notes(i).VPosition < 0 Then Continue For
             If Not IsNoteRandomLayerHighlightTarget(Notes(i)) Then Continue For
+            If AddLongNoteScrollHighlightRange(xRanges, i) Then Continue For
 
-            Dim xMeasure As Integer = MeasureAtDisplacement(Notes(i).VPosition)
-            If xMeasure < 0 OrElse xMeasure > UBound(xHasNote) Then Continue For
-            xHasNote(xMeasure) = True
-        Next
-
-        For xMeasure As Integer = 0 To UBound(xHasNote)
-            If Not xHasNote(xMeasure) Then Continue For
-
-            Dim xStartVPosition As Double = MeasureBottom(xMeasure)
-            Dim xEndVPosition As Double = If(xMeasure < UBound(MeasureBottom),
-                                             MeasureBottom(xMeasure + 1),
-                                             MeasureBottom(xMeasure) + MeasureLength(xMeasure))
-            xRanges.Add(New ScrollHighlightRange(-CInt(Math.Ceiling(xEndVPosition)),
-                                                 -CInt(Math.Floor(xStartVPosition))))
+            xRanges.Add(VPositionRangeToScrollHighlightRange(Notes(i).VPosition, Notes(i).VPosition))
         Next
 
         Return xRanges
+    End Function
+
+    Private Function AddLongNoteScrollHighlightRange(ByVal xRanges As List(Of ScrollHighlightRange), ByVal xNoteIndex As Integer) As Boolean
+        Dim xStartVPosition As Double
+        Dim xEndVPosition As Double
+        If Not TryGetLongNoteVPositionRange(xNoteIndex, xStartVPosition, xEndVPosition) Then Return False
+
+        xRanges.Add(VPositionRangeToScrollHighlightRange(xStartVPosition, xEndVPosition))
+        Return True
+    End Function
+
+    Private Function TryGetLongNoteVPositionRange(ByVal xNoteIndex As Integer,
+                                                  ByRef xStartVPosition As Double,
+                                                  ByRef xEndVPosition As Double) As Boolean
+        If xNoteIndex <= 0 OrElse xNoteIndex > UBound(Notes) Then Return False
+
+        Dim xNote As Note = Notes(xNoteIndex)
+        If xNote.VPosition < 0 Then Return False
+
+        If NTInput AndAlso xNote.Length > 0 Then
+            xStartVPosition = xNote.VPosition
+            xEndVPosition = xNote.VPosition + xNote.Length
+            Return xEndVPosition > xStartVPosition
+        End If
+
+        If xNote.LNPair <= 0 OrElse xNote.LNPair > UBound(Notes) Then Return False
+
+        Dim xPair As Note = Notes(xNote.LNPair)
+        If xPair.VPosition < 0 Then Return False
+        If Not IsNoteRandomLayerHighlightTarget(xPair) Then Return False
+
+        xStartVPosition = Math.Min(xNote.VPosition, xPair.VPosition)
+        xEndVPosition = Math.Max(xNote.VPosition, xPair.VPosition)
+        Return xEndVPosition > xStartVPosition
+    End Function
+
+    Private Function VPositionRangeToScrollHighlightRange(ByVal xStartVPosition As Double,
+                                                          ByVal xEndVPosition As Double) As ScrollHighlightRange
+        Dim xLowerVPosition As Double = Math.Min(xStartVPosition, xEndVPosition)
+        Dim xUpperVPosition As Double = Math.Max(xStartVPosition, xEndVPosition)
+        Return New ScrollHighlightRange(-CInt(Math.Ceiling(xUpperVPosition)),
+                                        -CInt(Math.Floor(xLowerVPosition)))
     End Function
 
     Dim bufferlist As Dictionary(Of Integer, BufferedGraphics) = New Dictionary(Of Integer, BufferedGraphics)
@@ -445,7 +477,7 @@ Partial Public Class MainWindow
                 If Not IsNoteVisibleByRandom(Notes(xI1)) Then Continue For
                 If Not IsNoteVisible(xI1, xTHeight, xVS) Then Continue For
 
-                Dim xDrawOnTop As Boolean = IsNoteRandomAllCurrentLayer(Notes(xI1))
+                Dim xDrawOnTop As Boolean = IsNoteRandomLayerHighlightTarget(Notes(xI1))
                 If xPass = 0 AndAlso xDrawOnTop Then Continue For
                 If xPass = 1 AndAlso Not xDrawOnTop Then Continue For
 
@@ -480,7 +512,7 @@ Partial Public Class MainWindow
     End Function
 
     Private Sub DrawRandomLayerHint(ByVal sNote As Note, ByVal e As BufferedGraphics, ByVal xHS As Long, ByVal xVS As Long, ByVal xHeight As Integer)
-        If Not IsNoteRandomLayerHighlightTarget(sNote) AndAlso Not IsNoteRandomAllOtherLayer(sNote) Then Return
+        If Not IsNoteRandomLayerHighlightTarget(sNote) AndAlso Not IsNoteRandomLayerOtherHintTarget(sNote) Then Return
 
         Dim rect As Rectangle = GetNoteRectangle(sNote, xHeight, CInt(xHS), CInt(xVS))
         Dim xIsCurrentRandomLayer As Boolean = IsNoteRandomLayerHighlightTarget(sNote)

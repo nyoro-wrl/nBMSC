@@ -371,6 +371,38 @@ Module TestRunner
         AssertEqual(62, roundTripChange.Index, "definition command index")
         AssertEqual("kick.wav", roundTripChange.Value, "definition command value")
 
+        Dim randomBlock As New BmsRandomBlock(4)
+        randomBlock.CurrentValue = 3
+        randomBlock.ViewMode = BmsRandomViewMode.AllBranches
+        randomBlock.SetExtraText(3, "#GENRE random")
+        Dim randomNotes As Note() = {New Note(5, 384.0R, 10000, 0, False, True, False, 1, 3)}
+        Dim randomInsert As New UndoRedo.RandomBlockInsert(1, randomBlock, randomNotes, 1)
+        Dim roundTripRandomInsert As UndoRedo.RandomBlockInsert = DirectCast(UndoRedo.fromBytes(randomInsert.toBytes()), UndoRedo.RandomBlockInsert)
+
+        AssertEqual(UndoRedo.opRandomBlockInsert, roundTripRandomInsert.ofType(), "random insert command type")
+        AssertEqual(1, roundTripRandomInsert.Index, "random insert index")
+        AssertEqual(1, roundTripRandomInsert.SelectAfter, "random insert selected index")
+        AssertEqual(4, roundTripRandomInsert.Block.DefinitionValue, "random insert definition")
+        AssertEqual(3, roundTripRandomInsert.Block.CurrentValue, "random insert current value")
+        AssertEqual(BmsRandomViewMode.AllBranches, roundTripRandomInsert.Block.ViewMode, "random insert view")
+        AssertEqual("#GENRE random", roundTripRandomInsert.Block.GetExtraText(3), "random insert extra")
+        AssertEqual(1, roundTripRandomInsert.Notes.Length, "random insert note count")
+        AssertEqual(3, roundTripRandomInsert.Notes(0).RandomValue, "random insert note random value")
+
+        Dim randomRemove As New UndoRedo.RandomBlockRemove(2, 1)
+        Dim roundTripRandomRemove As UndoRedo.RandomBlockRemove = DirectCast(UndoRedo.fromBytes(randomRemove.toBytes()), UndoRedo.RandomBlockRemove)
+
+        AssertEqual(UndoRedo.opRandomBlockRemove, roundTripRandomRemove.ofType(), "random remove command type")
+        AssertEqual(2, roundTripRandomRemove.Index, "random remove index")
+        AssertEqual(1, roundTripRandomRemove.SelectAfter, "random remove selected index")
+
+        Dim randomDefinition As New UndoRedo.RandomDefinitionChange(3, 8)
+        Dim roundTripRandomDefinition As UndoRedo.RandomDefinitionChange = DirectCast(UndoRedo.fromBytes(randomDefinition.toBytes()), UndoRedo.RandomDefinitionChange)
+
+        AssertEqual(UndoRedo.opRandomDefinitionChange, roundTripRandomDefinition.ofType(), "random definition command type")
+        AssertEqual(3, roundTripRandomDefinition.Index, "random definition index")
+        AssertEqual(8, roundTripRandomDefinition.Value, "random definition value")
+
         Dim legacyBytes As Byte() = LegacyMoveNoteBytes(New Note(4, 96.0R, 250000, 0, False, False, False), 8, 192.0R)
         Dim legacyMove As UndoRedo.MoveNote = DirectCast(UndoRedo.fromBytes(legacyBytes), UndoRedo.MoveNote)
 

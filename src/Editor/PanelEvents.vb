@@ -733,12 +733,7 @@ Partial Public Class MainWindow
     End Sub
 
     Private Function GetRightClickedNote(ByVal e As MouseEventArgs, ByVal xHS As Long, ByVal xVS As Long, ByVal xHeight As Integer) As Integer
-        For xI1 As Integer = UBound(Notes) To 1 Step -1
-            If Not IsNoteVisibleByRandom(Notes(xI1)) Then Continue For
-            If MouseInNote(e, xHS, xVS, xHeight, Notes(xI1)) Then Return xI1
-        Next
-
-        Return -1
+        Return GetTopmostNoteAt(e, xHS, xVS, xHeight, 1)
     End Function
 
     Private Function ShouldRemoveOnRightClick(ByVal xNoteIndex As Integer) As Boolean
@@ -781,24 +776,15 @@ Partial Public Class MainWindow
     End Sub
 
     Private Function GetClickedNote(e As MouseEventArgs, xHS As Long, xVS As Long, xHeight As Integer) As Integer
-        Dim NoteIndex As Integer = -1
-        For xI1 = UBound(Notes) To 0 Step -1
-            If Not IsNoteVisibleByRandom(Notes(xI1)) Then Continue For
-            'If mouse is clicking on a K
-            If MouseInNote(e, xHS, xVS, xHeight, Notes(xI1)) Then
-                ' found it!
-                NoteIndex = xI1
-                deltaVPosition = IIf(NTInput, GetMouseVPosition(False) - Notes(xI1).VPosition, 0)
+        Dim NoteIndex As Integer = GetTopmostNoteAt(e, xHS, xVS, xHeight)
+        If NoteIndex < 0 Then Return NoteIndex
 
-                If NTInput And My.Computer.Keyboard.ShiftKeyDown Then
-                    bAdjustUpper = e.Y <= NoteRowToPanelHeight(Notes(xI1).VPosition + Notes(xI1).Length, xVS, xHeight)
-                    bAdjustLength = e.Y >= NoteRowToPanelHeight(Notes(xI1).VPosition, xVS, xHeight) - vo.kHeight Or bAdjustUpper
-                End If
+        deltaVPosition = IIf(NTInput, GetMouseVPosition(False) - Notes(NoteIndex).VPosition, 0)
 
-                Exit For
-
-            End If
-        Next
+        If NTInput And My.Computer.Keyboard.ShiftKeyDown Then
+            bAdjustUpper = e.Y <= NoteRowToPanelHeight(Notes(NoteIndex).VPosition + Notes(NoteIndex).Length, xVS, xHeight)
+            bAdjustLength = e.Y >= NoteRowToPanelHeight(Notes(NoteIndex).VPosition, xVS, xHeight) - vo.kHeight Or bAdjustUpper
+        End If
 
         Return NoteIndex
     End Function
@@ -1053,8 +1039,10 @@ Partial Public Class MainWindow
 
     Private Sub OnSelectModeLeftClick(e As MouseEventArgs, NoteIndex As Integer, xTHeight As Integer, xVS As Integer)
         If NoteIndex >= 0 And e.Clicks = 2 Then
+            If NoteIndex > 0 Then SelectRandomLayerForNote(NoteIndex)
             DoubleClickNoteIndex(NoteIndex)
         ElseIf NoteIndex > 0 Then
+            SelectRandomLayerForNote(NoteIndex)
             'KMouseDown = -1
             ReDim SelectedNotes(-1)
 
@@ -1192,6 +1180,35 @@ Partial Public Class MainWindow
                e.Y <= NoteRowToPanelHeight(note.VPosition, xVS, xHeight)
     End Function
 
+    Private Function GetTopmostNoteAt(ByVal e As MouseEventArgs,
+                                      ByVal xHS As Long,
+                                      ByVal xVS As Long,
+                                      ByVal xHeight As Integer,
+                                      Optional ByVal xMinIndex As Integer = 0) As Integer
+        Dim xNoteIndex As Integer = GetTopmostNoteAt(e, xHS, xVS, xHeight, xMinIndex, True)
+        If xNoteIndex >= xMinIndex Then Return xNoteIndex
+
+        Return GetTopmostNoteAt(e, xHS, xVS, xHeight, xMinIndex, False)
+    End Function
+
+    Private Function GetTopmostNoteAt(ByVal e As MouseEventArgs,
+                                      ByVal xHS As Long,
+                                      ByVal xVS As Long,
+                                      ByVal xHeight As Integer,
+                                      ByVal xMinIndex As Integer,
+                                      ByVal xHighlightedOnly As Boolean) As Integer
+        If Notes Is Nothing Then Return -1
+
+        For xI1 As Integer = UBound(Notes) To xMinIndex Step -1
+            If Not IsNoteVisibleByRandom(Notes(xI1)) Then Continue For
+            Dim xHighlighted As Boolean = IsNoteRandomLayerHighlightTarget(Notes(xI1))
+            If xHighlightedOnly <> xHighlighted Then Continue For
+            If MouseInNote(e, xHS, xVS, xHeight, Notes(xI1)) Then Return xI1
+        Next
+
+        Return -1
+    End Function
+
     Private Sub PMainInMouseEnter(ByVal sender As Object, ByVal e As System.EventArgs) Handles PMainIn.MouseEnter, PMainInL.MouseEnter, PMainInR.MouseEnter
         spMouseOver = sender.Tag
         If Not IsValidPanelIndex(spMouseOver) Then Return
@@ -1237,28 +1254,20 @@ Partial Public Class MainWindow
 
                 Dim xMouseRemainInSameRegion As Boolean = False
 
-                Dim noteIndex As Integer
-                Dim foundNoteIndex As Integer = -1
-                For noteIndex = UBound(Notes) To 0 Step -1
-                    If Not IsNoteVisibleByRandom(Notes(noteIndex)) Then Continue For
-                    If MouseInNote(e, xHS, xVS, xHeight, Notes(noteIndex)) Then
-                        foundNoteIndex = noteIndex
+                Dim foundNoteIndex As Integer = GetTopmostNoteAt(e, xHS, xVS, xHeight)
+                If foundNoteIndex >= 0 Then
+                    xMouseRemainInSameRegion = foundNoteIndex = KMouseOver
+                    If NTInput Then
+                        Dim vy = NoteRowToPanelHeight(Notes(foundNoteIndex).VPosition + Notes(foundNoteIndex).Length,
+                                                                                         xVS, xHeight)
 
-                        xMouseRemainInSameRegion = foundNoteIndex = KMouseOver
-                        If NTInput Then
-                            Dim vy = NoteRowToPanelHeight(Notes(noteIndex).VPosition + Notes(noteIndex).Length,
-                                                                                             xVS, xHeight)
-
-                            Dim xbAdjustUpper As Boolean = (e.Y <= vy) And ModifierLongNoteActive()
-                            Dim xbAdjustLength As Boolean = (e.Y >= vy - vo.kHeight Or xbAdjustUpper) And ModifierLongNoteActive()
-                            xMouseRemainInSameRegion = xMouseRemainInSameRegion And xbAdjustUpper = bAdjustUpper And xbAdjustLength = bAdjustLength
-                            bAdjustUpper = xbAdjustUpper
-                            bAdjustLength = xbAdjustLength
-                        End If
-
-                        Exit For
+                        Dim xbAdjustUpper As Boolean = (e.Y <= vy) And ModifierLongNoteActive()
+                        Dim xbAdjustLength As Boolean = (e.Y >= vy - vo.kHeight Or xbAdjustUpper) And ModifierLongNoteActive()
+                        xMouseRemainInSameRegion = xMouseRemainInSameRegion And xbAdjustUpper = bAdjustUpper And xbAdjustLength = bAdjustLength
+                        bAdjustUpper = xbAdjustUpper
+                        bAdjustLength = xbAdjustLength
                     End If
-                Next
+                End If
 
                 Dim xTempbTimeSelectionMode As Boolean = TBTimeSelect.Checked
 
@@ -1426,17 +1435,7 @@ Partial Public Class MainWindow
     End Function
 
     Private Sub OnTimeSelectClick(xHeight As Double, xHS As Double, xvs As Double, e As MouseEventArgs)
-        Dim xI1 As Integer
-        Dim xITemp As Integer = -1
-        If Notes IsNot Nothing Then
-            For xI1 = UBound(Notes) To 0 Step -1 ' az: MouseInNote implied, but I'm not sure yet
-                If Not IsNoteVisibleByRandom(Notes(xI1)) Then Continue For
-                If MouseInNote(e, xHS, xvs, xHeight, Notes(xI1)) Then
-                    xITemp = xI1
-                    Exit For
-                End If
-            Next
-        End If
+        Dim xITemp As Integer = GetTopmostNoteAt(e, CLng(xHS), CLng(xvs), CInt(xHeight))
 
         If Not vSelAdjust Then
             If vSelMouseOverLine = 1 Then
