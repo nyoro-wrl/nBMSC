@@ -4,7 +4,8 @@ Imports System.Text.Json
 Partial Public Class MainWindow
     Private Const NBMSCFileSignature As Integer = &H534D426E
     Private Const NBMSCFileSuffixLegacy As Byte = &H43
-    Private Const NBMSCFileSuffix As Byte = &H44
+    Private Const NBMSCFileSuffixRandom As Byte = &H44
+    Private Const NBMSCFileSuffix As Byte = &H45
 
     Private Sub ReportLoadProgress(ByVal xProgress As fLoadFileProgress, ByVal xStatus As String, ByVal xPercent As Integer, Optional ByVal xForce As Boolean = False)
         If xProgress Is Nothing Then Return
@@ -246,6 +247,7 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         ReportLoadProgress(xProgress, "Updating measures", 35, True)
         CheckLoadCanceled(xProgress)
         UpdateMeasureBottom()
+        CopyCurrentMeasureLengthToBase()
 
         xStack = 0
         Dim xNotes As New List(Of Note)(Math.Max(xStrLine.Length, 1))
@@ -317,14 +319,24 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
 
         ReportLoadProgress(xProgress, "Applying chart settings", 86, True)
         CheckLoadCanceled(xProgress)
-        If NTInput Then ConvertBMSE2NT()
-        SetChartMode(ChartModes.DetectFromBms(xPath, xHasPlayableNotes, xHas24KeyNotes, xHas7KeyNotes, xHas5KeyNotes), True)
+        If NTInput Then
+            ReportLoadProgress(xProgress, "Converting long notes", 86, True)
+            CheckLoadCanceled(xProgress)
+            ConvertBMSE2NT()
+        End If
+        ReportLoadProgress(xProgress, "Applying chart mode", 87, True)
+        CheckLoadCanceled(xProgress)
+        SetChartMode(ChartModes.DetectFromBms(xPath, xHasPlayableNotes, xHas24KeyNotes, xHas7KeyNotes, xHas5KeyNotes), True, False)
 
+        ReportLoadProgress(xProgress, "Refreshing definitions", 88, True)
+        CheckLoadCanceled(xProgress)
         RefreshDefinitionLists()
         THLandMine.Text = hWAV(0)
         THMissBMP.Text = hBMP(0)
 
         TExpansion.Text = xExpansion
+        ReportLoadProgress(xProgress, "Refreshing RANDOM panel", 89, True)
+        CheckLoadCanceled(xProgress)
         RefreshRandomPanel()
 
         ReportLoadProgress(xProgress, "Sorting notes", 90, True)
@@ -353,6 +365,8 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         RandomBlocks.Clear()
         RandomCommonVisible = True
         SelectedRandomIndex = -1
+        ActiveMeasureRandomIndex = -1
+        ActiveMeasureRandomValue = 0
     End Sub
 
     Private Function JoinBmsLines(ByVal lines As IEnumerable(Of String)) As String
@@ -382,6 +396,17 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         Return trimmedLine.StartsWith("#", StringComparison.CurrentCultureIgnoreCase) AndAlso Mid(trimmedLine, 5, 3) = "02:"
     End Function
 
+    Private Function TryReadMeasureLengthLine(ByVal line As String,
+                                              ByRef measureIndex As Integer,
+                                              ByRef measureLength As Double) As Boolean
+        Dim trimmed As String = line.Trim()
+        If Not IsMeasureLengthLine(trimmed) Then Return False
+
+        measureIndex = Val(Mid(trimmed, 2, 3))
+        measureLength = Val(Mid(trimmed, 8)) * 192.0R
+        Return measureIndex >= 0 AndAlso measureIndex <= 999 AndAlso measureLength > 0.0R
+    End Function
+
     Private Function BranchRequiresTextOnly(ByVal lines As List(Of String)) As Boolean
         For Each line As String In lines
             Dim trimmed As String = line.Trim()
@@ -401,7 +426,6 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
                BmsRandomParser.IsCommand(trimmed, "SKIP") OrElse
                BmsRandomParser.IsCommand(trimmed, "ENDSW") Then Return True
 
-            If IsMeasureLengthLine(trimmed) Then Return True
             If trimmed.StartsWith("#WAV", StringComparison.CurrentCultureIgnoreCase) Then Return True
             If trimmed.StartsWith("#BMP", StringComparison.CurrentCultureIgnoreCase) Then Return True
         Next
@@ -516,8 +540,12 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
             Dim kind As String = ""
             Dim index As Integer = 0
             Dim value As Long = 0
+            Dim measureIndex As Integer = 0
+            Dim measureLength As Double = 0.0R
 
-            If TryReadTimingDefinition(line, kind, index, value) Then
+            If TryReadMeasureLengthLine(line, measureIndex, measureLength) Then
+                block.SetMeasureLength(branch.Value, measureIndex, measureLength)
+            ElseIf TryReadTimingDefinition(line, kind, index, value) Then
                 timingDefinitions.Add(New RandomTimingDefinition With {.Kind = kind, .Index = index, .Value = value, .Line = line})
                 If kind = "BPM" Then localBPM(index) = value
                 If kind = "STOP" Then localSTOP(index) = value
@@ -531,18 +559,29 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
             End If
         Next
 
-        ReadNoteLines(noteLines,
-                      randomIndex,
-                      branch.Value,
-                      localBPM,
-                      localSTOP,
-                      localSCROLL,
-                      timingDefinitions,
-                      xNotes,
-                      xHasPlayableNotes,
-                      xHas24KeyNotes,
-                      xHas7KeyNotes,
-                      xHas5KeyNotes)
+        Dim baseMeasureLengths() As Double = CopyMeasureLengthArray(MeasureLength)
+        Dim branchMeasureLengths() As Double = EffectiveMeasureLengthForRandom(randomIndex, branch.Value)
+        Dim branchNotes As New List(Of Note)()
+
+        SetMeasureLengthForSerialization(branchMeasureLengths)
+        Try
+            ReadNoteLines(noteLines,
+                          randomIndex,
+                          branch.Value,
+                          localBPM,
+                          localSTOP,
+                          localSCROLL,
+                          timingDefinitions,
+                          branchNotes,
+                          xHasPlayableNotes,
+                          xHas24KeyNotes,
+                          xHas7KeyNotes,
+                          xHas5KeyNotes)
+        Finally
+            SetMeasureLengthForSerialization(baseMeasureLengths)
+        End Try
+
+        xNotes.AddRange(ConvertNotesToMeasureMap(branchNotes.ToArray(), branchMeasureLengths, baseMeasureLengths))
 
         For Each definition As RandomTimingDefinition In timingDefinitions
             If Not definition.Used Then extraLines.Add(definition.Line)
@@ -639,7 +678,10 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
             ConvertNT2BMSE()
         End If
 
-        Dim xStrCommon As String = GenerateBmsDataForNotes(NotesForRandomLayer(-1, 0), True, hasOverlapping)
+        Dim xStrCommon As String = GenerateBmsDataForNotesInMeasureMap(NotesForRandomLayer(-1, 0),
+                                                                       CopyMeasureLengthArray(BaseMeasureLength),
+                                                                       True,
+                                                                       hasOverlapping)
         maxBPMDefinitions = Math.Max(maxBPMDefinitions, UBound(hBPM))
         maxSTOPDefinitions = Math.Max(maxSTOPDefinitions, UBound(hSTOP))
         maxSCROLLDefinitions = Math.Max(maxSCROLLDefinitions, UBound(hBMSCROLL))
@@ -865,13 +907,19 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
                 Dim reservedSCROLL As Integer = 0
                 ReserveTimingDefinitionsFromExtra(extraText, reservedBPM, reservedSTOP, reservedSCROLL)
 
-                Dim branchData As String = GenerateBmsDataForNotes(NotesForRandomLayer(randomIndex, value), False, hasOverlapping)
+                Dim branchMeasureLengths() As Double = EffectiveMeasureLengthForRandom(randomIndex, value)
+                Dim branchData As String = GenerateBmsDataForNotesInMeasureMap(NotesForRandomLayer(randomIndex, value),
+                                                                               branchMeasureLengths,
+                                                                               False,
+                                                                               hasOverlapping)
+                Dim branchMeasureLengthData As String = GenerateRandomBranchMeasureLengthData(block, value)
                 Dim branchTimingDefinitions As String = GenerateTimingIndexedData(reservedBPM + 1, reservedSTOP + 1, reservedSCROLL + 1)
                 maxBPMDefinitions = Math.Max(maxBPMDefinitions, UBound(hBPM))
                 maxSTOPDefinitions = Math.Max(maxSTOPDefinitions, UBound(hSTOP))
                 maxSCROLLDefinitions = Math.Max(maxSCROLLDefinitions, UBound(hBMSCROLL))
 
                 ret &= "#IF " & value.ToString() & vbCrLf
+                ret &= branchMeasureLengthData
                 ret &= extraText
                 If extraText <> "" AndAlso Not ret.EndsWith(vbCrLf, StringComparison.Ordinal) Then ret &= vbCrLf
                 ret &= branchTimingDefinitions
@@ -932,6 +980,47 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         Next
 
         Return Join(xStrMeasure, "")
+    End Function
+
+    Private Function GenerateBmsDataForNotesInMeasureMap(ByVal sourceNotes() As Note,
+                                                         ByVal targetMeasureLengths() As Double,
+                                                         ByVal includeMeasureLength As Boolean,
+                                                         ByRef hasOverlapping As Boolean) As String
+        Dim xSavedMeasureLengths() As Double = CopyMeasureLengthArray(MeasureLength)
+        Dim xConvertedNotes() As Note = ConvertNotesToMeasureMap(sourceNotes, xSavedMeasureLengths, targetMeasureLengths)
+
+        SetMeasureLengthForSerialization(targetMeasureLengths)
+        Try
+            Return GenerateBmsDataForNotes(xConvertedNotes, includeMeasureLength, hasOverlapping)
+        Finally
+            SetMeasureLengthForSerialization(xSavedMeasureLengths)
+        End Try
+    End Function
+
+    Private Sub SetMeasureLengthForSerialization(ByVal lengths() As Double)
+        For i As Integer = 0 To 999
+            MeasureLength(i) = If(lengths IsNot Nothing AndAlso i <= UBound(lengths) AndAlso lengths(i) > 0.0R, lengths(i), 192.0R)
+        Next
+
+        UpdateMeasureBottom()
+    End Sub
+
+    Private Function GenerateRandomBranchMeasureLengthData(ByVal block As BmsRandomBlock, ByVal value As Integer) As String
+        Dim xOverrides As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(value)
+        If xOverrides.Count = 0 Then Return ""
+
+        Dim xKeys As New List(Of Integer)(xOverrides.Keys)
+        xKeys.Sort()
+
+        Dim ret As String = ""
+        For Each measureIndex As Integer In xKeys
+            If measureIndex < 0 OrElse measureIndex > 999 Then Continue For
+            If xOverrides(measureIndex) <= 0.0R Then Continue For
+
+            ret &= "#" & Add3Zeros(measureIndex) & "02:" & WriteDecimalWithDot(xOverrides(measureIndex) / 192.0R) & vbCrLf
+        Next
+
+        Return ret
     End Function
 
     Private Sub GetMeasureLimits(MeasureIndex As Integer, ByRef LowerLimit As Integer, ByRef UpperLimit As Integer)
@@ -1130,8 +1219,9 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
 
         If br.ReadInt32 <> NBMSCFileSignature Then GoTo EndOfSub
         Dim xSuffix As Byte = br.ReadByte
-        If xSuffix <> NBMSCFileSuffixLegacy AndAlso xSuffix <> NBMSCFileSuffix Then GoTo EndOfSub
-        Dim xReadRandomFields As Boolean = xSuffix = NBMSCFileSuffix
+        If xSuffix <> NBMSCFileSuffixLegacy AndAlso xSuffix <> NBMSCFileSuffixRandom AndAlso xSuffix <> NBMSCFileSuffix Then GoTo EndOfSub
+        Dim xReadRandomFields As Boolean = xSuffix <> NBMSCFileSuffixLegacy
+        Dim xReadRandomMeasureLengths As Boolean = xSuffix = NBMSCFileSuffix
         Dim xMajor As Integer = br.ReadByte
         Dim xMinor As Integer = br.ReadByte
         Dim xBuild As Integer = br.ReadByte
@@ -1295,7 +1385,7 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
                     TExpansion.Text = br.ReadString
 
                 Case &H646E6152     'Random
-                    ReadNBMSCRandomBlock(br)
+                    ReadNBMSCRandomBlock(br, xReadRandomMeasureLengths)
 
                 Case &H65746F4E     'Note
                     Dim xNoteUbound As Integer = br.ReadInt32
@@ -1341,6 +1431,10 @@ EndOfSub:
         SortByVPositionQuick(0, UBound(Notes))
         UpdatePairing()
         UpdateMeasureBottom()
+        CopyCurrentMeasureLengthToBase()
+        ActiveMeasureRandomIndex = -1
+        ActiveMeasureRandomValue = 0
+        ApplySelectedRandomMeasureMap()
         CalculateTotalPlayableNotes()
         CalculateGreatestVPosition()
         RefreshRandomPanel()
@@ -1353,8 +1447,16 @@ EndOfSub:
         CalculateGreatestVPosition()
         SortByVPositionInsertion()
         UpdatePairing()
+        Dim xActiveMeasureLengths() As Double = CopyMeasureLengthArray(MeasureLength)
+        Dim xBaseMeasureLengths() As Double = CopyMeasureLengthArray(BaseMeasureLength)
+        Dim xNotesForSave() As Note = ConvertNotesToMeasureMap(Notes, xActiveMeasureLengths, xBaseMeasureLengths)
+        Dim xUndoHistoryConvertedForSave As Boolean = False
 
         Try
+            If Not MeasureLengthArraysEqual(xActiveMeasureLengths, xBaseMeasureLengths) Then
+                ConvertUndoRedoHistoryMeasureMap(xActiveMeasureLengths, xBaseMeasureLengths)
+                xUndoHistoryConvertedForSave = True
+            End If
 
             Dim bw As New BinaryWriter(New IO.FileStream(Path, FileMode.Create), System.Text.Encoding.Unicode)
 
@@ -1478,15 +1580,15 @@ EndOfSub:
             bw.Write(CByte(BeatChangeMode))
 
             Dim xBeatCount As Integer = 0
-            For i As Integer = 0 To UBound(MeasureLength)
-                If MeasureLength(i) <> 192.0R Then xBeatCount += 1
+            For i As Integer = 0 To UBound(xBaseMeasureLengths)
+                If xBaseMeasureLengths(i) <> 192.0R Then xBeatCount += 1
             Next
             bw.Write(xBeatCount)
 
-            For i As Integer = 0 To UBound(MeasureLength)
-                If MeasureLength(i) = 192.0R Then Continue For
+            For i As Integer = 0 To UBound(xBaseMeasureLengths)
+                If xBaseMeasureLengths(i) = 192.0R Then Continue For
                 bw.Write(CShort(i))
-                bw.Write(MeasureLength(i))
+                bw.Write(xBaseMeasureLengths(i))
             Next
 
             'Expansion Code
@@ -1501,9 +1603,9 @@ EndOfSub:
             'Note
             'bw.Write("Note".ToCharArray)
             bw.Write(&H65746F4E)
-            bw.Write(UBound(Notes))
-            For i As Integer = 1 To UBound(Notes)
-                Notes(i).WriteBinWriter(bw)
+            bw.Write(UBound(xNotesForSave))
+            For i As Integer = 1 To UBound(xNotesForSave)
+                xNotesForSave(i).WriteBinWriter(bw)
             Next
 
             'Undo / Redo Commands
@@ -1538,11 +1640,14 @@ EndOfSub:
 
             MsgBox(ex.Message)
 
+        Finally
+            If xUndoHistoryConvertedForSave Then ConvertUndoRedoHistoryMeasureMap(xBaseMeasureLengths, xActiveMeasureLengths)
+
         End Try
 
     End Sub
 
-    Private Sub ReadNBMSCRandomBlock(ByVal br As BinaryReader)
+    Private Sub ReadNBMSCRandomBlock(ByVal br As BinaryReader, ByVal readMeasureLengths As Boolean)
         ResetRandomState()
         RandomCommonVisible = br.ReadBoolean()
         SelectedRandomIndex = br.ReadInt32()
@@ -1559,6 +1664,17 @@ EndOfSub:
                 Dim value As Integer = br.ReadInt32()
                 block.SetExtraText(value, br.ReadString())
             Next
+
+            If readMeasureLengths Then
+                Dim measureBranchCount As Integer = br.ReadInt32()
+                For j As Integer = 0 To measureBranchCount - 1
+                    Dim value As Integer = br.ReadInt32()
+                    Dim measureCount As Integer = br.ReadInt32()
+                    For k As Integer = 0 To measureCount - 1
+                        block.SetMeasureLength(value, br.ReadInt32(), br.ReadDouble())
+                    Next
+                Next
+            End If
 
             block.Normalize()
             RandomBlocks.Add(block)
@@ -1582,6 +1698,16 @@ EndOfSub:
             For Each pair As KeyValuePair(Of Integer, String) In block.ExtraTextByValue
                 bw.Write(pair.Key)
                 bw.Write(If(pair.Value, ""))
+            Next
+
+            bw.Write(block.MeasureLengthByValue.Count)
+            For Each branch As KeyValuePair(Of Integer, Dictionary(Of Integer, Double)) In block.MeasureLengthByValue
+                bw.Write(branch.Key)
+                bw.Write(branch.Value.Count)
+                For Each measure As KeyValuePair(Of Integer, Double) In branch.Value
+                    bw.Write(measure.Key)
+                    bw.Write(measure.Value)
+                Next
             Next
         Next
     End Sub

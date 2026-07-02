@@ -48,6 +48,9 @@ Public Class MainWindow
         Return MeasureBottom(idx) + MeasureLength(idx)
     End Function
 
+    Private BaseMeasureLength(999) As Double
+    Private ActiveMeasureRandomIndex As Integer = -1
+    Private ActiveMeasureRandomValue As Integer = 0
 
     Dim Notes() As Note = {New Note(niBPM, -1, 1200000, 0, False)}
     Private RandomBlocks As New List(Of BmsRandomBlock)()
@@ -2230,6 +2233,7 @@ Public Class MainWindow
         LRandomDefinitionUnused.Visible = False
         LRandomValueUnused.Visible = False
         RefreshRandomViewModeEnabled()
+        RefreshBeatEditControlsEnabled()
         TRandomExtra.Enabled = hasBlock
 
         If hasBlock Then
@@ -2330,6 +2334,7 @@ Public Class MainWindow
         RandomBlocks.Add(xBlock)
         SelectedRandomIndex = xInsertIndex
         AddUndo(xUndo, xRedo)
+        ApplySelectedRandomMeasureMap()
         SetIsSaved(False)
         RefreshRandomPanel(False)
         RefreshPanelAll()
@@ -2376,6 +2381,7 @@ Public Class MainWindow
 
         SelectedRandomIndex = xInsertIndex
         AddUndo(xUndo, xRedo)
+        ApplySelectedRandomMeasureMap()
         SetIsSaved(False)
         SortByVPositionInsertion()
         UpdatePairing()
@@ -2412,6 +2418,7 @@ Public Class MainWindow
         RandomBlocks.RemoveAt(deleteIndex)
         SelectedRandomIndex = xSelectAfterDelete
         AddUndo(xUndo, xRedo)
+        ApplySelectedRandomMeasureMap()
         SetIsSaved(False)
         SortByVPositionInsertion()
         UpdatePairing()
@@ -2424,6 +2431,7 @@ Public Class MainWindow
         If UpdatingRandomControls Then Return
         StoreRandomExtraText()
         SelectedRandomIndex = RandomListIndexToRandomIndex(LRandomBlocks.SelectedIndex)
+        ApplySelectedRandomMeasureMap()
         RefreshRandomPanel()
         RefreshPanelAll()
     End Sub
@@ -2441,6 +2449,7 @@ Public Class MainWindow
 
         block.DefinitionValue = newValue
         block.Normalize()
+        ApplySelectedRandomMeasureMap()
         AddUndo(xUndo, xRedo)
         SetIsSaved(False)
         RefreshRandomPanel()
@@ -2454,6 +2463,7 @@ Public Class MainWindow
         Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
         block.CurrentValue = CInt(NRandomValue.Value)
         block.Normalize()
+        ApplySelectedRandomMeasureMap()
         SetIsSaved(False)
         RefreshRandomPanel()
         RefreshPanelAll()
@@ -2859,7 +2869,7 @@ Public Class MainWindow
         UpdatingModeSelector = False
     End Sub
 
-    Private Sub SetChartMode(ByVal modeName As String, ByVal loadDefaultTheme As Boolean)
+    Private Sub SetChartMode(ByVal modeName As String, ByVal loadDefaultTheme As Boolean, Optional ByVal refreshPanel As Boolean = True)
         If modeName Is Nothing OrElse modeName.Trim() = "" Then modeName = ChartModes.DisplayName(ChartMode.Key7)
 
         CurrentModeName = modeName.Trim()
@@ -2869,12 +2879,12 @@ Public Class MainWindow
         If loadDefaultTheme AndAlso ThemeAutoSelect Then
             If LoadThemeOrDefault(DefaultThemePath(CurrentModeName)) Then ChangePlaySideSkin(False)
             CalculateGreatestColumn()
-            RefreshPanelAll()
+            If refreshPanel Then RefreshPanelAll()
         End If
     End Sub
 
-    Private Sub SetChartMode(ByVal mode As ChartMode, ByVal loadDefaultTheme As Boolean)
-        SetChartMode(ChartModes.DisplayName(mode), loadDefaultTheme)
+    Private Sub SetChartMode(ByVal mode As ChartMode, ByVal loadDefaultTheme As Boolean, Optional ByVal refreshPanel As Boolean = True)
+        SetChartMode(ChartModes.DisplayName(mode), loadDefaultTheme, refreshPanel)
     End Sub
 
     Private Function PlayerSelectorWidth() As Integer
@@ -3163,6 +3173,182 @@ Public Class MainWindow
         For xI1 As Integer = 0 To 998
             MeasureBottom(xI1 + 1) = MeasureBottom(xI1) + MeasureLength(xI1)
         Next
+    End Sub
+
+    Private Function CopyMeasureLengthArray(ByVal source() As Double) As Double()
+        Dim copy(999) As Double
+        If source Is Nothing Then
+            For i As Integer = 0 To 999
+                copy(i) = 192.0R
+            Next
+
+            Return copy
+        End If
+
+        For i As Integer = 0 To 999
+            copy(i) = If(i <= UBound(source) AndAlso source(i) > 0.0R, source(i), 192.0R)
+        Next
+
+        Return copy
+    End Function
+
+    Private Function BuildMeasureBottomArray(ByVal lengths() As Double) As Double()
+        Dim bottoms(999) As Double
+        bottoms(0) = 0.0R
+
+        For i As Integer = 0 To 998
+            bottoms(i + 1) = bottoms(i) + If(lengths(i) > 0.0R, lengths(i), 192.0R)
+        Next
+
+        Return bottoms
+    End Function
+
+    Private Sub CopyCurrentMeasureLengthToBase()
+        BaseMeasureLength = CopyMeasureLengthArray(MeasureLength)
+    End Sub
+
+    Private Sub ApplyMeasureLengthArray(ByVal lengths() As Double)
+        For i As Integer = 0 To 999
+            MeasureLength(i) = If(lengths IsNot Nothing AndAlso i <= UBound(lengths) AndAlso lengths(i) > 0.0R, lengths(i), 192.0R)
+        Next
+
+        UpdateMeasureBottom()
+        RefreshBeatListFromMeasureLength()
+    End Sub
+
+    Private Sub RefreshBeatListFromMeasureLength()
+        If LBeat Is Nothing Then Return
+
+        LBeat.BeginUpdate()
+        Try
+            For i As Integer = 0 To Math.Min(999, LBeat.Items.Count - 1)
+                Dim xRatio As Double = MeasureLength(i) / 192.0R
+                Dim xDenominator As Long = GetDenominator(xRatio)
+                LBeat.Items(i) = Add3Zeros(i) & ": " & xRatio & IIf(xDenominator > 10000, "", " ( " & CLng(xRatio * xDenominator) & " / " & xDenominator & " ) ")
+            Next
+        Finally
+            LBeat.EndUpdate()
+        End Try
+    End Sub
+
+    Private Function MeasureAtDisplacementInMap(ByVal xVPos As Double, ByVal bottoms() As Double) As Integer
+        Dim xI1 As Integer
+        For xI1 = 1 To 999
+            If xVPos < bottoms(xI1) Then Exit For
+        Next
+
+        Return xI1 - 1
+    End Function
+
+    Private Function ConvertVPositionBetweenMeasureMaps(ByVal xVPosition As Double,
+                                                        ByVal sourceLengths() As Double,
+                                                        ByVal sourceBottoms() As Double,
+                                                        ByVal targetLengths() As Double,
+                                                        ByVal targetBottoms() As Double) As Double
+        If xVPosition < 0.0R Then Return xVPosition
+
+        Dim xMeasure As Integer = MeasureAtDisplacementInMap(xVPosition, sourceBottoms)
+        Dim xSourceLength As Double = If(sourceLengths(xMeasure) > 0.0R, sourceLengths(xMeasure), 192.0R)
+        Dim xRatio As Double = (xVPosition - sourceBottoms(xMeasure)) / xSourceLength
+        Dim xTargetLength As Double = If(targetLengths(xMeasure) > 0.0R, targetLengths(xMeasure), 192.0R)
+
+        Return targetBottoms(xMeasure) + xTargetLength * xRatio
+    End Function
+
+    Private Function ConvertLengthBetweenMeasureMaps(ByVal xVPosition As Double,
+                                                     ByVal xLength As Double,
+                                                     ByVal sourceLengths() As Double,
+                                                     ByVal sourceBottoms() As Double,
+                                                     ByVal targetLengths() As Double,
+                                                     ByVal targetBottoms() As Double) As Double
+        If xLength = 0.0R Then Return xLength
+
+        Dim xStart As Double = ConvertVPositionBetweenMeasureMaps(xVPosition, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        Dim xEnd As Double = ConvertVPositionBetweenMeasureMaps(xVPosition + xLength, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        Return xEnd - xStart
+    End Function
+
+    Private Function ConvertNoteToMeasureMap(ByVal sourceNote As Note,
+                                             ByVal sourceLengths() As Double,
+                                             ByVal sourceBottoms() As Double,
+                                             ByVal targetLengths() As Double,
+                                             ByVal targetBottoms() As Double) As Note
+        Dim converted As Note = sourceNote
+        converted.VPosition = ConvertVPositionBetweenMeasureMaps(sourceNote.VPosition, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        converted.Length = ConvertLengthBetweenMeasureMaps(sourceNote.VPosition, sourceNote.Length, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        Return converted
+    End Function
+
+    Private Function MeasureLengthArraysEqual(ByVal first() As Double, ByVal second() As Double) As Boolean
+        For i As Integer = 0 To 999
+            Dim xFirst As Double = If(first IsNot Nothing AndAlso i <= UBound(first) AndAlso first(i) > 0.0R, first(i), 192.0R)
+            Dim xSecond As Double = If(second IsNot Nothing AndAlso i <= UBound(second) AndAlso second(i) > 0.0R, second(i), 192.0R)
+            If Math.Abs(xFirst - xSecond) > 0.0000001R Then Return False
+        Next
+
+        Return True
+    End Function
+
+    Private Function ConvertNotesToMeasureMap(ByVal sourceNotes() As Note,
+                                              ByVal sourceLengths() As Double,
+                                              ByVal targetLengths() As Double) As Note()
+        If sourceNotes Is Nothing OrElse sourceNotes.Length = 0 Then Return New Note() {}
+
+        Dim sourceBottoms() As Double = BuildMeasureBottomArray(sourceLengths)
+        Dim targetBottoms() As Double = BuildMeasureBottomArray(targetLengths)
+        Dim converted(UBound(sourceNotes)) As Note
+
+        For i As Integer = 0 To UBound(sourceNotes)
+            converted(i) = ConvertNoteToMeasureMap(sourceNotes(i), sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        Next
+
+        Return converted
+    End Function
+
+    Private Function EffectiveMeasureLengthForRandom(ByVal randomIndex As Integer, ByVal randomValue As Integer) As Double()
+        Dim result() As Double = CopyMeasureLengthArray(BaseMeasureLength)
+        If Not IsValidRandomIndex(randomIndex) Then Return result
+
+        Dim block As BmsRandomBlock = RandomBlocks(randomIndex)
+        For Each pair As KeyValuePair(Of Integer, Double) In block.GetMeasureLengthOverrides(randomValue)
+            If pair.Key >= 0 AndAlso pair.Key <= 999 AndAlso pair.Value > 0.0R Then result(pair.Key) = pair.Value
+        Next
+
+        Return result
+    End Function
+
+    Private Function ActiveTargetMeasureLength() As Double()
+        If IsValidRandomIndex(SelectedRandomIndex) Then
+            Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
+            block.Normalize()
+            Return EffectiveMeasureLengthForRandom(SelectedRandomIndex, block.CurrentValue)
+        End If
+
+        Return CopyMeasureLengthArray(BaseMeasureLength)
+    End Function
+
+    Private Sub ApplySelectedRandomMeasureMap()
+        Dim targetRandomIndex As Integer = -1
+        Dim targetRandomValue As Integer = 0
+        If IsValidRandomIndex(SelectedRandomIndex) Then
+            Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
+            block.Normalize()
+            targetRandomIndex = SelectedRandomIndex
+            targetRandomValue = block.CurrentValue
+        End If
+
+        Dim targetLengths() As Double = ActiveTargetMeasureLength()
+        Dim sourceLengths() As Double = CopyMeasureLengthArray(MeasureLength)
+        If Not MeasureLengthArraysEqual(sourceLengths, targetLengths) Then
+            Notes = ConvertNotesToMeasureMap(Notes, sourceLengths, targetLengths)
+            ConvertUndoRedoHistoryMeasureMap(sourceLengths, targetLengths)
+        End If
+        ApplyMeasureLengthArray(targetLengths)
+        ActiveMeasureRandomIndex = targetRandomIndex
+        ActiveMeasureRandomValue = targetRandomValue
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateGreatestVPosition()
     End Sub
 
     Private Function PathIsValid(ByVal sPath As String) As Boolean
@@ -3592,6 +3778,7 @@ Public Class MainWindow
 
             StoreRandomExtraText()
             SelectedRandomIndex = -1
+            ApplySelectedRandomMeasureMap()
             RefreshRandomPanel()
             EnsureSelectedListItemVisible(LRandomBlocks)
             Return
@@ -3606,6 +3793,7 @@ Public Class MainWindow
         StoreRandomExtraText()
         SelectedRandomIndex = note.RandomIndex
         block.CurrentValue = xValue
+        ApplySelectedRandomMeasureMap()
         RefreshRandomPanel()
         EnsureSelectedListItemVisible(LRandomBlocks)
     End Sub
@@ -3654,6 +3842,19 @@ Public Class MainWindow
             xEnabled = RandomBlocks.Count > 0
         End If
         If CRandomViewMode.Enabled <> xEnabled Then CRandomViewMode.Enabled = xEnabled
+    End Sub
+
+    Private Sub RefreshBeatEditControlsEnabled()
+        Dim xEnabled As Boolean = Not IsValidRandomIndex(SelectedRandomIndex)
+        If nBeatN IsNot Nothing Then nBeatN.Enabled = xEnabled
+        If nBeatD IsNot Nothing Then nBeatD.Enabled = xEnabled
+        If tBeatValue IsNot Nothing Then tBeatValue.Enabled = xEnabled
+        If BBeatApply IsNot Nothing Then BBeatApply.Enabled = xEnabled
+        If BBeatApplyV IsNot Nothing Then BBeatApplyV.Enabled = xEnabled
+        If CBeatPreserve IsNot Nothing Then CBeatPreserve.Enabled = xEnabled
+        If CBeatMeasure IsNot Nothing Then CBeatMeasure.Enabled = xEnabled
+        If CBeatCut IsNot Nothing Then CBeatCut.Enabled = xEnabled
+        If CBeatScale IsNot Nothing Then CBeatScale.Enabled = xEnabled
     End Sub
 
     Private Function IsNoteRandomLayerOtherHintTarget(ByVal note As Note) As Boolean
@@ -3947,6 +4148,10 @@ Public Class MainWindow
             MeasureBottom(xI1) = xI1 * 192.0R
             LBeat.Items.Add(Add3Zeros(xI1) & ": 1 ( 4 / 4 )")
         Next
+
+        CopyCurrentMeasureLengthToBase()
+        ActiveMeasureRandomIndex = -1
+        ActiveMeasureRandomValue = 0
     End Sub
 
     Private Sub InitializeOpenBMS()
@@ -6579,48 +6784,47 @@ StartCount:     If Not NTInput Then
 
     Private Sub ConvertBMSE2NT()
         ReDim SelectedNotes(-1)
-        SortByVPositionInsertion()
+        SortByVPositionQuick(0, UBound(Notes))
 
-        For i2 As Integer = 0 To UBound(Notes)
-            Notes(i2).Length = 0.0#
+        Dim xConverted As New List(Of Note)(Notes.Length)
+        Dim xPendingLongNote As New Dictionary(Of String, Integer)()
+
+        Notes(0).Length = 0.0R
+        xConverted.Add(Notes(0))
+
+        For i As Integer = 1 To UBound(Notes)
+            Dim xNote As Note = Notes(i)
+            xNote.Length = 0.0R
+            Dim xKey As String = xNote.ColumnIndex.ToString() & "|" & xNote.RandomIndex.ToString() & "|" & xNote.RandomValue.ToString()
+
+            If xNote.LongNote Then
+                Dim xStartIndex As Integer = 0
+                If xPendingLongNote.TryGetValue(xKey, xStartIndex) Then
+                    Dim xStartNote As Note = xConverted(xStartIndex)
+                    xStartNote.Length = xNote.VPosition - xStartNote.VPosition
+                    xConverted(xStartIndex) = xStartNote
+                    xPendingLongNote.Remove(xKey)
+                    Continue For
+                End If
+
+                xPendingLongNote(xKey) = xConverted.Count
+                xConverted.Add(xNote)
+                Continue For
+            End If
+
+            xConverted.Add(xNote)
+
+            If xNote.Value \ 10000 = LnObj Then
+                xPendingLongNote.Remove(xKey)
+            End If
         Next
 
-        Dim i As Integer = 1
-        Dim j As Integer = 0
-        Dim xUbound As Integer = UBound(Notes)
-
-        Do While i <= xUbound
-            If Not Notes(i).LongNote Then i += 1 : Continue Do
-
-            For j = i + 1 To xUbound
-                If Notes(j).ColumnIndex <> Notes(i).ColumnIndex Then Continue For
-                If Not IsSameRandomOwner(Notes(j), Notes(i).RandomIndex, Notes(i).RandomValue) Then Continue For
-
-                If Notes(j).LongNote Then
-                    Notes(i).Length = Notes(j).VPosition - Notes(i).VPosition
-                    For j2 As Integer = j To xUbound - 1
-                        Notes(j2) = Notes(j2 + 1)
-                    Next
-                    xUbound -= 1
-                    Exit For
-
-                ElseIf Notes(j).Value \ 10000 = LnObj Then
-                    Exit For
-
-                End If
-            Next
-
-            i += 1
-        Loop
-
-        ReDim Preserve Notes(xUbound)
-
-        For i = 0 To xUbound
+        Notes = xConverted.ToArray()
+        For i As Integer = 0 To UBound(Notes)
             Notes(i).LongNote = False
             NormalizeNoteType(Notes(i))
         Next
 
-        SortByVPositionInsertion()
         UpdatePairing()
         CalculateTotalPlayableNotes()
     End Sub
@@ -8620,6 +8824,8 @@ Jump2:
 
 
     Private Sub ApplyBeat(ByVal xRatio As Double, ByVal xDisplay As String)
+        If IsValidRandomIndex(SelectedRandomIndex) Then Return
+
         SortByVPositionInsertion()
 
         Dim xUndo As UndoRedo.LinkedURCmd = Nothing
@@ -8776,6 +8982,7 @@ case2:              Dim xI0 As Integer
             LBeat.Items(xI1) = Add3Zeros(xI1) & ": " & xDisplay
         Next
         UpdateMeasureBottom()
+        CopyCurrentMeasureLengthToBase()
         'xUndo &= vbCrLf & xUndo2
         'xRedo &= vbCrLf & xRedo2
 

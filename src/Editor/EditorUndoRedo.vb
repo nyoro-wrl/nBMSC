@@ -201,6 +201,12 @@ Partial Public Class MainWindow
             copy.SetExtraText(pair.Key, pair.Value)
         Next
 
+        For Each branch As KeyValuePair(Of Integer, Dictionary(Of Integer, Double)) In block.MeasureLengthByValue
+            For Each measure As KeyValuePair(Of Integer, Double) In branch.Value
+                copy.SetMeasureLength(branch.Key, measure.Key, measure.Value)
+            Next
+        Next
+
         copy.Normalize()
         Return copy
     End Function
@@ -230,6 +236,7 @@ Partial Public Class MainWindow
         End If
 
         SelectedRandomIndex = RandomSelectAfter(cmd.SelectAfter)
+        ApplySelectedRandomMeasureMap()
         RefreshRandomPanel()
     End Sub
 
@@ -250,6 +257,7 @@ Partial Public Class MainWindow
 
         RandomBlocks.RemoveAt(cmd.Index)
         SelectedRandomIndex = RandomSelectAfter(cmd.SelectAfter)
+        ApplySelectedRandomMeasureMap()
         RefreshRandomPanel()
     End Sub
 
@@ -260,7 +268,88 @@ Partial Public Class MainWindow
 
         RandomBlocks(cmd.Index).DefinitionValue = cmd.Value
         RandomBlocks(cmd.Index).Normalize()
+        ApplySelectedRandomMeasureMap()
         RefreshRandomPanel()
+    End Sub
+
+    Private Sub ConvertUndoRedoHistoryMeasureMap(ByVal sourceLengths() As Double, ByVal targetLengths() As Double)
+        Dim sourceBottoms() As Double = BuildMeasureBottomArray(sourceLengths)
+        Dim targetBottoms() As Double = BuildMeasureBottomArray(targetLengths)
+
+        For i As Integer = 0 To sUndo.Length - 1
+            ConvertUndoRedoCommandMeasureMap(sUndo(i), sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+            ConvertUndoRedoCommandMeasureMap(sRedo(i), sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+        Next
+    End Sub
+
+    Private Sub ConvertUndoRedoCommandMeasureMap(ByVal cmd As UndoRedo.LinkedURCmd,
+                                                 ByVal sourceLengths() As Double,
+                                                 ByVal sourceBottoms() As Double,
+                                                 ByVal targetLengths() As Double,
+                                                 ByVal targetBottoms() As Double)
+        Do While cmd IsNot Nothing
+            ConvertUndoRedoSingleCommandMeasureMap(cmd, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+            cmd = cmd.Next
+        Loop
+    End Sub
+
+    Private Sub ConvertUndoRedoSingleCommandMeasureMap(ByVal cmd As UndoRedo.LinkedURCmd,
+                                                       ByVal sourceLengths() As Double,
+                                                       ByVal sourceBottoms() As Double,
+                                                       ByVal targetLengths() As Double,
+                                                       ByVal targetBottoms() As Double)
+        Select Case cmd.ofType()
+            Case UndoRedo.opAddNote
+                Dim xCmd As UndoRedo.AddNote = DirectCast(cmd, UndoRedo.AddNote)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opRemoveNote
+                Dim xCmd As UndoRedo.RemoveNote = DirectCast(cmd, UndoRedo.RemoveNote)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opChangeNote
+                Dim xCmd As UndoRedo.ChangeNote = DirectCast(cmd, UndoRedo.ChangeNote)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                xCmd.NNote = ConvertNoteToMeasureMap(xCmd.NNote, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opMoveNote
+                Dim xCmd As UndoRedo.MoveNote = DirectCast(cmd, UndoRedo.MoveNote)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                xCmd.NVPosition = ConvertVPositionBetweenMeasureMaps(xCmd.NVPosition, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opLongNoteModify
+                Dim xCmd As UndoRedo.LongNoteModify = DirectCast(cmd, UndoRedo.LongNoteModify)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                If xCmd.NLongNote > 0.0R Then
+                    xCmd.NLongNote = ConvertLengthBetweenMeasureMaps(xCmd.NVPosition, xCmd.NLongNote, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                End If
+                xCmd.NVPosition = ConvertVPositionBetweenMeasureMaps(xCmd.NVPosition, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opHiddenNoteModify
+                Dim xCmd As UndoRedo.HiddenNoteModify = DirectCast(cmd, UndoRedo.HiddenNoteModify)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opRelabelNote
+                Dim xCmd As UndoRedo.RelabelNote = DirectCast(cmd, UndoRedo.RelabelNote)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opLandmineNoteModify
+                Dim xCmd As UndoRedo.LandmineNoteModify = DirectCast(cmd, UndoRedo.LandmineNoteModify)
+                xCmd.note = ConvertNoteToMeasureMap(xCmd.note, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opChangeTimeSelection
+                Dim xCmd As UndoRedo.ChangeTimeSelection = DirectCast(cmd, UndoRedo.ChangeTimeSelection)
+                xCmd.SelLength = ConvertLengthBetweenMeasureMaps(xCmd.SelStart, xCmd.SelLength, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                xCmd.SelStart = ConvertVPositionBetweenMeasureMaps(xCmd.SelStart, sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+
+            Case UndoRedo.opRandomBlockInsert
+                Dim xCmd As UndoRedo.RandomBlockInsert = DirectCast(cmd, UndoRedo.RandomBlockInsert)
+                If xCmd.Notes Is Nothing Then Return
+
+                For i As Integer = 0 To xCmd.Notes.Length - 1
+                    xCmd.Notes(i) = ConvertNoteToMeasureMap(xCmd.Notes(i), sourceLengths, sourceBottoms, targetLengths, targetBottoms)
+                Next
+        End Select
     End Sub
 
     Private Sub AddUndo(ByVal sCUndo As UndoRedo.LinkedURCmd, ByVal sCRedo As UndoRedo.LinkedURCmd, Optional ByVal OverWrite As Boolean = False)

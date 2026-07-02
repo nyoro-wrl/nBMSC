@@ -101,6 +101,12 @@ Public Class UndoRedo
             copy.SetExtraText(pair.Key, pair.Value)
         Next
 
+        For Each branch As KeyValuePair(Of Integer, Dictionary(Of Integer, Double)) In block.MeasureLengthByValue
+            For Each measure As KeyValuePair(Of Integer, Double) In branch.Value
+                copy.SetMeasureLength(branch.Key, measure.Key, measure.Value)
+            Next
+        Next
+
         copy.Normalize()
         Return copy
     End Function
@@ -132,6 +138,34 @@ Public Class UndoRedo
         block.Normalize()
         Return block
     End Function
+
+    Private Shared Sub WriteRandomMeasureLengths(ByVal bw As BinaryWriter, ByVal block As BmsRandomBlock)
+        If block Is Nothing Then
+            bw.Write(0)
+            Return
+        End If
+
+        bw.Write(block.MeasureLengthByValue.Count)
+        For Each branch As KeyValuePair(Of Integer, Dictionary(Of Integer, Double)) In block.MeasureLengthByValue
+            bw.Write(branch.Key)
+            bw.Write(branch.Value.Count)
+            For Each measure As KeyValuePair(Of Integer, Double) In branch.Value
+                bw.Write(measure.Key)
+                bw.Write(measure.Value)
+            Next
+        Next
+    End Sub
+
+    Private Shared Sub ReadRandomMeasureLengths(ByVal br As BinaryReader, ByVal block As BmsRandomBlock)
+        Dim branchCount As Integer = br.ReadInt32()
+        For i As Integer = 0 To branchCount - 1
+            Dim value As Integer = br.ReadInt32()
+            Dim measureCount As Integer = br.ReadInt32()
+            For j As Integer = 0 To measureCount - 1
+                block.SetMeasureLength(value, br.ReadInt32(), br.ReadDouble())
+            Next
+        Next
+    End Sub
 
     Private Shared Function CloneNotes(ByVal notes() As Note) As Note()
         If notes Is Nothing Then Return New Note() {}
@@ -702,6 +736,8 @@ Public Class UndoRedo
                     Notes(i).FromBinReader(br)
                 Next
             End If
+
+            If br.BaseStream.Position < br.BaseStream.Length Then ReadRandomMeasureLengths(br, Block)
         End Sub
 
         Public Overrides Function toBytes() As Byte()
@@ -719,6 +755,8 @@ Public Class UndoRedo
                 Next
             End If
 
+            WriteRandomMeasureLengths(bw, Block)
+
             Return ms.ToArray()
         End Function
 
@@ -726,7 +764,7 @@ Public Class UndoRedo
             Dim xNoteCount As Long = 0
             If Notes IsNot Nothing Then xNoteCount = Notes.Length
 
-            Return MyBase.EstimateBytes() + 8 + RandomBlockEstimateBytes + ArrayEstimateBytes + NoteEstimateBytes * xNoteCount
+            Return MyBase.EstimateBytes() + 8 + RandomBlockEstimateBytes + ArrayEstimateBytes + NoteEstimateBytes * xNoteCount + ArrayEstimateBytes
         End Function
 
         Public Overrides Function ofType() As Byte

@@ -14,9 +14,11 @@ Namespace Editor
         Public Property CurrentValue As Integer = 1
         Public Property ViewMode As BmsRandomViewMode = BmsRandomViewMode.CurrentValue
         Public ReadOnly Property ExtraTextByValue As Dictionary(Of Integer, String)
+        Public ReadOnly Property MeasureLengthByValue As Dictionary(Of Integer, Dictionary(Of Integer, Double))
 
         Public Sub New()
             ExtraTextByValue = New Dictionary(Of Integer, String)()
+            MeasureLengthByValue = New Dictionary(Of Integer, Dictionary(Of Integer, Double))()
         End Sub
 
         Public Sub New(ByVal definitionValue As Integer)
@@ -44,6 +46,26 @@ Namespace Editor
             End If
 
             ExtraTextByValue(value) = text
+        End Sub
+
+        Public Function GetMeasureLengthOverrides(ByVal value As Integer) As Dictionary(Of Integer, Double)
+            Dim result As Dictionary(Of Integer, Double) = Nothing
+            If MeasureLengthByValue.TryGetValue(value, result) Then Return result
+
+            Return New Dictionary(Of Integer, Double)()
+        End Function
+
+        Public Sub SetMeasureLength(ByVal value As Integer, ByVal measureIndex As Integer, ByVal length As Double)
+            If measureIndex < 0 OrElse measureIndex > 999 Then Return
+            If length <= 0.0R Then Return
+
+            Dim xOverrides As Dictionary(Of Integer, Double) = Nothing
+            If Not MeasureLengthByValue.TryGetValue(value, xOverrides) Then
+                xOverrides = New Dictionary(Of Integer, Double)()
+                MeasureLengthByValue(value) = xOverrides
+            End If
+
+            xOverrides(measureIndex) = length
         End Sub
     End Class
 

@@ -130,6 +130,7 @@ Module TestRunner
             "#TITLE Test",
             "#RANDOM 3",
             "#IF 1",
+            "#00102:0.5",
             "#00111:01",
             "#ENDIF",
             "#IF 2",
@@ -145,7 +146,8 @@ Module TestRunner
         AssertFalse(result.Blocks(0).IsRawText, "simple random should be structured")
         AssertEqual(2, result.Blocks(0).Branches.Count, "branch count")
         AssertEqual(1, result.Blocks(0).Branches(0).Value, "first branch value")
-        AssertEqual("#00111:01", result.Blocks(0).Branches(0).Lines(0), "first branch data")
+        AssertEqual("#00102:0.5", result.Blocks(0).Branches(0).Lines(0), "first branch measure length")
+        AssertEqual("#00111:01", result.Blocks(0).Branches(0).Lines(1), "first branch data")
     End Sub
 
     Private Sub BmsRandomParserOmittedEnd()
@@ -375,6 +377,7 @@ Module TestRunner
         randomBlock.CurrentValue = 3
         randomBlock.ViewMode = BmsRandomViewMode.AllBranches
         randomBlock.SetExtraText(3, "#GENRE random")
+        randomBlock.SetMeasureLength(3, 13, 96.0R)
         Dim randomNotes As Note() = {New Note(5, 384.0R, 10000, 0, False, True, False, 1, 3)}
         Dim randomInsert As New UndoRedo.RandomBlockInsert(1, randomBlock, randomNotes, 1)
         Dim roundTripRandomInsert As UndoRedo.RandomBlockInsert = DirectCast(UndoRedo.fromBytes(randomInsert.toBytes()), UndoRedo.RandomBlockInsert)
@@ -386,6 +389,7 @@ Module TestRunner
         AssertEqual(3, roundTripRandomInsert.Block.CurrentValue, "random insert current value")
         AssertEqual(BmsRandomViewMode.AllBranches, roundTripRandomInsert.Block.ViewMode, "random insert view")
         AssertEqual("#GENRE random", roundTripRandomInsert.Block.GetExtraText(3), "random insert extra")
+        AssertApprox(96.0R, roundTripRandomInsert.Block.GetMeasureLengthOverrides(3)(13), "random insert measure length")
         AssertEqual(1, roundTripRandomInsert.Notes.Length, "random insert note count")
         AssertEqual(3, roundTripRandomInsert.Notes(0).RandomValue, "random insert note random value")
 
