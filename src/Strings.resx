@@ -569,6 +569,39 @@ Open the release page?</value>
   <data name="OptionsPanel.BMP.Title" xml:space="preserve">
     <value>#BMP</value>
   </data>
+  <data name="OptionsPanel.Random.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="OptionsPanel.Random.Base" xml:space="preserve">
+    <value>Common</value>
+  </data>
+  <data name="OptionsPanel.Random.Definition" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="OptionsPanel.Random.Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="OptionsPanel.Random.Hidden" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="OptionsPanel.Random.Title" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Value" xml:space="preserve">
+    <value>#IF</value>
+  </data>
+  <data name="OptionsPanel.Random.View" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="OptionsPanel.Random.Visible" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="OptionsPanel.Random.VisibleAll" xml:space="preserve">
+    <value>Show All</value>
+  </data>
   <data name="OptionsPanel.Expansion" xml:space="preserve">
     <value>Expansion Code</value>
   </data>

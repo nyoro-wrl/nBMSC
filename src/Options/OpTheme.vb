@@ -132,10 +132,6 @@ Public Class OpTheme
     Private ReadOnly ThemeComboWheelBlockers As New List(Of ComboMouseWheelBlocker)
     Private ReadOnly ThemeNames() As String
     Private ReadOnly ThemePaths() As String
-    Private RowsPanel As TableLayoutPanel
-    Private AutoSelectCheckBox As CheckBox
-    Private AddButton As Button
-    Private IconToolTip As ToolTip
     Private SelectedThemePaths() As String
     Private SelectedCustomModeThemes() As ThemeModeSetting
 
@@ -149,6 +145,7 @@ Public Class OpTheme
         SelectedThemePaths = New String(ChartModes.Count() - 1) {}
         SelectedCustomModeThemes = New ThemeModeSetting() {}
 
+        InitializeComponent()
         InitializeLayout(xDefaultThemePaths, xCustomModeThemes, xAutoSelect)
     End Sub
 
@@ -169,68 +166,12 @@ Public Class OpTheme
                                  ByVal xAutoSelect As Boolean)
         Text = Strings.Get("ThemeOptions.Title")
         Font = MainWindow.Font
-        StartPosition = FormStartPosition.CenterParent
-        FormBorderStyle = FormBorderStyle.FixedDialog
-        MaximizeBox = False
-        MinimizeBox = False
-        ShowInTaskbar = False
-        ShowIcon = False
-        ClientSize = New Size(520, 300)
-        IconToolTip = New ToolTip()
-
-        Dim root As New TableLayoutPanel()
-        root.Dock = DockStyle.Fill
-        root.Padding = New Padding(12)
-        root.ColumnCount = 1
-        root.RowCount = 4
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 30.0F))
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 24.0F))
-        root.RowStyles.Add(New RowStyle(SizeType.Percent, 100.0F))
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 48.0F))
-
-        AutoSelectCheckBox = New CheckBox()
-        AutoSelectCheckBox.AutoSize = True
         AutoSelectCheckBox.Checked = xAutoSelect
         AutoSelectCheckBox.Text = Strings.Get("ThemeOptions.AutoSelect")
-        root.Controls.Add(AutoSelectCheckBox, 0, 0)
-
-        Dim header As New TableLayoutPanel()
-        header.Dock = DockStyle.Fill
-        header.Margin = New Padding(0)
-        header.ColumnCount = 3
-        header.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 120.0F))
-        header.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
-        header.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 32.0F))
-
-        Dim modeHeader As New Label()
-        modeHeader.Dock = DockStyle.Fill
-        modeHeader.Text = Strings.Get("ThemeOptions.Mode")
-        modeHeader.TextAlign = ContentAlignment.MiddleRight
-        header.Controls.Add(modeHeader, 0, 0)
-
-        Dim themeHeader As New Label()
-        themeHeader.Dock = DockStyle.Fill
-        themeHeader.Margin = New Padding(4, 0, 4, 0)
-        themeHeader.Text = Strings.Get("ThemeOptions.Theme")
-        themeHeader.TextAlign = ContentAlignment.MiddleLeft
-        header.Controls.Add(themeHeader, 1, 0)
-        root.Controls.Add(header, 0, 1)
-
-        Dim scrollPanel As New Panel()
-        scrollPanel.Dock = DockStyle.Fill
-        scrollPanel.AutoScroll = True
-        scrollPanel.Margin = New Padding(0)
-
-        RowsPanel = New TableLayoutPanel()
-        RowsPanel.AutoSize = True
-        RowsPanel.Dock = DockStyle.Top
-        RowsPanel.Margin = New Padding(0)
-        RowsPanel.ColumnCount = 3
-        RowsPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 120.0F))
-        RowsPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0F))
-        RowsPanel.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 32.0F))
-        scrollPanel.Controls.Add(RowsPanel)
-        root.Controls.Add(scrollPanel, 0, 2)
+        ModeHeaderLabel.Text = Strings.Get("ThemeOptions.Mode")
+        ThemeHeaderLabel.Text = Strings.Get("ThemeOptions.Theme")
+        OK_Button.Text = Strings.OK
+        Cancel_Button.Text = Strings.Cancel
 
         For i As Integer = 0 To ChartModes.Count() - 1
             Dim xMode As ChartMode = ChartModes.FromIndex(i)
@@ -245,38 +186,8 @@ Public Class OpTheme
             Next
         End If
 
-        AddButton = New Button()
-        AddButton.Image = My.Resources.Resources.x16Add
-        AddButton.Size = New Size(27, 27)
-        AddButton.Margin = New Padding(2, 4, 0, 0)
         IconToolTip.SetToolTip(AddButton, Strings.Get("ThemeOptions.Add"))
-        AddHandler AddButton.Click, AddressOf AddButton_Click
         RebuildRows()
-
-        Dim okCancelPanel As New FlowLayoutPanel()
-        okCancelPanel.Dock = DockStyle.Fill
-        okCancelPanel.FlowDirection = FlowDirection.RightToLeft
-        okCancelPanel.Margin = New Padding(0)
-        okCancelPanel.Padding = New Padding(0, 8, 0, 0)
-
-        Dim cancelButton As New Button()
-        cancelButton.Text = Strings.Cancel
-        cancelButton.DialogResult = DialogResult.Cancel
-        cancelButton.Margin = New Padding(3, 0, 3, 0)
-        cancelButton.Size = New Size(78, 27)
-        okCancelPanel.Controls.Add(cancelButton)
-
-        Dim okButton As New Button()
-        okButton.Text = Strings.OK
-        okButton.Margin = New Padding(3, 0, 3, 0)
-        okButton.Size = New Size(78, 27)
-        AddHandler okButton.Click, AddressOf OK_Button_Click
-        okCancelPanel.Controls.Add(okButton)
-
-        root.Controls.Add(okCancelPanel, 0, 3)
-        Controls.Add(root)
-        AcceptButton = okButton
-        CancelButton = cancelButton
     End Sub
 
     Private Function CreateRow(ByVal modeName As String, ByVal themePath As String, ByVal isBuiltIn As Boolean) As ModeThemeRow
@@ -339,7 +250,7 @@ Public Class OpTheme
         RowsPanel.Controls.Add(xPanel, 2, xRowIndex)
     End Sub
 
-    Private Sub AddButton_Click(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub AddButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles AddButton.Click
         Dim xRow As ModeThemeRow = CreateRow("", "", False)
         CustomRows.Add(xRow)
         RebuildRows()
@@ -392,7 +303,7 @@ Public Class OpTheme
         Return False
     End Function
 
-    Private Sub OK_Button_Click(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub OK_Button_Click(ByVal sender As Object, ByVal e As EventArgs) Handles OK_Button.Click
         Dim xUsedModes As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
         SelectedThemePaths = New String(ChartModes.Count() - 1) {}
 

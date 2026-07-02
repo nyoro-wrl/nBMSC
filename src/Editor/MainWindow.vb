@@ -1033,18 +1033,6 @@ Public Class MainWindow
     Private SplitViewDrag As SplitViewDragInfo = Nothing
     Private OptionsTabsInitialized As Boolean = False
     Private POTabSelected As Panel = Nothing
-    Private PORandom As Panel = Nothing
-    Private PORandomTabButton As Button = Nothing
-    Private LRandomBlocks As ListBox = Nothing
-    Private BRandomAdd As Button = Nothing
-    Private BRandomDuplicate As Button = Nothing
-    Private BRandomDelete As Button = Nothing
-    Private NRandomDefinition As NumericUpDown = Nothing
-    Private NRandomValue As NumericUpDown = Nothing
-    Private CRandomViewMode As ComboBox = Nothing
-    Private LRandomDefinitionUnused As Label = Nothing
-    Private LRandomValueUnused As Label = Nothing
-    Private TRandomExtra As TextBox = Nothing
     Private RandomExtraIndex As Integer = -1
     Private RandomExtraValue As Integer = 0
     Private OptionWheelBlockers As New List(Of MouseWheelBlocker)
@@ -1108,6 +1096,7 @@ Public Class MainWindow
         FastListScrollers.Add(New ImmediateListBoxScroller(LWAV))
         FastListScrollers.Add(New ImmediateListBoxScroller(LBMP))
         FastListScrollers.Add(New ImmediateListBoxScroller(LBeat))
+        FastListScrollers.Add(New ImmediateListBoxScroller(LRandomBlocks))
     End Sub
 
     Private Sub InitializeEditorContextMenu()
@@ -1378,7 +1367,7 @@ Public Class MainWindow
         ApplyGridToolbarLabelFont()
 
         Dim fMono As Font = CreateUiFont(xMonoFamilies, 9.0F, FontStyle.Regular, POWAVInner.Font)
-        Dim mList() As Object = {LWAV, LBMP, LBeat, TExpansion}
+        Dim mList() As Object = {LWAV, LBMP, LBeat, TExpansion, TRandomExtra}
         For Each c As Object In mList
             Try
                 c.Font = fMono
@@ -1594,6 +1583,7 @@ Public Class MainWindow
         SetText("OptionsPanel.Beat.Apply", BBeatApply.Text)
         SetText("OptionsPanel.Beat.Apply", BBeatApplyV.Text)
         SetText("OptionsPanel.Expansion", POHeaderExpansionSeparatorLabel.Text)
+        ApplyRandomPanelLanguage()
 
         SyncEncodingMenuText()
         SyncOptionsTabTitles()
@@ -1612,6 +1602,19 @@ Public Class MainWindow
     Private Sub SetToolStripText(ByVal key As String, ByVal target As ToolStripItem)
         If target Is Nothing Then Return
         target.Text = Strings.Get(key)
+    End Sub
+
+    Private Sub ApplyRandomPanelLanguage()
+        SetText("OptionsPanel.Random.Title", PORandomTabButton.Text)
+        SetText("OptionsPanel.Random.Add", BRandomAdd.Text)
+        SetText("OptionsPanel.Random.Duplicate", BRandomDuplicate.Text)
+        SetText("OptionsPanel.Random.Remove", BRandomDelete.Text)
+        SetText("OptionsPanel.Random.Definition", LabelRandomDefinition.Text)
+        SetText("OptionsPanel.Random.Value", LabelRandomValue.Text)
+        SetText("OptionsPanel.Random.View", LabelRandomView.Text)
+        SetText("OptionsPanel.Expansion", LabelRandomExtra.Text)
+        StoreRandomExtraText()
+        RefreshRandomPanel()
     End Sub
 
     Private Function AppendShortcutText(ByVal text As String, ByVal shortcutText As String) As String
@@ -1871,7 +1874,7 @@ Public Class MainWindow
         Return New Button() {POHeaderTabButton, POWAVTabButton, POBMPTabButton, POBeatTabButton, PORandomTabButton, POWaveFormTabButton}
     End Function
 
-    Private Sub OptionsTabButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles POHeaderTabButton.Click, POWAVTabButton.Click, POBMPTabButton.Click, POBeatTabButton.Click, POWaveFormTabButton.Click
+    Private Sub OptionsTabButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles POHeaderTabButton.Click, POWAVTabButton.Click, POBMPTabButton.Click, POBeatTabButton.Click, PORandomTabButton.Click, POWaveFormTabButton.Click
         Dim xButton As Button = TryCast(sender, Button)
         If xButton Is Nothing Then Return
 
@@ -1970,117 +1973,7 @@ Public Class MainWindow
     End Sub
 
     Private Sub InitializeRandomPanel()
-        PORandomTabButton = New Button With {
-            .BackColor = Color.FromArgb(248, 248, 248),
-            .Dock = DockStyle.Fill,
-            .FlatStyle = FlatStyle.Flat,
-            .Font = New Font("Segoe UI", 8.0!, FontStyle.Regular, GraphicsUnit.Point, CType(0, Byte)),
-            .Margin = New Padding(0, 0, 2, 1),
-            .Name = "PORandomTabButton",
-            .TabStop = False,
-            .Text = "#RANDOM",
-            .UseCompatibleTextRendering = False,
-            .UseVisualStyleBackColor = False
-        }
-        PORandomTabButton.FlatAppearance.BorderColor = Color.FromArgb(205, 205, 205)
-        PORandomTabButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(218, 235, 249)
-        PORandomTabButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(235, 245, 252)
-        AddHandler PORandomTabButton.Click, AddressOf OptionsTabButton_Click
-        POTabButtons.SetCellPosition(POWaveFormTabButton, New TableLayoutPanelCellPosition(2, 1))
-        POTabButtons.Controls.Add(PORandomTabButton, 1, 1)
-
-        PORandom = New Panel With {
-            .AutoSize = False,
-            .Dock = DockStyle.Fill,
-            .Name = "PORandom",
-            .Padding = New Padding(0, 0, 0, 10),
-            .Visible = False
-        }
-
-        Dim layout As New TableLayoutPanel With {
-            .ColumnCount = 1,
-            .Dock = DockStyle.Fill,
-            .Name = "PORandomInner",
-            .RowCount = 5
-        }
-        layout.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100.0!))
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 200.0!))
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 77.0!))
-        layout.RowStyles.Add(New RowStyle(SizeType.Absolute, 20.0!))
-        layout.RowStyles.Add(New RowStyle(SizeType.Percent, 100.0!))
-
-        Dim buttonRow As New TableLayoutPanel With {.ColumnCount = 3, .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(0)}
-        buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3333!))
-        buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3333!))
-        buttonRow.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 33.3334!))
-        BRandomAdd = New Button With {.Text = "Add", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(0, 1, 3, 1)}
-        BRandomDuplicate = New Button With {.Text = "Duplicate", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(3, 1, 3, 1)}
-        BRandomDelete = New Button With {.Text = "Delete", .Dock = DockStyle.Fill, .AutoSize = False, .Margin = New Padding(3, 1, 0, 1)}
-        AddHandler BRandomAdd.Click, AddressOf BRandomAdd_Click
-        AddHandler BRandomDuplicate.Click, AddressOf BRandomDuplicate_Click
-        AddHandler BRandomDelete.Click, AddressOf BRandomDelete_Click
-        buttonRow.Controls.Add(BRandomAdd, 0, 0)
-        buttonRow.Controls.Add(BRandomDuplicate, 1, 0)
-        buttonRow.Controls.Add(BRandomDelete, 2, 0)
-        layout.Controls.Add(buttonRow, 0, 0)
-
-        LRandomBlocks = New ListBox With {.Dock = DockStyle.Fill, .IntegralHeight = False}
-        AddHandler LRandomBlocks.SelectedIndexChanged, AddressOf LRandomBlocks_SelectedIndexChanged
-        layout.Controls.Add(LRandomBlocks, 0, 1)
-        FastListScrollers.Add(New ImmediateListBoxScroller(LRandomBlocks))
-
-        Dim editGrid As New TableLayoutPanel With {
-            .ColumnCount = 2,
-            .Dock = DockStyle.Top,
-            .AutoSize = False,
-            .Height = 75,
-            .RowCount = 3,
-            .Margin = New Padding(0)
-        }
-        editGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 42.0!))
-        editGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 58.0!))
-        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
-        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
-        editGrid.RowStyles.Add(New RowStyle(SizeType.Absolute, 25.0!))
-        editGrid.Controls.Add(New Label With {.Text = "#RANDOM", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 0)
-        Dim definitionCell As New Panel With {.Dock = DockStyle.Fill, .Margin = New Padding(0)}
-        NRandomDefinition = New NumericUpDown With {.Minimum = 1, .Maximum = 9999, .Dock = DockStyle.Fill, .Margin = New Padding(0)}
-        LRandomDefinitionUnused = New Label With {.Text = "", .Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleLeft, .Visible = False, .Margin = New Padding(0)}
         AddOptionWheelBlocker(NRandomDefinition)
-        AddHandler NRandomDefinition.ValueChanged, AddressOf NRandomDefinition_ValueChanged
-        definitionCell.Controls.Add(LRandomDefinitionUnused)
-        definitionCell.Controls.Add(NRandomDefinition)
-        editGrid.Controls.Add(definitionCell, 1, 0)
-        editGrid.Controls.Add(New Label With {.Text = "#IF", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 1)
-        Dim valueCell As New Panel With {.Dock = DockStyle.Fill, .Margin = New Padding(0)}
-        NRandomValue = New WheelStepNumericUpDown With {.Minimum = 1, .Maximum = 9999, .Increment = 1D, .Dock = DockStyle.Fill, .Margin = New Padding(0)}
-        LRandomValueUnused = New Label With {.Text = "", .Dock = DockStyle.Fill, .TextAlign = ContentAlignment.MiddleLeft, .Visible = False, .Margin = New Padding(0)}
-        AddHandler NRandomValue.ValueChanged, AddressOf NRandomValue_ValueChanged
-        valueCell.Controls.Add(LRandomValueUnused)
-        valueCell.Controls.Add(NRandomValue)
-        editGrid.Controls.Add(valueCell, 1, 1)
-        editGrid.Controls.Add(New Label With {.Text = "View", .AutoSize = True, .Anchor = AnchorStyles.Left, .Margin = New Padding(3, 0, 3, 0)}, 0, 2)
-        CRandomViewMode = New ComboBox With {.Dock = DockStyle.Fill, .DropDownStyle = ComboBoxStyle.DropDownList, .Margin = New Padding(0)}
-        AddHandler CRandomViewMode.SelectedIndexChanged, AddressOf CRandomViewMode_SelectedIndexChanged
-        editGrid.Controls.Add(CRandomViewMode, 1, 2)
-        layout.Controls.Add(editGrid, 0, 2)
-
-        layout.Controls.Add(New Label With {.Text = "Branch expansion", .AutoSize = True, .Dock = DockStyle.Fill}, 0, 3)
-        TRandomExtra = New TextBox With {
-            .BorderStyle = BorderStyle.FixedSingle,
-            .Dock = DockStyle.Fill,
-            .Font = New Font("Consolas", 9.0!, FontStyle.Regular, GraphicsUnit.Point, CType(0, Byte)),
-            .HideSelection = False,
-            .Multiline = True,
-            .ScrollBars = ScrollBars.Vertical,
-            .WordWrap = False
-        }
-        AddHandler TRandomExtra.TextChanged, AddressOf TRandomExtra_TextChanged
-        layout.Controls.Add(TRandomExtra, 0, 4)
-
-        PORandom.Controls.Add(layout)
-        POTabContent.Controls.Add(PORandom)
         RefreshRandomPanel()
     End Sub
 
@@ -2202,14 +2095,14 @@ Public Class MainWindow
     Private Function RandomViewModeText(ByVal mode As BmsRandomViewMode) As String
         Select Case mode
             Case BmsRandomViewMode.CurrentValue
-                Return "Visible"
+                Return Strings.Get("OptionsPanel.Random.Visible")
             Case BmsRandomViewMode.Hidden
-                Return "Hidden"
+                Return Strings.Get("OptionsPanel.Random.Hidden")
             Case BmsRandomViewMode.AllBranches
-                Return "Visible All"
+                Return Strings.Get("OptionsPanel.Random.VisibleAll")
         End Select
 
-        Return "Hidden"
+        Return Strings.Get("OptionsPanel.Random.Hidden")
     End Function
 
     Private Function RandomViewModeToComboIndex(ByVal mode As BmsRandomViewMode) As Integer
@@ -2240,9 +2133,9 @@ Public Class MainWindow
 
     Private Sub SetRandomViewModeItems(ByVal includeHidden As Boolean, ByVal includeAll As Boolean)
         CRandomViewMode.Items.Clear()
-        CRandomViewMode.Items.Add("Visible")
-        If includeHidden Then CRandomViewMode.Items.Add("Hidden")
-        If includeAll Then CRandomViewMode.Items.Add("Visible All")
+        CRandomViewMode.Items.Add(RandomViewModeText(BmsRandomViewMode.CurrentValue))
+        If includeHidden Then CRandomViewMode.Items.Add(RandomViewModeText(BmsRandomViewMode.Hidden))
+        If includeAll Then CRandomViewMode.Items.Add(RandomViewModeText(BmsRandomViewMode.AllBranches))
     End Sub
 
     Private Sub RefreshRandomLayerUiIfNeeded(ByVal hasHighlightTarget As Boolean)
@@ -2371,9 +2264,14 @@ Public Class MainWindow
     End Sub
 
     Private Function RandomCommonListText() As String
-        If RandomBlocks.Count > 0 AndAlso HasCommonLayerNote() Then Return "Base / " & If(RandomCommonVisible, "Visible", "Hidden")
+        If RandomBlocks.Count > 0 AndAlso HasCommonLayerNote() Then
+            Dim xModeText As String = If(RandomCommonVisible,
+                                         RandomViewModeText(BmsRandomViewMode.CurrentValue),
+                                         RandomViewModeText(BmsRandomViewMode.Hidden))
+            Return Strings.Get("OptionsPanel.Random.Base") & " / " & xModeText
+        End If
 
-        Return "Base"
+        Return Strings.Get("OptionsPanel.Random.Base")
     End Function
 
     Private Function RandomBlockListText(ByVal randomIndex As Integer, ByVal block As BmsRandomBlock) As String
@@ -2422,7 +2320,7 @@ Public Class MainWindow
         If xListTopIndex >= 0 Then SetListTopIndex(LRandomBlocks, xListTopIndex)
     End Sub
 
-    Private Sub BRandomAdd_Click(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub BRandomAdd_Click(ByVal sender As Object, ByVal e As EventArgs) Handles BRandomAdd.Click
         StoreRandomExtraText()
         Dim xPreviousSelectedIndex As Integer = SelectedRandomIndex
         Dim xInsertIndex As Integer = RandomBlocks.Count
@@ -2439,7 +2337,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub BRandomDuplicate_Click(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub BRandomDuplicate_Click(ByVal sender As Object, ByVal e As EventArgs) Handles BRandomDuplicate.Click
         If Not IsValidRandomIndex(SelectedRandomIndex) Then Return
 
         StoreRandomExtraText()
@@ -2489,7 +2387,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub BRandomDelete_Click(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub BRandomDelete_Click(ByVal sender As Object, ByVal e As EventArgs) Handles BRandomDelete.Click
         If Not IsValidRandomIndex(SelectedRandomIndex) Then Return
 
         StoreRandomExtraText()
@@ -2526,7 +2424,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub LRandomBlocks_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub LRandomBlocks_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs) Handles LRandomBlocks.SelectedIndexChanged
         If UpdatingRandomControls Then Return
         StoreRandomExtraText()
         SelectedRandomIndex = RandomListIndexToRandomIndex(LRandomBlocks.SelectedIndex)
@@ -2535,7 +2433,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub NRandomDefinition_ValueChanged(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub NRandomDefinition_ValueChanged(ByVal sender As Object, ByVal e As EventArgs) Handles NRandomDefinition.ValueChanged
         If UpdatingRandomControls OrElse Not IsValidRandomIndex(SelectedRandomIndex) Then Return
         StoreRandomExtraText()
 
@@ -2557,7 +2455,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub NRandomValue_ValueChanged(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub NRandomValue_ValueChanged(ByVal sender As Object, ByVal e As EventArgs) Handles NRandomValue.ValueChanged
         If UpdatingRandomControls OrElse Not IsValidRandomIndex(SelectedRandomIndex) Then Return
         StoreRandomExtraText()
 
@@ -2572,7 +2470,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub CRandomViewMode_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub CRandomViewMode_SelectedIndexChanged(ByVal sender As Object, ByVal e As EventArgs) Handles CRandomViewMode.SelectedIndexChanged
         If UpdatingRandomControls Then Return
         If CRandomViewMode.SelectedIndex < 0 Then Return
 
@@ -2591,7 +2489,7 @@ Public Class MainWindow
         RefreshPanelAll()
     End Sub
 
-    Private Sub TRandomExtra_TextChanged(ByVal sender As Object, ByVal e As EventArgs)
+    Private Sub TRandomExtra_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles TRandomExtra.TextChanged
         If UpdatingRandomControls Then Return
         StoreRandomExtraText()
         SetIsSaved(False)

@@ -551,6 +551,39 @@ Release 페이지를 여시겠습니까?</value>
   <data name="OptionsPanel.BMP.Title" xml:space="preserve">
     <value>#BMP</value>
   </data>
+  <data name="OptionsPanel.Random.Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="OptionsPanel.Random.Base" xml:space="preserve">
+    <value>공통 부분</value>
+  </data>
+  <data name="OptionsPanel.Random.Definition" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Remove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="OptionsPanel.Random.Duplicate" xml:space="preserve">
+    <value>복제</value>
+  </data>
+  <data name="OptionsPanel.Random.Hidden" xml:space="preserve">
+    <value>숨김</value>
+  </data>
+  <data name="OptionsPanel.Random.Title" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Value" xml:space="preserve">
+    <value>#IF</value>
+  </data>
+  <data name="OptionsPanel.Random.View" xml:space="preserve">
+    <value>노트</value>
+  </data>
+  <data name="OptionsPanel.Random.Visible" xml:space="preserve">
+    <value>표시</value>
+  </data>
+  <data name="OptionsPanel.Random.VisibleAll" xml:space="preserve">
+    <value>모두 표시</value>
+  </data>
   <data name="OptionsPanel.Expansion" xml:space="preserve">
     <value>확장명령</value>
   </data>

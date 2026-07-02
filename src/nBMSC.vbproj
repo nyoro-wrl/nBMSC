@@ -228,6 +228,9 @@
     <Compile Include="Options\OpPlayer.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Options\OpTheme.Designer.vb">
+      <DependentUpon>OpTheme.vb</DependentUpon>
+    </Compile>
     <Compile Include="Options\OpTheme.vb">
       <SubType>Form</SubType>
     </Compile>

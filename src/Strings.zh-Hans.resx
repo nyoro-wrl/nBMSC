@@ -506,6 +506,39 @@
   <data name="OptionsPanel.Beat.Apply" xml:space="preserve">
     <value>应用</value>
   </data>
+  <data name="OptionsPanel.Random.Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="OptionsPanel.Random.Base" xml:space="preserve">
+    <value>通用部分</value>
+  </data>
+  <data name="OptionsPanel.Random.Definition" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="OptionsPanel.Random.Duplicate" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="OptionsPanel.Random.Hidden" xml:space="preserve">
+    <value>隐藏</value>
+  </data>
+  <data name="OptionsPanel.Random.Title" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Value" xml:space="preserve">
+    <value>#IF</value>
+  </data>
+  <data name="OptionsPanel.Random.View" xml:space="preserve">
+    <value>音符</value>
+  </data>
+  <data name="OptionsPanel.Random.Visible" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="OptionsPanel.Random.VisibleAll" xml:space="preserve">
+    <value>全部显示</value>
+  </data>
   <data name="OptionsPanel.Expansion" xml:space="preserve">
     <value>扩展代码</value>
   </data>

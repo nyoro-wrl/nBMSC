@@ -563,6 +563,39 @@ Release ページを開きますか？</value>
   <data name="OptionsPanel.BMP.Title" xml:space="preserve">
     <value>#BMP</value>
   </data>
+  <data name="OptionsPanel.Random.Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="OptionsPanel.Random.Base" xml:space="preserve">
+    <value>共通</value>
+  </data>
+  <data name="OptionsPanel.Random.Definition" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="OptionsPanel.Random.Duplicate" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="OptionsPanel.Random.Hidden" xml:space="preserve">
+    <value>非表示</value>
+  </data>
+  <data name="OptionsPanel.Random.Title" xml:space="preserve">
+    <value>#RANDOM</value>
+  </data>
+  <data name="OptionsPanel.Random.Value" xml:space="preserve">
+    <value>#IF</value>
+  </data>
+  <data name="OptionsPanel.Random.View" xml:space="preserve">
+    <value>ノート</value>
+  </data>
+  <data name="OptionsPanel.Random.Visible" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="OptionsPanel.Random.VisibleAll" xml:space="preserve">
+    <value>すべて表示</value>
+  </data>
   <data name="OptionsPanel.Expansion" xml:space="preserve">
     <value>拡張命令</value>
   </data>

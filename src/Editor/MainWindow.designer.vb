@@ -39,7 +39,28 @@ Partial Class MainWindow
         Me.POBMPTabButton = New System.Windows.Forms.Button()
         Me.POBeatTabButton = New System.Windows.Forms.Button()
         Me.POWaveFormTabButton = New System.Windows.Forms.Button()
+        Me.PORandomTabButton = New System.Windows.Forms.Button()
         Me.POTabContent = New System.Windows.Forms.Panel()
+        Me.PORandom = New System.Windows.Forms.Panel()
+        Me.PORandomInner = New System.Windows.Forms.TableLayoutPanel()
+        Me.PORandomButtons = New System.Windows.Forms.TableLayoutPanel()
+        Me.BRandomAdd = New System.Windows.Forms.Button()
+        Me.BRandomDuplicate = New System.Windows.Forms.Button()
+        Me.BRandomDelete = New System.Windows.Forms.Button()
+        Me.LRandomBlocks = New System.Windows.Forms.ListBox()
+        Me.PORandomEdit = New System.Windows.Forms.TableLayoutPanel()
+        Me.LabelRandomDefinition = New System.Windows.Forms.Label()
+        Me.PORandomDefinitionCell = New System.Windows.Forms.Panel()
+        Me.LRandomDefinitionUnused = New System.Windows.Forms.Label()
+        Me.NRandomDefinition = New System.Windows.Forms.NumericUpDown()
+        Me.LabelRandomValue = New System.Windows.Forms.Label()
+        Me.PORandomValueCell = New System.Windows.Forms.Panel()
+        Me.LRandomValueUnused = New System.Windows.Forms.Label()
+        Me.NRandomValue = New WheelStepNumericUpDown()
+        Me.LabelRandomView = New System.Windows.Forms.Label()
+        Me.CRandomViewMode = New System.Windows.Forms.ComboBox()
+        Me.LabelRandomExtra = New System.Windows.Forms.Label()
+        Me.TRandomExtra = New System.Windows.Forms.TextBox()
         Me.POptions = New System.Windows.Forms.Panel()
         Me.POExpansionInner = New System.Windows.Forms.Panel()
         Me.TExpansion = New System.Windows.Forms.TextBox()
@@ -425,6 +446,14 @@ Partial Class MainWindow
         Me.POTabHost.SuspendLayout()
         Me.POTabButtons.SuspendLayout()
         Me.POTabContent.SuspendLayout()
+        Me.PORandom.SuspendLayout()
+        Me.PORandomInner.SuspendLayout()
+        Me.PORandomButtons.SuspendLayout()
+        Me.PORandomEdit.SuspendLayout()
+        Me.PORandomDefinitionCell.SuspendLayout()
+        CType(Me.NRandomDefinition, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.PORandomValueCell.SuspendLayout()
+        CType(Me.NRandomValue, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.POptions.SuspendLayout()
         Me.POExpansionInner.SuspendLayout()
         Me.POBeat.SuspendLayout()
@@ -611,7 +640,8 @@ Partial Class MainWindow
         Me.POTabButtons.Controls.Add(Me.POWAVTabButton, 1, 0)
         Me.POTabButtons.Controls.Add(Me.POBMPTabButton, 2, 0)
         Me.POTabButtons.Controls.Add(Me.POBeatTabButton, 0, 1)
-        Me.POTabButtons.Controls.Add(Me.POWaveFormTabButton, 1, 1)
+        Me.POTabButtons.Controls.Add(Me.PORandomTabButton, 1, 1)
+        Me.POTabButtons.Controls.Add(Me.POWaveFormTabButton, 2, 1)
         Me.POTabButtons.Dock = System.Windows.Forms.DockStyle.Top
         Me.POTabButtons.Location = New System.Drawing.Point(0, 0)
         Me.POTabButtons.Margin = New System.Windows.Forms.Padding(0)
@@ -708,21 +738,41 @@ Partial Class MainWindow
         Me.POWaveFormTabButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(CType(CType(235, Byte), Integer), CType(CType(245, Byte), Integer), CType(CType(252, Byte), Integer))
         Me.POWaveFormTabButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.POWaveFormTabButton.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.POWaveFormTabButton.Location = New System.Drawing.Point(77, 25)
+        Me.POWaveFormTabButton.Location = New System.Drawing.Point(152, 25)
         Me.POWaveFormTabButton.Margin = New System.Windows.Forms.Padding(0, 0, 2, 1)
         Me.POWaveFormTabButton.Name = "POWaveFormTabButton"
-        Me.POWaveFormTabButton.Size = New System.Drawing.Size(73, 23)
+        Me.POWaveFormTabButton.Size = New System.Drawing.Size(74, 23)
         Me.POWaveFormTabButton.TabIndex = 4
         Me.POWaveFormTabButton.TabStop = False
         Me.POWaveFormTabButton.Text = "WaveForm"
         Me.POWaveFormTabButton.UseCompatibleTextRendering = False
         Me.POWaveFormTabButton.UseVisualStyleBackColor = False
         '
+        'PORandomTabButton
+        '
+        Me.PORandomTabButton.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(248, Byte), Integer), CType(CType(248, Byte), Integer))
+        Me.PORandomTabButton.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandomTabButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(CType(CType(205, Byte), Integer), CType(CType(205, Byte), Integer), CType(CType(205, Byte), Integer))
+        Me.PORandomTabButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(CType(CType(218, Byte), Integer), CType(CType(235, Byte), Integer), CType(CType(249, Byte), Integer))
+        Me.PORandomTabButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(CType(CType(235, Byte), Integer), CType(CType(245, Byte), Integer), CType(CType(252, Byte), Integer))
+        Me.PORandomTabButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.PORandomTabButton.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.PORandomTabButton.Location = New System.Drawing.Point(77, 25)
+        Me.PORandomTabButton.Margin = New System.Windows.Forms.Padding(0, 0, 2, 1)
+        Me.PORandomTabButton.Name = "PORandomTabButton"
+        Me.PORandomTabButton.Size = New System.Drawing.Size(73, 23)
+        Me.PORandomTabButton.TabIndex = 5
+        Me.PORandomTabButton.TabStop = False
+        Me.PORandomTabButton.Text = "#RANDOM"
+        Me.PORandomTabButton.UseCompatibleTextRendering = False
+        Me.PORandomTabButton.UseVisualStyleBackColor = False
+        '
         'POTabContent
         '
         Me.POTabContent.AutoScroll = True
         Me.POTabContent.BackColor = System.Drawing.SystemColors.Control
         Me.POTabContent.Controls.Add(Me.POptions)
+        Me.POTabContent.Controls.Add(Me.PORandom)
         Me.POTabContent.Controls.Add(Me.POWaveForm)
         Me.POTabContent.Controls.Add(Me.POBeat)
         Me.POTabContent.Controls.Add(Me.POBMP)
@@ -735,6 +785,266 @@ Partial Class MainWindow
         Me.POTabContent.Padding = New System.Windows.Forms.Padding(2, 3, 2, 0)
         Me.POTabContent.Size = New System.Drawing.Size(230, 608)
         Me.POTabContent.TabIndex = 1
+        '
+        'PORandom
+        '
+        Me.PORandom.AutoSize = False
+        Me.PORandom.Controls.Add(Me.PORandomInner)
+        Me.PORandom.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandom.Location = New System.Drawing.Point(2, 3)
+        Me.PORandom.Name = "PORandom"
+        Me.PORandom.Padding = New System.Windows.Forms.Padding(0, 0, 0, 10)
+        Me.PORandom.Size = New System.Drawing.Size(226, 605)
+        Me.PORandom.TabIndex = 6
+        Me.PORandom.Visible = False
+        '
+        'PORandomInner
+        '
+        Me.PORandomInner.ColumnCount = 1
+        Me.PORandomInner.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+        Me.PORandomInner.Controls.Add(Me.PORandomButtons, 0, 0)
+        Me.PORandomInner.Controls.Add(Me.LRandomBlocks, 0, 1)
+        Me.PORandomInner.Controls.Add(Me.PORandomEdit, 0, 2)
+        Me.PORandomInner.Controls.Add(Me.LabelRandomExtra, 0, 3)
+        Me.PORandomInner.Controls.Add(Me.TRandomExtra, 0, 4)
+        Me.PORandomInner.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandomInner.Location = New System.Drawing.Point(0, 0)
+        Me.PORandomInner.Name = "PORandomInner"
+        Me.PORandomInner.RowCount = 5
+        Me.PORandomInner.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+        Me.PORandomInner.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 200.0!))
+        Me.PORandomInner.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 77.0!))
+        Me.PORandomInner.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 29.0!))
+        Me.PORandomInner.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+        Me.PORandomInner.Size = New System.Drawing.Size(226, 595)
+        Me.PORandomInner.TabIndex = 0
+        '
+        'PORandomButtons
+        '
+        Me.PORandomButtons.ColumnCount = 3
+        Me.PORandomButtons.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.3333!))
+        Me.PORandomButtons.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.3333!))
+        Me.PORandomButtons.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.3334!))
+        Me.PORandomButtons.Controls.Add(Me.BRandomAdd, 0, 0)
+        Me.PORandomButtons.Controls.Add(Me.BRandomDuplicate, 1, 0)
+        Me.PORandomButtons.Controls.Add(Me.BRandomDelete, 2, 0)
+        Me.PORandomButtons.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandomButtons.Location = New System.Drawing.Point(0, 0)
+        Me.PORandomButtons.Margin = New System.Windows.Forms.Padding(0)
+        Me.PORandomButtons.Name = "PORandomButtons"
+        Me.PORandomButtons.RowCount = 1
+        Me.PORandomButtons.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
+        Me.PORandomButtons.Size = New System.Drawing.Size(226, 25)
+        Me.PORandomButtons.TabIndex = 0
+        '
+        'BRandomAdd
+        '
+        Me.BRandomAdd.AutoSize = False
+        Me.BRandomAdd.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.BRandomAdd.Location = New System.Drawing.Point(0, 1)
+        Me.BRandomAdd.Margin = New System.Windows.Forms.Padding(0, 1, 3, 1)
+        Me.BRandomAdd.Name = "BRandomAdd"
+        Me.BRandomAdd.Size = New System.Drawing.Size(72, 23)
+        Me.BRandomAdd.TabIndex = 0
+        Me.BRandomAdd.Text = "Add"
+        Me.BRandomAdd.UseVisualStyleBackColor = True
+        '
+        'BRandomDuplicate
+        '
+        Me.BRandomDuplicate.AutoSize = False
+        Me.BRandomDuplicate.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.BRandomDuplicate.Location = New System.Drawing.Point(78, 1)
+        Me.BRandomDuplicate.Margin = New System.Windows.Forms.Padding(3, 1, 3, 1)
+        Me.BRandomDuplicate.Name = "BRandomDuplicate"
+        Me.BRandomDuplicate.Size = New System.Drawing.Size(69, 23)
+        Me.BRandomDuplicate.TabIndex = 1
+        Me.BRandomDuplicate.Text = "Duplicate"
+        Me.BRandomDuplicate.UseVisualStyleBackColor = True
+        '
+        'BRandomDelete
+        '
+        Me.BRandomDelete.AutoSize = False
+        Me.BRandomDelete.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.BRandomDelete.Location = New System.Drawing.Point(153, 1)
+        Me.BRandomDelete.Margin = New System.Windows.Forms.Padding(3, 1, 0, 1)
+        Me.BRandomDelete.Name = "BRandomDelete"
+        Me.BRandomDelete.Size = New System.Drawing.Size(73, 23)
+        Me.BRandomDelete.TabIndex = 2
+        Me.BRandomDelete.Text = "Remove"
+        Me.BRandomDelete.UseVisualStyleBackColor = True
+        '
+        'LRandomBlocks
+        '
+        Me.LRandomBlocks.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.LRandomBlocks.FormattingEnabled = True
+        Me.LRandomBlocks.IntegralHeight = False
+        Me.LRandomBlocks.ItemHeight = 15
+        Me.LRandomBlocks.Location = New System.Drawing.Point(3, 25)
+        Me.LRandomBlocks.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
+        Me.LRandomBlocks.Name = "LRandomBlocks"
+        Me.LRandomBlocks.Size = New System.Drawing.Size(220, 200)
+        Me.LRandomBlocks.TabIndex = 1
+        '
+        'PORandomEdit
+        '
+        Me.PORandomEdit.ColumnCount = 2
+        Me.PORandomEdit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 42.0!))
+        Me.PORandomEdit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.0!))
+        Me.PORandomEdit.Controls.Add(Me.LabelRandomDefinition, 0, 0)
+        Me.PORandomEdit.Controls.Add(Me.PORandomDefinitionCell, 1, 0)
+        Me.PORandomEdit.Controls.Add(Me.LabelRandomValue, 0, 1)
+        Me.PORandomEdit.Controls.Add(Me.PORandomValueCell, 1, 1)
+        Me.PORandomEdit.Controls.Add(Me.LabelRandomView, 0, 2)
+        Me.PORandomEdit.Controls.Add(Me.CRandomViewMode, 1, 2)
+        Me.PORandomEdit.Dock = System.Windows.Forms.DockStyle.Top
+        Me.PORandomEdit.Location = New System.Drawing.Point(0, 227)
+        Me.PORandomEdit.Margin = New System.Windows.Forms.Padding(0, 2, 0, 0)
+        Me.PORandomEdit.Name = "PORandomEdit"
+        Me.PORandomEdit.RowCount = 3
+        Me.PORandomEdit.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+        Me.PORandomEdit.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+        Me.PORandomEdit.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25.0!))
+        Me.PORandomEdit.Size = New System.Drawing.Size(226, 75)
+        Me.PORandomEdit.TabIndex = 2
+        '
+        'LabelRandomDefinition
+        '
+        Me.LabelRandomDefinition.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.LabelRandomDefinition.AutoSize = True
+        Me.LabelRandomDefinition.Location = New System.Drawing.Point(3, 5)
+        Me.LabelRandomDefinition.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
+        Me.LabelRandomDefinition.Name = "LabelRandomDefinition"
+        Me.LabelRandomDefinition.Size = New System.Drawing.Size(62, 15)
+        Me.LabelRandomDefinition.TabIndex = 0
+        Me.LabelRandomDefinition.Text = "#RANDOM"
+        '
+        'PORandomDefinitionCell
+        '
+        Me.PORandomDefinitionCell.Controls.Add(Me.LRandomDefinitionUnused)
+        Me.PORandomDefinitionCell.Controls.Add(Me.NRandomDefinition)
+        Me.PORandomDefinitionCell.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandomDefinitionCell.Location = New System.Drawing.Point(94, 0)
+        Me.PORandomDefinitionCell.Margin = New System.Windows.Forms.Padding(0)
+        Me.PORandomDefinitionCell.Name = "PORandomDefinitionCell"
+        Me.PORandomDefinitionCell.Size = New System.Drawing.Size(132, 25)
+        Me.PORandomDefinitionCell.TabIndex = 1
+        '
+        'LRandomDefinitionUnused
+        '
+        Me.LRandomDefinitionUnused.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.LRandomDefinitionUnused.Location = New System.Drawing.Point(0, 0)
+        Me.LRandomDefinitionUnused.Margin = New System.Windows.Forms.Padding(0)
+        Me.LRandomDefinitionUnused.Name = "LRandomDefinitionUnused"
+        Me.LRandomDefinitionUnused.Size = New System.Drawing.Size(132, 25)
+        Me.LRandomDefinitionUnused.TabIndex = 1
+        Me.LRandomDefinitionUnused.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.LRandomDefinitionUnused.Visible = False
+        '
+        'NRandomDefinition
+        '
+        Me.NRandomDefinition.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.NRandomDefinition.Location = New System.Drawing.Point(0, 0)
+        Me.NRandomDefinition.Margin = New System.Windows.Forms.Padding(0)
+        Me.NRandomDefinition.Maximum = New Decimal(New Integer() {9999, 0, 0, 0})
+        Me.NRandomDefinition.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.NRandomDefinition.Name = "NRandomDefinition"
+        Me.NRandomDefinition.Size = New System.Drawing.Size(132, 23)
+        Me.NRandomDefinition.TabIndex = 0
+        Me.NRandomDefinition.Value = New Decimal(New Integer() {1, 0, 0, 0})
+        '
+        'LabelRandomValue
+        '
+        Me.LabelRandomValue.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.LabelRandomValue.AutoSize = True
+        Me.LabelRandomValue.Location = New System.Drawing.Point(3, 30)
+        Me.LabelRandomValue.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
+        Me.LabelRandomValue.Name = "LabelRandomValue"
+        Me.LabelRandomValue.Size = New System.Drawing.Size(20, 15)
+        Me.LabelRandomValue.TabIndex = 2
+        Me.LabelRandomValue.Text = "#IF"
+        '
+        'PORandomValueCell
+        '
+        Me.PORandomValueCell.Controls.Add(Me.LRandomValueUnused)
+        Me.PORandomValueCell.Controls.Add(Me.NRandomValue)
+        Me.PORandomValueCell.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.PORandomValueCell.Location = New System.Drawing.Point(94, 25)
+        Me.PORandomValueCell.Margin = New System.Windows.Forms.Padding(0)
+        Me.PORandomValueCell.Name = "PORandomValueCell"
+        Me.PORandomValueCell.Size = New System.Drawing.Size(132, 25)
+        Me.PORandomValueCell.TabIndex = 3
+        '
+        'LRandomValueUnused
+        '
+        Me.LRandomValueUnused.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.LRandomValueUnused.Location = New System.Drawing.Point(0, 0)
+        Me.LRandomValueUnused.Margin = New System.Windows.Forms.Padding(0)
+        Me.LRandomValueUnused.Name = "LRandomValueUnused"
+        Me.LRandomValueUnused.Size = New System.Drawing.Size(132, 25)
+        Me.LRandomValueUnused.TabIndex = 1
+        Me.LRandomValueUnused.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.LRandomValueUnused.Visible = False
+        '
+        'NRandomValue
+        '
+        Me.NRandomValue.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.NRandomValue.Location = New System.Drawing.Point(0, 0)
+        Me.NRandomValue.Margin = New System.Windows.Forms.Padding(0)
+        Me.NRandomValue.Maximum = New Decimal(New Integer() {9999, 0, 0, 0})
+        Me.NRandomValue.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.NRandomValue.Name = "NRandomValue"
+        Me.NRandomValue.Size = New System.Drawing.Size(132, 23)
+        Me.NRandomValue.TabIndex = 0
+        Me.NRandomValue.Value = New Decimal(New Integer() {1, 0, 0, 0})
+        '
+        'LabelRandomView
+        '
+        Me.LabelRandomView.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.LabelRandomView.AutoSize = True
+        Me.LabelRandomView.Location = New System.Drawing.Point(3, 55)
+        Me.LabelRandomView.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
+        Me.LabelRandomView.Name = "LabelRandomView"
+        Me.LabelRandomView.Size = New System.Drawing.Size(32, 15)
+        Me.LabelRandomView.TabIndex = 4
+        Me.LabelRandomView.Text = "Notes"
+        '
+        'CRandomViewMode
+        '
+        Me.CRandomViewMode.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.CRandomViewMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CRandomViewMode.FormattingEnabled = True
+        Me.CRandomViewMode.Location = New System.Drawing.Point(94, 50)
+        Me.CRandomViewMode.Margin = New System.Windows.Forms.Padding(0)
+        Me.CRandomViewMode.Name = "CRandomViewMode"
+        Me.CRandomViewMode.Size = New System.Drawing.Size(132, 23)
+        Me.CRandomViewMode.TabIndex = 5
+        '
+        'LabelRandomExtra
+        '
+        Me.LabelRandomExtra.Dock = System.Windows.Forms.DockStyle.Bottom
+        Me.LabelRandomExtra.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.LabelRandomExtra.Location = New System.Drawing.Point(0, 311)
+        Me.LabelRandomExtra.Margin = New System.Windows.Forms.Padding(0)
+        Me.LabelRandomExtra.Name = "LabelRandomExtra"
+        Me.LabelRandomExtra.Padding = New System.Windows.Forms.Padding(2, 0, 0, 0)
+        Me.LabelRandomExtra.Size = New System.Drawing.Size(226, 20)
+        Me.LabelRandomExtra.TabIndex = 3
+        Me.LabelRandomExtra.Text = "Expansion Code"
+        Me.LabelRandomExtra.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        '
+        'TRandomExtra
+        '
+        Me.TRandomExtra.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.TRandomExtra.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TRandomExtra.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TRandomExtra.HideSelection = False
+        Me.TRandomExtra.Location = New System.Drawing.Point(3, 334)
+        Me.TRandomExtra.Multiline = True
+        Me.TRandomExtra.Name = "TRandomExtra"
+        Me.TRandomExtra.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
+        Me.TRandomExtra.Size = New System.Drawing.Size(220, 258)
+        Me.TRandomExtra.TabIndex = 4
+        Me.TRandomExtra.WordWrap = False
         '
         'POptions
         '
@@ -4583,6 +4893,16 @@ Partial Class MainWindow
         Me.POTabHost.ResumeLayout(False)
         Me.POTabButtons.ResumeLayout(False)
         Me.POTabContent.ResumeLayout(False)
+        Me.PORandom.ResumeLayout(False)
+        Me.PORandomInner.ResumeLayout(False)
+        Me.PORandomInner.PerformLayout()
+        Me.PORandomButtons.ResumeLayout(False)
+        Me.PORandomEdit.ResumeLayout(False)
+        Me.PORandomEdit.PerformLayout()
+        Me.PORandomDefinitionCell.ResumeLayout(False)
+        CType(Me.NRandomDefinition, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.PORandomValueCell.ResumeLayout(False)
+        CType(Me.NRandomValue, System.ComponentModel.ISupportInitialize).EndInit()
         Me.POptions.ResumeLayout(False)
         Me.POptions.PerformLayout()
         Me.POExpansionInner.ResumeLayout(False)
@@ -4705,6 +5025,7 @@ Partial Class MainWindow
     Friend WithEvents POBMPTabButton As System.Windows.Forms.Button
     Friend WithEvents POBeatTabButton As System.Windows.Forms.Button
     Friend WithEvents POWaveFormTabButton As System.Windows.Forms.Button
+    Friend WithEvents PORandomTabButton As System.Windows.Forms.Button
     Friend WithEvents LWAV As System.Windows.Forms.ListBox
     Friend WithEvents LBMP As System.Windows.Forms.ListBox
     Friend WithEvents Timer1 As System.Windows.Forms.Timer
@@ -5000,6 +5321,26 @@ Partial Class MainWindow
     Friend WithEvents POWaveFormInner As System.Windows.Forms.Panel
     Friend WithEvents POWaveFormPart2 As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents POWaveFormPart1 As System.Windows.Forms.TableLayoutPanel
+    Friend WithEvents PORandom As System.Windows.Forms.Panel
+    Friend WithEvents PORandomInner As System.Windows.Forms.TableLayoutPanel
+    Friend WithEvents PORandomButtons As System.Windows.Forms.TableLayoutPanel
+    Friend WithEvents BRandomAdd As System.Windows.Forms.Button
+    Friend WithEvents BRandomDuplicate As System.Windows.Forms.Button
+    Friend WithEvents BRandomDelete As System.Windows.Forms.Button
+    Friend WithEvents LRandomBlocks As System.Windows.Forms.ListBox
+    Friend WithEvents PORandomEdit As System.Windows.Forms.TableLayoutPanel
+    Friend WithEvents LabelRandomDefinition As System.Windows.Forms.Label
+    Friend WithEvents PORandomDefinitionCell As System.Windows.Forms.Panel
+    Friend WithEvents LRandomDefinitionUnused As System.Windows.Forms.Label
+    Friend WithEvents NRandomDefinition As System.Windows.Forms.NumericUpDown
+    Friend WithEvents LabelRandomValue As System.Windows.Forms.Label
+    Friend WithEvents PORandomValueCell As System.Windows.Forms.Panel
+    Friend WithEvents LRandomValueUnused As System.Windows.Forms.Label
+    Friend WithEvents NRandomValue As System.Windows.Forms.NumericUpDown
+    Friend WithEvents LabelRandomView As System.Windows.Forms.Label
+    Friend WithEvents CRandomViewMode As System.Windows.Forms.ComboBox
+    Friend WithEvents LabelRandomExtra As System.Windows.Forms.Label
+    Friend WithEvents TRandomExtra As System.Windows.Forms.TextBox
     Friend WithEvents TableLayoutPanel1 As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents TableLayoutPanel6 As System.Windows.Forms.TableLayoutPanel
     Friend WithEvents FlowLayoutPanel1 As System.Windows.Forms.FlowLayoutPanel
