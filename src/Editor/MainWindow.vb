@@ -3006,6 +3006,38 @@ Public Class MainWindow
         Return Math.Floor((xVPos - xOffset) / xRatio) * xRatio + xOffset
     End Function
 
+    Private Const ViewAnchorTolerance As Double = 0.0001R
+
+    'Edit position used when no explicit position is given (keyboard paste, tool switch).
+    'It is the first measure line at or above the bottom of the visible area, so the result
+    'always lands inside the view. When a measure is taller than the panel that measure line
+    'would be off-screen, so the nearest grid line is used instead.
+    Private Function ViewAnchorVPosition() As Double
+        Dim xIndex As Integer = If(IsValidPanelIndex(PanelFocus), PanelFocus, MainPanelIndex)
+        If Not IsValidPanelIndex(xIndex) OrElse xIndex > UBound(PanelVScroll) Then Return 0.0R
+
+        Dim xBottom As Double = -PanelVScroll(xIndex)
+        Dim xMeasure As Integer = MeasureAtDisplacement(xBottom)
+        Dim xAnchor As Double = MeasureBottom(xMeasure)
+        If xAnchor < xBottom - ViewAnchorTolerance AndAlso xMeasure < 999 Then xAnchor = MeasureBottom(xMeasure + 1)
+
+        Dim xTop As Double = GetMaxVPosition()
+        If xIndex <= UBound(spMain) AndAlso spMain(xIndex) IsNot Nothing AndAlso gxHeight > 0 Then
+            xTop = xBottom + spMain(xIndex).Height / gxHeight
+        End If
+
+        If xAnchor > xTop OrElse xAnchor < xBottom - ViewAnchorTolerance Then xAnchor = GridLineAtOrAbove(xBottom)
+
+        Return xAnchor
+    End Function
+
+    Private Function GridLineAtOrAbove(ByVal xVPos As Double) As Double
+        Dim xSnapped As Double = SnapToGrid(xVPos)
+        If xSnapped >= xVPos - ViewAnchorTolerance Then Return xSnapped
+
+        Return Math.Min(xSnapped + 192.0R / gDivide, MeasureUpper(MeasureAtDisplacement(xVPos)))
+    End Function
+
     Private Function AlignVScrollMinimumToWheel(ByVal value As Integer) As Integer
         If value >= 0 OrElse gWheel <= 0 Then Return value
 
@@ -3546,8 +3578,7 @@ Public Class MainWindow
             Notes(xI1).Selected = False
         Next
 
-        Dim xVS As Long = PanelVScroll(PanelFocus)
-        Dim xPasteBase As Double = If(xBaseVPosition >= 0, xBaseVPosition, MeasureBottom(MeasureAtDisplacement(-xVS) + 1))
+        Dim xPasteBase As Double = If(xBaseVPosition >= 0, xBaseVPosition, ViewAnchorVPosition())
         Dim xTempVP As Double
         Dim xKbu() As Note = Notes
 
@@ -5374,7 +5405,7 @@ EndSearch:
         TempVPosition = -1
         TempLength = 0
 
-        vSelStart = MeasureBottom(MeasureAtDisplacement(-PanelVScroll(PanelFocus)) + 1)
+        vSelStart = ViewAnchorVPosition()
         vSelLength = 0
 
         RefreshPanelAll()
@@ -5397,7 +5428,7 @@ EndSearch:
         TempVPosition = -1
         TempLength = 0
 
-        vSelStart = MeasureBottom(MeasureAtDisplacement(-PanelVScroll(PanelFocus)) + 1)
+        vSelStart = ViewAnchorVPosition()
         vSelLength = 0
 
         RefreshPanelAll()
