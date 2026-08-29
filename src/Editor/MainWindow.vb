@@ -7966,19 +7966,15 @@ Jump2:
     End Sub
 
     Private Sub MInsert_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MInsert.Click
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
         Dim xMeasure As Integer = MeasureAtDisplacement(menuVPosition)
         Dim xMLength As Double = MeasureLength(xMeasure)
         Dim xVP As Double = MeasureBottom(xMeasure)
+        Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
 
         If NTInput Then
             Dim xI1 As Integer = 1
             Do While xI1 <= UBound(Notes)
                 If MeasureAtDisplacement(Notes(xI1).VPosition) >= 999 Then
-                    Me.RedoRemoveNote(Notes(xI1), xUndo, xRedo)
                     RemoveNote(xI1, False)
                 Else
                     xI1 += 1
@@ -7988,18 +7984,15 @@ Jump2:
             Dim xdVP As Double
             For xI1 = 1 To UBound(Notes)
                 If Notes(xI1).VPosition >= xVP And Notes(xI1).VPosition + Notes(xI1).Length <= MeasureBottom(999) Then
-                    Me.RedoMoveNote(Notes(xI1), Notes(xI1).ColumnIndex, Notes(xI1).VPosition + xMLength, xUndo, xRedo)
                     Notes(xI1).VPosition += xMLength
 
                 ElseIf Notes(xI1).VPosition >= xVP Then
                     xdVP = MeasureBottom(999) - 1 - Notes(xI1).VPosition - Notes(xI1).Length
-                    Me.RedoLongNoteModify(Notes(xI1), Notes(xI1).VPosition + xMLength, Notes(xI1).Length + xdVP, xUndo, xRedo)
                     Notes(xI1).VPosition += xMLength
                     Notes(xI1).Length += xdVP
 
                 ElseIf Notes(xI1).VPosition + Notes(xI1).Length >= xVP Then
                     xdVP = IIf(Notes(xI1).VPosition + Notes(xI1).Length > MeasureBottom(999) - 1, GetMaxVPosition() - 1 - Notes(xI1).VPosition - Notes(xI1).Length, xMLength)
-                    Me.RedoLongNoteModify(Notes(xI1), Notes(xI1).VPosition, Notes(xI1).Length + xdVP, xUndo, xRedo)
                     Notes(xI1).Length += xdVP
                 End If
             Next
@@ -8008,7 +8001,6 @@ Jump2:
             Dim xI1 As Integer = 1
             Do While xI1 <= UBound(Notes)
                 If MeasureAtDisplacement(Notes(xI1).VPosition) >= 999 Then
-                    Me.RedoRemoveNote(Notes(xI1), xUndo, xRedo)
                     RemoveNote(xI1, False)
                 Else
                     xI1 += 1
@@ -8017,21 +8009,20 @@ Jump2:
 
             For xI1 = 1 To UBound(Notes)
                 If Notes(xI1).VPosition >= xVP Then
-                    Me.RedoMoveNote(Notes(xI1), Notes(xI1).ColumnIndex, Notes(xI1).VPosition + xMLength, xUndo, xRedo)
                     Notes(xI1).VPosition += xMLength
                 End If
             Next
         End If
 
-        For xI1 As Integer = 999 To xMeasure + 1 Step -1
-            MeasureLength(xI1) = MeasureLength(xI1 - 1)
-        Next
-        UpdateMeasureBottom()
+        BmsMeasureStructure.InsertMeasure(BaseMeasureLength, RandomBlocks, xMeasure)
+        ApplyMeasureLengthArray(ActiveTargetMeasureLength())
+        Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
 
-        AddUndo(xUndo, xBaseRedo.Next)
+        AddUndo(xUndo, xRedo)
         UpdatePairing()
         CalculateGreatestVPosition()
         CalculateTotalPlayableNotes()
+        RefreshRandomPanel()
         RefreshPanelAll()
     End Sub
 

@@ -32,6 +32,8 @@ Module TestRunner
         Run("measure insertion copies following value", AddressOf MeasureInsertionBeforeSelection)
         Run("multiple measure removal", AddressOf MultipleMeasureRemoval)
         Run("measure removal undo redo", AddressOf MeasureRemovalUndoRedo)
+        Run("context measure insertion undo redo", AddressOf ContextMeasureInsertionUndoRedo)
+        Run("context measure removal undo redo", AddressOf ContextMeasureRemovalUndoRedo)
         Run("measure join availability", AddressOf MeasureJoinAvailability)
         Run("multiple measure join", AddressOf MultipleMeasureJoin)
 
@@ -484,6 +486,186 @@ Module TestRunner
         AssertApprox(120.0R, block.GetMeasureLengthOverrides(1)(10), "redo should restore shifted random override")
         AssertFalse(block.MeasureLengthByValue.ContainsKey(2), "redo should remove the override-only branch again")
         AssertApprox(1824.0R, restoredNotes(1).VPosition, "redo should restore shifted note position")
+    End Sub
+
+    Private Sub ContextMeasureInsertionUndoRedo()
+        Using window As New MainWindow()
+            Dim lengths() As Double = VariableMeasureLengths()
+            Dim notesBefore() As Note = ContextMeasureNotes()
+            Dim blocks As List(Of BmsRandomBlock) = ContextMeasureRandomBlocks()
+            PrepareContextMeasureWindow(window, lengths, notesBefore, blocks, 4)
+
+            InvokePrivate(window, "MInsert_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextInsertionState(window, blocks, "insert")
+
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextOriginalState(window, blocks, "insert undo")
+
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextInsertionState(window, blocks, "insert redo")
+        End Using
+    End Sub
+
+    Private Sub ContextMeasureRemovalUndoRedo()
+        Using window As New MainWindow()
+            Dim lengths() As Double = VariableMeasureLengths()
+            Dim notesBefore() As Note = ContextMeasureNotes()
+            Dim blocks As List(Of BmsRandomBlock) = ContextMeasureRandomBlocks()
+            PrepareContextMeasureWindow(window, lengths, notesBefore, blocks, 4)
+
+            InvokePrivate(window, "MRemove_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextRemovalState(window, blocks, "remove")
+
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextOriginalState(window, blocks, "remove undo")
+
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextRemovalState(window, blocks, "remove redo")
+        End Using
+    End Sub
+
+    Private Function VariableMeasureLengths() As Double()
+        Dim lengths(999) As Double
+        For i As Integer = 0 To 999
+            lengths(i) = 192.0R
+        Next
+        lengths(4) = 204.0R
+        lengths(5) = 207.0R
+        lengths(6) = 183.0R
+        Return lengths
+    End Function
+
+    Private Function ContextMeasureNotes() As Note()
+        Return New Note() {
+            New Note(0, -1.0R, 1200000),
+            New Note(3, 700.0R, 10000, 341.0R),
+            New Note(4, 800.0R, 20000),
+            New Note(5, 819.0R, 30000, 222.0R),
+            New Note(6, 1041.0R, 40000)
+        }
+    End Function
+
+    Private Function ContextMeasureRandomBlocks() As List(Of BmsRandomBlock)
+        Dim block As New BmsRandomBlock(1)
+        block.SetMeasureLength(1, 4, 222.0R)
+        block.SetMeasureLength(1, 5, 144.0R)
+        Return New List(Of BmsRandomBlock) From {block}
+    End Function
+
+    Private Sub PrepareContextMeasureWindow(ByVal window As MainWindow,
+                                            ByVal lengths() As Double,
+                                            ByVal notes() As Note,
+                                            ByVal blocks As List(Of BmsRandomBlock),
+                                            ByVal measureIndex As Integer)
+        notes(0) = PrivateField(Of Note())(window, "Notes")(0)
+        SetPrivateField(window, "MeasureLength", CType(lengths.Clone(), Double()))
+        SetPrivateField(window, "BaseMeasureLength", CType(lengths.Clone(), Double()))
+        SetPrivateField(window, "Notes", CType(notes.Clone(), Note()))
+        SetPrivateField(window, "RandomBlocks", blocks)
+        SetPrivateField(window, "SelectedRandomIndex", -1)
+        SetPrivateField(window, "NTInput", True)
+        InvokePrivate(window, "UpdateMeasureBottom", New Object() {})
+
+        Dim bottoms() As Double = PrivateField(Of Double())(window, "MeasureBottom")
+        SetPrivateField(window, "menuVPosition", bottoms(measureIndex) + 1.0R)
+    End Sub
+
+    Private Sub AssertContextNotes(ByVal window As MainWindow,
+                                   ByVal expectedPositions() As Double,
+                                   ByVal expectedLengths() As Double,
+                                   ByVal operation As String)
+        Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+        AssertEqual(expectedPositions.Length + 1, notes.Length, operation & " note count")
+        AssertEqual(expectedPositions.Length, expectedLengths.Length, operation & " expected data")
+
+        For i As Integer = 0 To expectedPositions.Length - 1
+            AssertApprox(expectedPositions(i), notes(i + 1).VPosition, operation & " note " & i.ToString() & " position")
+            AssertApprox(expectedLengths(i), notes(i + 1).Length, operation & " note " & i.ToString() & " length")
+        Next
+    End Sub
+
+    Private Sub AssertContextOriginalState(ByVal window As MainWindow,
+                                           ByVal blocks As List(Of BmsRandomBlock),
+                                           ByVal operation As String)
+        Dim baseLengths() As Double = PrivateField(Of Double())(window, "BaseMeasureLength")
+        Dim displayLengths() As Double = PrivateField(Of Double())(window, "MeasureLength")
+        AssertApprox(204.0R, baseLengths(4), operation & " should restore base measure 4")
+        AssertApprox(207.0R, baseLengths(5), operation & " should restore base measure 5")
+        AssertApprox(183.0R, baseLengths(6), operation & " should restore base measure 6")
+        AssertApprox(204.0R, displayLengths(4), operation & " should restore display measure 4")
+        AssertApprox(207.0R, displayLengths(5), operation & " should restore display measure 5")
+        AssertContextNotes(window,
+                           New Double() {700.0R, 800.0R, 819.0R, 1041.0R},
+                           New Double() {341.0R, 0.0R, 222.0R, 0.0R},
+                           operation)
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = blocks(0).GetMeasureLengthOverrides(1)
+        AssertApprox(222.0R, measureOverrides(4), operation & " should restore random measure 4")
+        AssertApprox(144.0R, measureOverrides(5), operation & " should restore random measure 5")
+        AssertEqual(2, measureOverrides.Count, operation & " should restore random override count")
+    End Sub
+
+    Private Sub AssertContextInsertionState(ByVal window As MainWindow,
+                                            ByVal blocks As List(Of BmsRandomBlock),
+                                            ByVal operation As String)
+        Dim baseLengths() As Double = PrivateField(Of Double())(window, "BaseMeasureLength")
+        Dim displayLengths() As Double = PrivateField(Of Double())(window, "MeasureLength")
+        AssertApprox(204.0R, baseLengths(4), operation & " should copy base measure 4")
+        AssertApprox(204.0R, baseLengths(5), operation & " should shift base measure 4")
+        AssertApprox(207.0R, baseLengths(6), operation & " should shift base measure 5")
+        AssertApprox(183.0R, baseLengths(7), operation & " should shift base measure 6")
+        AssertApprox(204.0R, displayLengths(4), operation & " should copy display measure 4")
+        AssertApprox(204.0R, displayLengths(5), operation & " should shift display measure 4")
+        AssertContextNotes(window,
+                           New Double() {700.0R, 1004.0R, 1023.0R, 1245.0R},
+                           New Double() {545.0R, 0.0R, 222.0R, 0.0R},
+                           operation)
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = blocks(0).GetMeasureLengthOverrides(1)
+        AssertApprox(222.0R, measureOverrides(4), operation & " should copy random measure 4")
+        AssertApprox(222.0R, measureOverrides(5), operation & " should shift random measure 4")
+        AssertApprox(144.0R, measureOverrides(6), operation & " should shift random measure 5")
+        AssertEqual(3, measureOverrides.Count, operation & " should preserve random override count")
+    End Sub
+
+    Private Sub AssertContextRemovalState(ByVal window As MainWindow,
+                                          ByVal blocks As List(Of BmsRandomBlock),
+                                          ByVal operation As String)
+        Dim baseLengths() As Double = PrivateField(Of Double())(window, "BaseMeasureLength")
+        Dim displayLengths() As Double = PrivateField(Of Double())(window, "MeasureLength")
+        AssertApprox(207.0R, baseLengths(4), operation & " should shift base measure 5")
+        AssertApprox(183.0R, baseLengths(5), operation & " should shift base measure 6")
+        AssertApprox(207.0R, displayLengths(4), operation & " should shift display measure 5")
+        AssertContextNotes(window,
+                           New Double() {700.0R, 768.0R, 837.0R},
+                           New Double() {137.0R, 69.0R, 0.0R},
+                           operation)
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = blocks(0).GetMeasureLengthOverrides(1)
+        AssertApprox(144.0R, measureOverrides(4), operation & " should shift random measure 5")
+        AssertEqual(1, measureOverrides.Count, operation & " should remove the random override")
+    End Sub
+
+    Private Function PrivateField(Of T)(ByVal target As Object, ByVal name As String) As T
+        Dim field As Reflection.FieldInfo = target.GetType().GetField(name, Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+        If field Is Nothing Then Throw New InvalidOperationException("Missing field: " & name)
+        Return DirectCast(field.GetValue(target), T)
+    End Function
+
+    Private Sub SetPrivateField(ByVal target As Object, ByVal name As String, ByVal value As Object)
+        Dim field As Reflection.FieldInfo = target.GetType().GetField(name, Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+        If field Is Nothing Then Throw New InvalidOperationException("Missing field: " & name)
+        field.SetValue(target, value)
+    End Sub
+
+    Private Sub InvokePrivate(ByVal target As Object, ByVal name As String, ByVal arguments() As Object)
+        Dim method As Reflection.MethodInfo = target.GetType().GetMethod(name, Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic)
+        If method Is Nothing Then Throw New InvalidOperationException("Missing method: " & name)
+        Try
+            method.Invoke(target, arguments)
+        Catch ex As Reflection.TargetInvocationException When ex.InnerException IsNot Nothing
+            Throw New InvalidOperationException(name & " failed: " & ex.InnerException.ToString(), ex.InnerException)
+        End Try
     End Sub
 
     Private Sub MeasureInsertionBeforeSelection()
