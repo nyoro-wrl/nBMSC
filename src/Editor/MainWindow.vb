@@ -7858,13 +7858,8 @@ Jump2:
         SortByVPositionInsertion()
         Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
 
-        For rangeIndex As Integer = xRanges.Count - 1 To 0 Step -1
-            Dim xRange As BmsMeasureStructure.MeasureRange = xRanges(rangeIndex)
-            For xMeasure As Integer = xRange.StartIndex + xRange.Count - 1 To xRange.StartIndex Step -1
-                RemoveBeatMeasureAt(xMeasure)
-            Next
-        Next
-
+        BmsMeasureStructure.RemoveSelectedMeasures(MeasureLength, Nothing, xIndices)
+        UpdateMeasureBottom()
         BmsMeasureStructure.RemoveSelectedMeasures(BaseMeasureLength, RandomBlocks, xIndices)
         RefreshBeatListFromBaseMeasureLength()
         Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
@@ -7903,55 +7898,6 @@ Jump2:
         Next
 
         FinishBeatStructureEdit(xReturnToSelectedLayer)
-    End Sub
-
-    Private Sub RemoveBeatMeasureAt(ByVal xMeasure As Integer)
-        Dim xMLength As Double = MeasureLength(xMeasure)
-        Dim xVP As Double = MeasureBottom(xMeasure)
-
-        If NTInput Then
-            Dim xI1 As Integer = 1
-            Do While xI1 <= UBound(Notes)
-                If MeasureAtDisplacement(Notes(xI1).VPosition) = xMeasure AndAlso
-                   MeasureAtDisplacement(Notes(xI1).VPosition + Notes(xI1).Length) = xMeasure Then
-                    RemoveNote(xI1, False)
-                Else
-                    xI1 += 1
-                End If
-            Loop
-
-            Dim xdVP As Double
-            For xI1 = 1 To UBound(Notes)
-                If Notes(xI1).VPosition >= xVP + xMLength Then
-                    Notes(xI1).VPosition -= xMLength
-                ElseIf Notes(xI1).VPosition >= xVP Then
-                    xdVP = xMLength + xVP - Notes(xI1).VPosition
-                    Notes(xI1).VPosition += xdVP - xMLength
-                    Notes(xI1).Length -= xdVP
-                ElseIf Notes(xI1).VPosition + Notes(xI1).Length >= xVP Then
-                    xdVP = IIf(Notes(xI1).VPosition + Notes(xI1).Length >= xVP + xMLength,
-                                xMLength,
-                                Notes(xI1).VPosition + Notes(xI1).Length - xVP + 1)
-                    Notes(xI1).Length -= xdVP
-                End If
-            Next
-        Else
-            Dim xI1 As Integer = 1
-            Do While xI1 <= UBound(Notes)
-                If MeasureAtDisplacement(Notes(xI1).VPosition) = xMeasure Then
-                    RemoveNote(xI1, False)
-                Else
-                    xI1 += 1
-                End If
-            Loop
-
-            For xI1 = 1 To UBound(Notes)
-                If Notes(xI1).VPosition >= xVP Then Notes(xI1).VPosition -= xMLength
-            Next
-        End If
-
-        BmsMeasureStructure.RemoveMeasure(MeasureLength, Nothing, xMeasure)
-        UpdateMeasureBottom()
     End Sub
 
     Private Sub FinishBeatStructureEdit(ByVal xReturnToSelectedLayer As Boolean)
