@@ -91,7 +91,238 @@ Namespace Editor
     End Class
 
     Public NotInheritable Class BmsMeasureStructure
+        Friend Structure MeasureRange
+            Public ReadOnly StartIndex As Integer
+            Public ReadOnly Count As Integer
+
+            Public Sub New(ByVal startIndex As Integer, ByVal count As Integer)
+                Me.StartIndex = startIndex
+                Me.Count = count
+            End Sub
+        End Structure
+
         Private Sub New()
+        End Sub
+
+        Friend Shared Function GetSelectedMeasureRanges(ByVal selectedIndices As IEnumerable(Of Integer),
+                                                        ByVal lastMeasureIndex As Integer) As List(Of MeasureRange)
+            Dim ranges As New List(Of MeasureRange)()
+            If selectedIndices Is Nothing OrElse lastMeasureIndex < 0 Then Return ranges
+
+            Dim sortedIndices As New List(Of Integer)()
+            For Each index As Integer In selectedIndices
+                If index < 0 OrElse index > lastMeasureIndex OrElse sortedIndices.Contains(index) Then Continue For
+                sortedIndices.Add(index)
+            Next
+            sortedIndices.Sort()
+            If sortedIndices.Count = 0 Then Return ranges
+
+            Dim rangeStart As Integer = sortedIndices(0)
+            Dim previousIndex As Integer = rangeStart
+            For i As Integer = 1 To sortedIndices.Count - 1
+                Dim currentIndex As Integer = sortedIndices(i)
+                If currentIndex = previousIndex + 1 Then
+                    previousIndex = currentIndex
+                    Continue For
+                End If
+
+                ranges.Add(New MeasureRange(rangeStart, previousIndex - rangeStart + 1))
+                rangeStart = currentIndex
+                previousIndex = currentIndex
+            Next
+            ranges.Add(New MeasureRange(rangeStart, previousIndex - rangeStart + 1))
+
+            Return ranges
+        End Function
+
+        Public Shared Function CanJoinSelectedMeasures(ByVal selectedIndices As IEnumerable(Of Integer),
+                                                       ByVal lastMeasureIndex As Integer) As Boolean
+            Return GetJoinableMeasureRanges(selectedIndices, lastMeasureIndex).Count > 0
+        End Function
+
+        Public Shared Sub JoinSelectedMeasures(ByVal baseMeasureLengths() As Double,
+                                               ByVal randomBlocks As IList(Of BmsRandomBlock),
+                                               ByVal selectedIndices As IEnumerable(Of Integer))
+            If baseMeasureLengths Is Nothing Then Return
+
+            Dim ranges As List(Of MeasureRange) = GetJoinableMeasureRanges(selectedIndices, UBound(baseMeasureLengths))
+            If ranges.Count = 0 Then Return
+
+            Dim sourceBaseMeasureLengths() As Double = CopyMeasureLengths(baseMeasureLengths)
+            Dim joinedBaseMeasureLengths() As Double = CopyMeasureLengths(baseMeasureLengths)
+            JoinMeasureRanges(joinedBaseMeasureLengths, ranges)
+
+            If randomBlocks IsNot Nothing Then
+                For Each block As BmsRandomBlock In randomBlocks
+                    If block Is Nothing Then Continue For
+
+                    Dim values As New List(Of Integer)(block.MeasureLengthByValue.Keys)
+                    For Each value As Integer In values
+                        Dim effectiveMeasureLengths() As Double = BuildEffectiveMeasureLengths(sourceBaseMeasureLengths,
+                                                                                               block.GetMeasureLengthOverrides(value))
+                        Dim overrideFlags(UBound(sourceBaseMeasureLengths)) As Boolean
+                        For Each pair As KeyValuePair(Of Integer, Double) In block.GetMeasureLengthOverrides(value)
+                            If pair.Key >= 0 AndAlso pair.Key <= UBound(overrideFlags) AndAlso pair.Value > 0.0R Then
+                                overrideFlags(pair.Key) = True
+                            End If
+                        Next
+
+                        JoinMeasureRanges(effectiveMeasureLengths, ranges)
+                        JoinOverrideRanges(overrideFlags, ranges)
+
+                        Dim joinedOverrides As New Dictionary(Of Integer, Double)()
+                        For measureIndex As Integer = 0 To UBound(overrideFlags)
+                            If overrideFlags(measureIndex) Then joinedOverrides(measureIndex) = effectiveMeasureLengths(measureIndex)
+                        Next
+                        block.SetMeasureLengthOverrides(value, joinedOverrides)
+                    Next
+                Next
+            End If
+
+            Array.Copy(joinedBaseMeasureLengths, baseMeasureLengths, baseMeasureLengths.Length)
+        End Sub
+
+        Private Shared Function GetJoinableMeasureRanges(ByVal selectedIndices As IEnumerable(Of Integer),
+                                                         ByVal lastMeasureIndex As Integer) As List(Of MeasureRange)
+            Dim joinableRanges As New List(Of MeasureRange)()
+            For Each range As MeasureRange In GetSelectedMeasureRanges(selectedIndices, lastMeasureIndex)
+                If range.Count > 1 Then joinableRanges.Add(range)
+            Next
+            Return joinableRanges
+        End Function
+
+        Private Shared Function CopyMeasureLengths(ByVal source() As Double) As Double()
+            Dim result(UBound(source)) As Double
+            Array.Copy(source, result, source.Length)
+            Return result
+        End Function
+
+        Private Shared Function BuildEffectiveMeasureLengths(ByVal baseMeasureLengths() As Double,
+                                                             ByVal xOverrides As Dictionary(Of Integer, Double)) As Double()
+            Dim result(UBound(baseMeasureLengths)) As Double
+            For i As Integer = 0 To UBound(baseMeasureLengths)
+                result(i) = If(baseMeasureLengths(i) > 0.0R, baseMeasureLengths(i), 192.0R)
+            Next
+
+            If xOverrides IsNot Nothing Then
+                For Each pair As KeyValuePair(Of Integer, Double) In xOverrides
+                    If pair.Key >= 0 AndAlso pair.Key <= UBound(result) AndAlso pair.Value > 0.0R Then result(pair.Key) = pair.Value
+                Next
+            End If
+
+            Return result
+        End Function
+
+        Private Shared Sub JoinMeasureRanges(ByVal measureLengths() As Double,
+                                             ByVal ranges As IList(Of MeasureRange))
+            For rangeIndex As Integer = ranges.Count - 1 To 0 Step -1
+                Dim range As MeasureRange = ranges(rangeIndex)
+                Dim joinedLength As Double = 0.0R
+                For measureIndex As Integer = range.StartIndex To range.StartIndex + range.Count - 1
+                    joinedLength += If(measureLengths(measureIndex) > 0.0R, measureLengths(measureIndex), 192.0R)
+                Next
+                measureLengths(range.StartIndex) = joinedLength
+
+                For i As Integer = 2 To range.Count
+                    RemoveMeasure(measureLengths, Nothing, range.StartIndex + 1)
+                Next
+            Next
+        End Sub
+
+        Private Shared Sub JoinOverrideRanges(ByVal overrideFlags() As Boolean,
+                                              ByVal ranges As IList(Of MeasureRange))
+            For rangeIndex As Integer = ranges.Count - 1 To 0 Step -1
+                Dim range As MeasureRange = ranges(rangeIndex)
+                Dim hasOverride As Boolean = False
+                For measureIndex As Integer = range.StartIndex To range.StartIndex + range.Count - 1
+                    hasOverride = hasOverride OrElse overrideFlags(measureIndex)
+                Next
+                overrideFlags(range.StartIndex) = hasOverride
+
+                For i As Integer = 2 To range.Count
+                    RemoveOverrideFlag(overrideFlags, range.StartIndex + 1)
+                Next
+            Next
+        End Sub
+
+        Private Shared Sub RemoveOverrideFlag(ByVal overrideFlags() As Boolean, ByVal measureIndex As Integer)
+            For i As Integer = measureIndex To UBound(overrideFlags) - 1
+                overrideFlags(i) = overrideFlags(i + 1)
+            Next
+        End Sub
+
+        Public Shared Sub InsertMeasuresBeforeSelection(ByVal baseMeasureLengths() As Double,
+                                                        ByVal randomBlocks As IList(Of BmsRandomBlock),
+                                                        ByVal selectedIndices As IEnumerable(Of Integer))
+            If baseMeasureLengths Is Nothing Then Return
+
+            Dim ranges As List(Of MeasureRange) = GetSelectedMeasureRanges(selectedIndices, UBound(baseMeasureLengths))
+            For rangeIndex As Integer = ranges.Count - 1 To 0 Step -1
+                Dim range As MeasureRange = ranges(rangeIndex)
+                For i As Integer = 1 To range.Count
+                    InsertMeasure(baseMeasureLengths, randomBlocks, range.StartIndex)
+                Next
+            Next
+        End Sub
+
+        Friend Shared Sub InsertMeasure(ByVal baseMeasureLengths() As Double,
+                                        ByVal randomBlocks As IList(Of BmsRandomBlock),
+                                        ByVal measureIndex As Integer)
+            If baseMeasureLengths Is Nothing Then Return
+            If measureIndex < 0 OrElse measureIndex > UBound(baseMeasureLengths) Then Return
+
+            Dim lastMeasureIndex As Integer = UBound(baseMeasureLengths)
+            Dim insertedMeasureLength As Double = If(baseMeasureLengths(measureIndex) > 0.0R,
+                                                     baseMeasureLengths(measureIndex),
+                                                     192.0R)
+            For i As Integer = lastMeasureIndex To measureIndex + 1 Step -1
+                baseMeasureLengths(i) = baseMeasureLengths(i - 1)
+            Next
+            baseMeasureLengths(measureIndex) = insertedMeasureLength
+
+            If randomBlocks Is Nothing Then Return
+            For Each block As BmsRandomBlock In randomBlocks
+                InsertMeasure(block, measureIndex, lastMeasureIndex)
+            Next
+        End Sub
+
+        Private Shared Sub InsertMeasure(ByVal block As BmsRandomBlock,
+                                         ByVal measureIndex As Integer,
+                                         ByVal lastMeasureIndex As Integer)
+            If block Is Nothing Then Return
+
+            Dim values As New List(Of Integer)(block.MeasureLengthByValue.Keys)
+            For Each value As Integer In values
+                Dim source As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(value)
+                Dim shifted As New Dictionary(Of Integer, Double)()
+                Dim insertedMeasureLength As Double = 0.0R
+                Dim hasInsertedMeasureLength As Boolean = source.TryGetValue(measureIndex, insertedMeasureLength)
+
+                For Each pair As KeyValuePair(Of Integer, Double) In source
+                    If pair.Key < measureIndex Then
+                        shifted(pair.Key) = pair.Value
+                    ElseIf pair.Key < lastMeasureIndex Then
+                        shifted(pair.Key + 1) = pair.Value
+                    End If
+                Next
+
+                If hasInsertedMeasureLength Then shifted(measureIndex) = insertedMeasureLength
+                block.SetMeasureLengthOverrides(value, shifted)
+            Next
+        End Sub
+
+        Public Shared Sub RemoveSelectedMeasures(ByVal baseMeasureLengths() As Double,
+                                                 ByVal randomBlocks As IList(Of BmsRandomBlock),
+                                                 ByVal selectedIndices As IEnumerable(Of Integer))
+            If baseMeasureLengths Is Nothing Then Return
+
+            Dim ranges As List(Of MeasureRange) = GetSelectedMeasureRanges(selectedIndices, UBound(baseMeasureLengths))
+            For rangeIndex As Integer = ranges.Count - 1 To 0 Step -1
+                Dim range As MeasureRange = ranges(rangeIndex)
+                For measureIndex As Integer = range.StartIndex + range.Count - 1 To range.StartIndex Step -1
+                    RemoveMeasure(baseMeasureLengths, randomBlocks, measureIndex)
+                Next
+            Next
         End Sub
 
         Public Shared Sub RemoveMeasure(ByVal baseMeasureLengths() As Double,

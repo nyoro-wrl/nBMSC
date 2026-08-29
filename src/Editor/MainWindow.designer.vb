@@ -234,6 +234,11 @@ Partial Class MainWindow
         Me.EditorContextCloseSplitView = New System.Windows.Forms.ToolStripMenuItem()
         Me.DefinitionContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.DefinitionContextDelete = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BeatContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.BeatContextInsert = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BeatContextDelete = New System.Windows.Forms.ToolStripMenuItem()
+        Me.BeatContextJoinSeparator = New System.Windows.Forms.ToolStripSeparator()
+        Me.BeatContextJoin = New System.Windows.Forms.ToolStripMenuItem()
         Me.AutoSaveTimer = New System.Windows.Forms.Timer(Me.components)
         Me.mnMain = New System.Windows.Forms.MenuStrip()
         Me.mnFile = New System.Windows.Forms.ToolStripMenuItem()
@@ -3121,6 +3126,36 @@ Partial Class MainWindow
         '
         Me.DefinitionContextDelete.Name = "DefinitionContextDelete"
         Me.DefinitionContextDelete.Size = New System.Drawing.Size(104, 22)
+        '
+        'BeatContextMenu
+        '
+        Me.BeatContextMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.BeatContextInsert, Me.BeatContextDelete, Me.BeatContextJoinSeparator, Me.BeatContextJoin})
+        Me.BeatContextMenu.Name = "BeatContextMenu"
+        Me.BeatContextMenu.ShowImageMargin = True
+        Me.BeatContextMenu.Size = New System.Drawing.Size(109, 76)
+        '
+        'BeatContextInsert
+        '
+        Me.BeatContextInsert.Name = "BeatContextInsert"
+        Me.BeatContextInsert.Size = New System.Drawing.Size(108, 22)
+        Me.BeatContextInsert.Text = "Insert"
+        '
+        'BeatContextDelete
+        '
+        Me.BeatContextDelete.Name = "BeatContextDelete"
+        Me.BeatContextDelete.Size = New System.Drawing.Size(108, 22)
+        Me.BeatContextDelete.Text = "Delete"
+        '
+        'BeatContextJoinSeparator
+        '
+        Me.BeatContextJoinSeparator.Name = "BeatContextJoinSeparator"
+        Me.BeatContextJoinSeparator.Size = New System.Drawing.Size(105, 6)
+        '
+        'BeatContextJoin
+        '
+        Me.BeatContextJoin.Name = "BeatContextJoin"
+        Me.BeatContextJoin.Size = New System.Drawing.Size(108, 22)
+        Me.BeatContextJoin.Text = "Join"
         '
         'AutoSaveTimer
         '

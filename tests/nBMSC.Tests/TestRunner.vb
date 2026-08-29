@@ -29,7 +29,11 @@ Module TestRunner
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
         Run("undo redo serialization", AddressOf UndoRedoSerialization)
+        Run("measure insertion copies following value", AddressOf MeasureInsertionBeforeSelection)
+        Run("multiple measure removal", AddressOf MultipleMeasureRemoval)
         Run("measure removal undo redo", AddressOf MeasureRemovalUndoRedo)
+        Run("measure join availability", AddressOf MeasureJoinAvailability)
+        Run("multiple measure join", AddressOf MultipleMeasureJoin)
 
         Console.WriteLine()
         Console.WriteLine("Passed: " & Passed.ToString())
@@ -480,6 +484,129 @@ Module TestRunner
         AssertApprox(120.0R, block.GetMeasureLengthOverrides(1)(10), "redo should restore shifted random override")
         AssertFalse(block.MeasureLengthByValue.ContainsKey(2), "redo should remove the override-only branch again")
         AssertApprox(1824.0R, restoredNotes(1).VPosition, "redo should restore shifted note position")
+    End Sub
+
+    Private Sub MeasureInsertionBeforeSelection()
+        Dim baseMeasureLengths(999) As Double
+        For i As Integer = 0 To 999
+            baseMeasureLengths(i) = 192.0R + i
+        Next
+
+        Dim block As New BmsRandomBlock(1)
+        block.SetMeasureLength(1, 1, 101.0R)
+        block.SetMeasureLength(1, 2, 102.0R)
+        block.SetMeasureLength(1, 3, 103.0R)
+        block.SetMeasureLength(1, 4, 104.0R)
+        block.SetMeasureLength(1, 5, 105.0R)
+        block.SetMeasureLength(1, 6, 106.0R)
+        block.SetMeasureLength(1, 999, 199.0R)
+        Dim blocks As New List(Of BmsRandomBlock) From {block}
+
+        BmsMeasureStructure.InsertMeasuresBeforeSelection(baseMeasureLengths, blocks, New Integer() {2, 3, 5})
+
+        AssertApprox(194.0R, baseMeasureLengths(2), "first inserted measure should copy the following value")
+        AssertApprox(194.0R, baseMeasureLengths(3), "all measures inserted for a contiguous selection should copy its first value")
+        AssertApprox(194.0R, baseMeasureLengths(4), "first selected measure should follow its inserted measures")
+        AssertApprox(195.0R, baseMeasureLengths(5), "second selected measure should remain contiguous")
+        AssertApprox(196.0R, baseMeasureLengths(6), "unselected measure between groups should remain after the first group")
+        AssertApprox(197.0R, baseMeasureLengths(7), "separate selection group should copy its own following value")
+        AssertApprox(197.0R, baseMeasureLengths(8), "separate selected measure should follow its inserted measure")
+        AssertApprox(1188.0R, baseMeasureLengths(999), "overflowing tail measures should be discarded")
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(1)
+        AssertApprox(101.0R, measureOverrides(1), "earlier random override should remain")
+        AssertApprox(102.0R, measureOverrides(2), "inserted measure should copy the following random override")
+        AssertApprox(102.0R, measureOverrides(3), "contiguous inserted measures should copy the same random override")
+        AssertApprox(102.0R, measureOverrides(4), "first selected random override should shift after inserted group")
+        AssertApprox(103.0R, measureOverrides(5), "contiguous selected random override should remain contiguous")
+        AssertApprox(104.0R, measureOverrides(6), "intermediate random override should remain between groups")
+        AssertApprox(105.0R, measureOverrides(7), "separate inserted measure should copy its following random override")
+        AssertApprox(105.0R, measureOverrides(8), "separate selected random override should shift")
+        AssertApprox(106.0R, measureOverrides(9), "following random override should shift")
+        AssertFalse(measureOverrides.ContainsKey(999), "overflowing random override should be discarded")
+    End Sub
+
+    Private Sub MultipleMeasureRemoval()
+        Dim baseMeasureLengths(999) As Double
+        For i As Integer = 0 To 999
+            baseMeasureLengths(i) = 192.0R + i
+        Next
+
+        Dim block As New BmsRandomBlock(1)
+        block.SetMeasureLength(1, 2, 102.0R)
+        block.SetMeasureLength(1, 3, 103.0R)
+        block.SetMeasureLength(1, 4, 104.0R)
+        block.SetMeasureLength(1, 5, 105.0R)
+        block.SetMeasureLength(1, 6, 106.0R)
+        block.SetMeasureLength(1, 999, 199.0R)
+        Dim blocks As New List(Of BmsRandomBlock) From {block}
+
+        BmsMeasureStructure.RemoveSelectedMeasures(baseMeasureLengths, blocks, New Integer() {2, 3, 5})
+
+        AssertApprox(196.0R, baseMeasureLengths(2), "first unselected following measure should shift to the first removed row")
+        AssertApprox(198.0R, baseMeasureLengths(3), "measure following the separate removed row should shift")
+        AssertApprox(1191.0R, baseMeasureLengths(996), "last original measure should shift by the removal count")
+        AssertApprox(1191.0R, baseMeasureLengths(999), "last measure should remain available after multiple removal")
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(1)
+        AssertApprox(104.0R, measureOverrides(2), "unselected random override should shift into the first removed row")
+        AssertApprox(106.0R, measureOverrides(3), "random override following all removed rows should shift")
+        AssertApprox(199.0R, measureOverrides(996), "last random override should shift by the removal count")
+        AssertApprox(199.0R, measureOverrides(999), "last random override should remain available")
+        AssertEqual(6, measureOverrides.Count, "removed random overrides should not remain")
+    End Sub
+
+    Private Sub MeasureJoinAvailability()
+        AssertFalse(BmsMeasureStructure.CanJoinSelectedMeasures(New Integer() {}, 999), "empty selection should not be joinable")
+        AssertFalse(BmsMeasureStructure.CanJoinSelectedMeasures(New Integer() {2}, 999), "single selection should not be joinable")
+        AssertFalse(BmsMeasureStructure.CanJoinSelectedMeasures(New Integer() {2, 4}, 999), "separate selections should not be joinable")
+        AssertTrue(BmsMeasureStructure.CanJoinSelectedMeasures(New Integer() {2, 3}, 999), "adjacent selections should be joinable")
+        AssertTrue(BmsMeasureStructure.CanJoinSelectedMeasures(New Integer() {2, 4, 5}, 999), "one adjacent group should enable joining")
+    End Sub
+
+    Private Sub MultipleMeasureJoin()
+        Dim baseMeasureLengths(999) As Double
+        For i As Integer = 0 To 999
+            baseMeasureLengths(i) = 192.0R + i
+        Next
+
+        Dim block As New BmsRandomBlock(2)
+        block.SetMeasureLength(1, 2, 102.0R)
+        block.SetMeasureLength(1, 3, 103.0R)
+        block.SetMeasureLength(1, 4, 104.0R)
+        block.SetMeasureLength(1, 5, 105.0R)
+        block.SetMeasureLength(1, 7, 107.0R)
+        block.SetMeasureLength(1, 9, 109.0R)
+        block.SetMeasureLength(1, 10, 110.0R)
+        block.SetMeasureLength(1, 999, 199.0R)
+        block.SetMeasureLength(2, 2, 190.0R)
+        block.SetMeasureLength(2, 3, 199.0R)
+        Dim blocks As New List(Of BmsRandomBlock) From {block}
+
+        BmsMeasureStructure.JoinSelectedMeasures(baseMeasureLengths, blocks, New Integer() {2, 3, 5, 7, 8, 9})
+
+        AssertApprox(389.0R, baseMeasureLengths(2), "first adjacent group should become one summed measure")
+        AssertApprox(196.0R, baseMeasureLengths(3), "measure following the first group should be compacted")
+        AssertApprox(197.0R, baseMeasureLengths(4), "separate single selection should remain")
+        AssertApprox(198.0R, baseMeasureLengths(5), "unselected measure between groups should remain")
+        AssertApprox(600.0R, baseMeasureLengths(6), "second adjacent group should become one summed measure")
+        AssertApprox(202.0R, baseMeasureLengths(7), "measure following all joined groups should be compacted")
+        AssertApprox(1191.0R, baseMeasureLengths(996), "tail measures should be compacted by the joined row count")
+        AssertApprox(1191.0R, baseMeasureLengths(999), "the final measure should remain available after joining")
+
+        Dim measureOverrides As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(1)
+        AssertApprox(205.0R, measureOverrides(2), "random lengths in the first group should be summed")
+        AssertApprox(104.0R, measureOverrides(3), "following random override should shift after the first group")
+        AssertApprox(105.0R, measureOverrides(4), "single selected random override should remain")
+        AssertApprox(416.0R, measureOverrides(6), "missing random overrides should use base lengths while summing")
+        AssertApprox(110.0R, measureOverrides(7), "random override following all groups should shift")
+        AssertApprox(199.0R, measureOverrides(996), "last random override should shift by the joined row count")
+        AssertApprox(199.0R, measureOverrides(999), "last random override should remain available")
+        AssertEqual(9, measureOverrides.Count, "only joined and shifted random overrides should remain")
+
+        Dim equivalentOverrides As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(2)
+        AssertApprox(389.0R, equivalentOverrides(2), "an explicit joined override should remain explicit")
+        AssertEqual(1, equivalentOverrides.Count, "joining should not add unrelated random overrides")
     End Sub
 
     Private Sub AssertTrue(ByVal condition As Boolean, ByVal message As String)

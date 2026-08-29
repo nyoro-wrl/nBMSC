@@ -411,6 +411,11 @@ Public Class MainWindow
     Private DefinitionContextMenu As ContextMenuStrip
     Private DefinitionContextDelete As ToolStripMenuItem
     Private DefinitionContextList As ListBox
+    Private BeatContextMenu As ContextMenuStrip
+    Private BeatContextInsert As ToolStripMenuItem
+    Private BeatContextDelete As ToolStripMenuItem
+    Private BeatContextJoinSeparator As ToolStripSeparator
+    Private BeatContextJoin As ToolStripMenuItem
     Private MainEditorView As Panel
     Private WithEvents MainEditorVScroll As EditorScrollBar
     Private MainEditorHScrollStrip As Panel
@@ -1055,6 +1060,7 @@ Public Class MainWindow
         InitializeComponent()
         InitializeEditorContextMenu()
         InitializeDefinitionContextMenu()
+        InitializeBeatContextMenu()
         InitializeFastListScrollers()
         InitializeOptionWheelBlockers()
         InitializeModeSelector()
@@ -1584,6 +1590,9 @@ Public Class MainWindow
         SetText("OptionsPanel.Beat", POBeatTabButton.Text)
         SetText("OptionsPanel.Beat.Apply", BBeatApply.Text)
         SetText("OptionsPanel.Beat.Apply", BBeatApplyV.Text)
+        SetText("OptionsPanel.Beat.Insert", BeatContextInsert.Text)
+        SetText("OptionsPanel.Beat.Delete", BeatContextDelete.Text)
+        SetText("OptionsPanel.Beat.Join", BeatContextJoin.Text)
         SetText("OptionsPanel.Expansion", POHeaderExpansionSeparatorLabel.Text)
         ApplyRandomPanelLanguage()
 
@@ -1787,6 +1796,60 @@ Public Class MainWindow
         ElseIf Object.ReferenceEquals(DefinitionContextList, LBMP) Then
             ClearSelectedBmpDefinitions()
         End If
+    End Sub
+
+    Private Sub InitializeBeatContextMenu()
+        LBeat.ContextMenuStrip = BeatContextMenu
+        AddHandler BeatContextMenu.Opening, AddressOf BeatContextMenu_Opening
+        AddHandler BeatContextInsert.Click, AddressOf BeatContextInsert_Click
+        AddHandler BeatContextDelete.Click, AddressOf BeatContextDelete_Click
+        AddHandler BeatContextJoin.Click, AddressOf BeatContextJoin_Click
+    End Sub
+
+    Private Sub BeatContextMenu_Opening(ByVal sender As Object, ByVal e As System.ComponentModel.CancelEventArgs)
+        Dim xIsBeatMenu As Boolean = Object.ReferenceEquals(BeatContextMenu.SourceControl, LBeat)
+        Dim xEnabled As Boolean = xIsBeatMenu AndAlso LBeat.SelectedIndices.Count > 0
+        BeatContextInsert.Enabled = xEnabled
+        BeatContextDelete.Enabled = xEnabled
+        BeatContextJoin.Enabled = xIsBeatMenu AndAlso BmsMeasureStructure.CanJoinSelectedMeasures(SelectedBeatIndices(), 999)
+    End Sub
+
+    Private Sub BeatContextInsert_Click(ByVal sender As Object, ByVal e As EventArgs)
+        InsertSelectedBeatMeasures()
+    End Sub
+
+    Private Sub BeatContextDelete_Click(ByVal sender As Object, ByVal e As EventArgs)
+        RemoveSelectedBeatMeasures()
+    End Sub
+
+    Private Sub BeatContextJoin_Click(ByVal sender As Object, ByVal e As EventArgs)
+        JoinSelectedBeatMeasures()
+    End Sub
+
+    Private Sub LBeat_MouseDown(ByVal sender As Object, ByVal e As MouseEventArgs) Handles LBeat.MouseDown
+        If e.Button <> MouseButtons.Right Then Return
+
+        Dim xIndex As Integer = LBeat.IndexFromPoint(e.Location)
+        If xIndex < 0 OrElse LBeat.SelectedIndices.Contains(xIndex) Then Return
+
+        LBeat.ClearSelected()
+        LBeat.SelectedIndex = xIndex
+    End Sub
+
+    Private Sub LBeat_KeyDown(ByVal sender As Object, ByVal e As KeyEventArgs) Handles LBeat.KeyDown
+        If e.Modifiers <> Keys.None Then Return
+
+        Select Case e.KeyCode
+            Case Keys.Insert
+                InsertSelectedBeatMeasures()
+            Case Keys.Delete
+                RemoveSelectedBeatMeasures()
+            Case Else
+                Return
+        End Select
+
+        e.Handled = True
+        e.SuppressKeyPress = True
     End Sub
 
     Private Sub ClearSelectedWavDefinitions()
@@ -7743,6 +7806,163 @@ Jump2:
         AddUndo(xUndo, xBaseRedo.Next)
         RefreshPanelAll()
         Beep()
+    End Sub
+
+    Private Function SelectedBeatIndices() As Integer()
+        If LBeat.SelectedIndices.Count = 0 Then Return New Integer() {}
+
+        Dim xIndices(LBeat.SelectedIndices.Count - 1) As Integer
+        LBeat.SelectedIndices.CopyTo(xIndices, 0)
+        Return xIndices
+    End Function
+
+    Private Sub InsertSelectedBeatMeasures()
+        Dim xIndices() As Integer = SelectedBeatIndices()
+        Dim xRanges As List(Of BmsMeasureStructure.MeasureRange) = BmsMeasureStructure.GetSelectedMeasureRanges(xIndices, 999)
+        If xRanges.Count = 0 Then Return
+
+        Dim xReturnToSelectedLayer As Boolean = IsValidRandomIndex(SelectedRandomIndex)
+        If xReturnToSelectedLayer Then ApplyBaseMeasureMapForBeatEdit()
+
+        SortByVPositionInsertion()
+        Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+
+        BmsMeasureStructure.InsertMeasuresBeforeSelection(MeasureLength, Nothing, xIndices)
+        UpdateMeasureBottom()
+        BmsMeasureStructure.InsertMeasuresBeforeSelection(BaseMeasureLength, RandomBlocks, xIndices)
+        RefreshBeatListFromBaseMeasureLength()
+        Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+        AddUndo(xUndo, xRedo)
+
+        LBeat.ClearSelected()
+        Dim insertedBefore As Integer = 0
+        For Each xRange As BmsMeasureStructure.MeasureRange In xRanges
+            Dim insertedStart As Integer = xRange.StartIndex + insertedBefore
+            For i As Integer = 0 To xRange.Count - 1
+                If insertedStart + i <= 999 Then LBeat.SelectedIndices.Add(insertedStart + i)
+            Next
+            insertedBefore += xRange.Count
+        Next
+
+        FinishBeatStructureEdit(xReturnToSelectedLayer)
+    End Sub
+
+    Private Sub RemoveSelectedBeatMeasures()
+        Dim xIndices() As Integer = SelectedBeatIndices()
+        Dim xRanges As List(Of BmsMeasureStructure.MeasureRange) = BmsMeasureStructure.GetSelectedMeasureRanges(xIndices, 999)
+        If xRanges.Count = 0 Then Return
+
+        Dim xReturnToSelectedLayer As Boolean = IsValidRandomIndex(SelectedRandomIndex)
+        If xReturnToSelectedLayer Then ApplyBaseMeasureMapForBeatEdit()
+
+        SortByVPositionInsertion()
+        Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+
+        For rangeIndex As Integer = xRanges.Count - 1 To 0 Step -1
+            Dim xRange As BmsMeasureStructure.MeasureRange = xRanges(rangeIndex)
+            For xMeasure As Integer = xRange.StartIndex + xRange.Count - 1 To xRange.StartIndex Step -1
+                RemoveBeatMeasureAt(xMeasure)
+            Next
+        Next
+
+        BmsMeasureStructure.RemoveSelectedMeasures(BaseMeasureLength, RandomBlocks, xIndices)
+        RefreshBeatListFromBaseMeasureLength()
+        Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+        AddUndo(xUndo, xRedo)
+
+        LBeat.ClearSelected()
+        LBeat.SelectedIndex = xRanges(0).StartIndex
+
+        FinishBeatStructureEdit(xReturnToSelectedLayer)
+    End Sub
+
+    Private Sub JoinSelectedBeatMeasures()
+        Dim xIndices() As Integer = SelectedBeatIndices()
+        If Not BmsMeasureStructure.CanJoinSelectedMeasures(xIndices, 999) Then Return
+
+        Dim xRanges As List(Of BmsMeasureStructure.MeasureRange) = BmsMeasureStructure.GetSelectedMeasureRanges(xIndices, 999)
+        Dim xReturnToSelectedLayer As Boolean = IsValidRandomIndex(SelectedRandomIndex)
+
+        SortByVPositionInsertion()
+        Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+
+        BmsMeasureStructure.JoinSelectedMeasures(MeasureLength, Nothing, xIndices)
+        BmsMeasureStructure.JoinSelectedMeasures(BaseMeasureLength, RandomBlocks, xIndices)
+        UpdateMeasureBottom()
+        RefreshBeatListFromBaseMeasureLength()
+
+        Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+        AddUndo(xUndo, xRedo)
+
+        LBeat.ClearSelected()
+        Dim removedBefore As Integer = 0
+        For Each xRange As BmsMeasureStructure.MeasureRange In xRanges
+            Dim selectedIndex As Integer = xRange.StartIndex - removedBefore
+            If selectedIndex >= 0 AndAlso selectedIndex <= 999 Then LBeat.SelectedIndices.Add(selectedIndex)
+            If xRange.Count > 1 Then removedBefore += xRange.Count - 1
+        Next
+
+        FinishBeatStructureEdit(xReturnToSelectedLayer)
+    End Sub
+
+    Private Sub RemoveBeatMeasureAt(ByVal xMeasure As Integer)
+        Dim xMLength As Double = MeasureLength(xMeasure)
+        Dim xVP As Double = MeasureBottom(xMeasure)
+
+        If NTInput Then
+            Dim xI1 As Integer = 1
+            Do While xI1 <= UBound(Notes)
+                If MeasureAtDisplacement(Notes(xI1).VPosition) = xMeasure AndAlso
+                   MeasureAtDisplacement(Notes(xI1).VPosition + Notes(xI1).Length) = xMeasure Then
+                    RemoveNote(xI1, False)
+                Else
+                    xI1 += 1
+                End If
+            Loop
+
+            Dim xdVP As Double
+            For xI1 = 1 To UBound(Notes)
+                If Notes(xI1).VPosition >= xVP + xMLength Then
+                    Notes(xI1).VPosition -= xMLength
+                ElseIf Notes(xI1).VPosition >= xVP Then
+                    xdVP = xMLength + xVP - Notes(xI1).VPosition
+                    Notes(xI1).VPosition += xdVP - xMLength
+                    Notes(xI1).Length -= xdVP
+                ElseIf Notes(xI1).VPosition + Notes(xI1).Length >= xVP Then
+                    xdVP = IIf(Notes(xI1).VPosition + Notes(xI1).Length >= xVP + xMLength,
+                                xMLength,
+                                Notes(xI1).VPosition + Notes(xI1).Length - xVP + 1)
+                    Notes(xI1).Length -= xdVP
+                End If
+            Next
+        Else
+            Dim xI1 As Integer = 1
+            Do While xI1 <= UBound(Notes)
+                If MeasureAtDisplacement(Notes(xI1).VPosition) = xMeasure Then
+                    RemoveNote(xI1, False)
+                Else
+                    xI1 += 1
+                End If
+            Loop
+
+            For xI1 = 1 To UBound(Notes)
+                If Notes(xI1).VPosition >= xVP Then Notes(xI1).VPosition -= xMLength
+            Next
+        End If
+
+        BmsMeasureStructure.RemoveMeasure(MeasureLength, Nothing, xMeasure)
+        UpdateMeasureBottom()
+    End Sub
+
+    Private Sub FinishBeatStructureEdit(ByVal xReturnToSelectedLayer As Boolean)
+        If xReturnToSelectedLayer Then ApplySelectedRandomMeasureMap()
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateGreatestVPosition()
+        CalculateTotalPlayableNotes()
+        RefreshRandomPanel()
+        RefreshPanelAll()
+        POStatusRefresh()
     End Sub
 
     Private Sub MInsert_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MInsert.Click

@@ -509,6 +509,15 @@
   <data name="OptionsPanel.Beat.Apply" xml:space="preserve">
     <value>应用</value>
   </data>
+  <data name="OptionsPanel.Beat.Insert" xml:space="preserve">
+    <value>插入</value>
+  </data>
+  <data name="OptionsPanel.Beat.Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="OptionsPanel.Beat.Join" xml:space="preserve">
+    <value>合并</value>
+  </data>
   <data name="OptionsPanel.Random.Add" xml:space="preserve">
     <value>添加</value>
   </data>

@@ -563,6 +563,15 @@ Release ページを開きますか？</value>
   <data name="OptionsPanel.Beat.Apply" xml:space="preserve">
     <value>適用</value>
   </data>
+  <data name="OptionsPanel.Beat.Insert" xml:space="preserve">
+    <value>挿入</value>
+  </data>
+  <data name="OptionsPanel.Beat.Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="OptionsPanel.Beat.Join" xml:space="preserve">
+    <value>結合</value>
+  </data>
   <data name="OptionsPanel.BMP.Title" xml:space="preserve">
     <value>#BMP</value>
   </data>
