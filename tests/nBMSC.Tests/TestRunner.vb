@@ -28,6 +28,7 @@ Module TestRunner
         Run("theme gaps follow visible groups", AddressOf ThemeGapsFollowVisibleGroups)
         Run("theme gaps retain both border lines", AddressOf ThemeGapsRetainBothBorderLines)
         Run("up arrow follows variable chart bounds", AddressOf UpArrowFollowsVariableChartBounds)
+        Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
@@ -401,6 +402,19 @@ Module TestRunner
                           "PMainInPreviewKeyDown",
                           New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(System.Windows.Forms.Keys.Down)})
             AssertApprox(120.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "down arrow should return one grid step")
+        End Using
+    End Sub
+
+    Private Sub PlayerMissingPromptDecisions()
+        Using window As New MainWindow()
+            AssertTrue(InvokePrivateFunction(Of Boolean)(window,
+                                                          "ShouldOpenPlayerPathDialog",
+                                                          New Object() {MsgBoxResult.Ok}),
+                       "OK should open the player path dialog")
+            AssertFalse(InvokePrivateFunction(Of Boolean)(window,
+                                                           "ShouldOpenPlayerPathDialog",
+                                                           New Object() {MsgBoxResult.Cancel}),
+                        "closing or cancelling should stop before the player path dialog")
         End Using
     End Sub
 
@@ -803,6 +817,20 @@ Module TestRunner
             Throw New InvalidOperationException(name & " failed: " & ex.InnerException.ToString(), ex.InnerException)
         End Try
     End Sub
+
+    Private Function InvokePrivateFunction(Of T)(ByVal target As Object,
+                                                  ByVal name As String,
+                                                  ByVal arguments() As Object) As T
+        Dim method As Reflection.MethodInfo = target.GetType().GetMethod(
+            name,
+            Reflection.BindingFlags.Instance Or Reflection.BindingFlags.Static Or Reflection.BindingFlags.NonPublic)
+        If method Is Nothing Then Throw New InvalidOperationException("Missing method: " & name)
+        Try
+            Return DirectCast(method.Invoke(target, arguments), T)
+        Catch ex As Reflection.TargetInvocationException When ex.InnerException IsNot Nothing
+            Throw New InvalidOperationException(name & " failed: " & ex.InnerException.ToString(), ex.InnerException)
+        End Try
+    End Function
 
     Private Sub MeasureInsertionBeforeSelection()
         Dim baseMeasureLengths(999) As Double

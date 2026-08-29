@@ -5991,10 +5991,17 @@ EndSearch:
         Return ChartPaths.MakeBmsReferencePath(GetBMSDirectory(), xPath)
     End Function
 
-    Private Sub PlayerMissingPrompt()
+    Private Shared Function ShouldOpenPlayerPathDialog(ByVal xResult As MsgBoxResult) As Boolean
+        Return xResult = MsgBoxResult.Ok
+    End Function
+
+    Private Function PlayerMissingPrompt() As Boolean
         Dim xArg As MainWindow.PlayerArguments = pArgs(CurrentPlayer)
-        MsgBox(Strings.Messages.CannotFind.Replace("{}", PrevCodeToReal(xArg.Path)) & vbCrLf &
-               Strings.Messages.PleaseRespecifyPath, MsgBoxStyle.Critical, Strings.Messages.PlayerNotFound)
+        Dim xResult As MsgBoxResult = MsgBox(Strings.Messages.CannotFind.Replace("{}", PrevCodeToReal(xArg.Path)) & vbCrLf &
+                                             Strings.Messages.PleaseRespecifyPath,
+                                             MsgBoxStyle.OkCancel Or MsgBoxStyle.Critical,
+                                             Strings.Messages.PlayerNotFound)
+        If Not ShouldOpenPlayerPathDialog(xResult) Then Return False
 
         Dim xDOpen As New OpenFileDialog
         xDOpen.InitialDirectory = IIf(ExcludeFileName(PrevCodeToReal(xArg.Path)) = "",
@@ -6003,7 +6010,7 @@ EndSearch:
         xDOpen.FileName = PrevCodeToReal(xArg.Path)
         xDOpen.Filter = Strings.FileType.EXE & "|*.exe"
         xDOpen.DefaultExt = "exe"
-        If xDOpen.ShowDialog = Windows.Forms.DialogResult.Cancel Then Exit Sub
+        If xDOpen.ShowDialog <> Windows.Forms.DialogResult.OK Then Return False
 
         'pArgs(CurrentPlayer) = Replace(xDOpen.FileName, My.Application.Info.DirectoryPath, "<apppath>") & _
         '                                           Mid(pArgs(CurrentPlayer), InStr(pArgs(CurrentPlayer), vbCrLf))
@@ -6011,14 +6018,15 @@ EndSearch:
         pArgs(CurrentPlayer).Path = Replace(xDOpen.FileName, My.Application.Info.DirectoryPath, "<apppath>")
         xArg = pArgs(CurrentPlayer)
         RefreshPlayerSelector()
-    End Sub
+        Return True
+    End Function
 
     Private Sub TBPlay_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPlay.Click, mnPlay.Click
         'Dim xStr() As String = Split(pArgs(CurrentPlayer), vbCrLf)
         Dim xArg As MainWindow.PlayerArguments = pArgs(CurrentPlayer)
 
         If Not File.Exists(PrevCodeToReal(xArg.Path)) Then
-            PlayerMissingPrompt()
+            If Not PlayerMissingPrompt() Then Exit Sub
             xArg = pArgs(CurrentPlayer)
         End If
 
@@ -6042,7 +6050,7 @@ EndSearch:
         Dim xArg As MainWindow.PlayerArguments = pArgs(CurrentPlayer)
 
         If Not File.Exists(PrevCodeToReal(xArg.Path)) Then
-            PlayerMissingPrompt()
+            If Not PlayerMissingPrompt() Then Exit Sub
             xArg = pArgs(CurrentPlayer)
         End If
 
@@ -6066,7 +6074,7 @@ EndSearch:
         Dim xArg As MainWindow.PlayerArguments = pArgs(CurrentPlayer)
 
         If Not File.Exists(PrevCodeToReal(xArg.Path)) Then
-            PlayerMissingPrompt()
+            If Not PlayerMissingPrompt() Then Exit Sub
             xArg = pArgs(CurrentPlayer)
         End If
 
