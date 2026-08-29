@@ -90,6 +90,53 @@ Namespace Editor
         End Sub
     End Class
 
+    Public NotInheritable Class BmsMeasureStructure
+        Private Sub New()
+        End Sub
+
+        Public Shared Sub RemoveMeasure(ByVal baseMeasureLengths() As Double,
+                                        ByVal randomBlocks As IList(Of BmsRandomBlock),
+                                        ByVal measureIndex As Integer)
+            If baseMeasureLengths Is Nothing Then Return
+            If measureIndex < 0 OrElse measureIndex > UBound(baseMeasureLengths) Then Return
+
+            Dim lastMeasureIndex As Integer = UBound(baseMeasureLengths)
+            For i As Integer = measureIndex To lastMeasureIndex - 1
+                baseMeasureLengths(i) = baseMeasureLengths(i + 1)
+            Next
+
+            If randomBlocks Is Nothing Then Return
+            For Each block As BmsRandomBlock In randomBlocks
+                RemoveMeasure(block, measureIndex, lastMeasureIndex)
+            Next
+        End Sub
+
+        Private Shared Sub RemoveMeasure(ByVal block As BmsRandomBlock,
+                                         ByVal measureIndex As Integer,
+                                         ByVal lastMeasureIndex As Integer)
+            If block Is Nothing Then Return
+
+            Dim values As New List(Of Integer)(block.MeasureLengthByValue.Keys)
+            For Each value As Integer In values
+                Dim source As Dictionary(Of Integer, Double) = block.GetMeasureLengthOverrides(value)
+                Dim shifted As New Dictionary(Of Integer, Double)()
+                Dim lastMeasureLength As Double = 0.0R
+                Dim hasLastMeasureLength As Boolean = source.TryGetValue(lastMeasureIndex, lastMeasureLength)
+
+                For Each pair As KeyValuePair(Of Integer, Double) In source
+                    If pair.Key < measureIndex Then
+                        shifted(pair.Key) = pair.Value
+                    ElseIf pair.Key > measureIndex Then
+                        shifted(pair.Key - 1) = pair.Value
+                    End If
+                Next
+
+                If hasLastMeasureLength Then shifted(lastMeasureIndex) = lastMeasureLength
+                block.SetMeasureLengthOverrides(value, shifted)
+            Next
+        End Sub
+    End Class
+
     Public Class BmsRandomParsedBranch
         Public Property Value As Integer
         Public ReadOnly Property Lines As List(Of String)

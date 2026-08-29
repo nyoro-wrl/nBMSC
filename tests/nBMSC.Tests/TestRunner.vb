@@ -29,6 +29,7 @@ Module TestRunner
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
         Run("undo redo serialization", AddressOf UndoRedoSerialization)
+        Run("measure removal undo redo", AddressOf MeasureRemovalUndoRedo)
 
         Console.WriteLine()
         Console.WriteLine("Passed: " & Passed.ToString())
@@ -415,6 +416,70 @@ Module TestRunner
         AssertEqual(0, legacyMove.note.RandomValue, "legacy note should default to common random value")
         AssertEqual(8, legacyMove.NColumnIndex, "legacy move target column")
         AssertApprox(192.0R, legacyMove.NVPosition, "legacy move target position")
+    End Sub
+
+    Private Sub MeasureRemovalUndoRedo()
+        Dim baseMeasureLengths(999) As Double
+        For i As Integer = 0 To 999
+            baseMeasureLengths(i) = 192.0R
+        Next
+        baseMeasureLengths(10) = 96.0R
+        baseMeasureLengths(11) = 384.0R
+        baseMeasureLengths(12) = 48.0R
+        baseMeasureLengths(999) = 72.0R
+
+        Dim block As New BmsRandomBlock(2)
+        block.SetMeasureLength(1, 9, 100.0R)
+        block.SetMeasureLength(1, 10, 110.0R)
+        block.SetMeasureLength(1, 11, 120.0R)
+        block.SetMeasureLength(1, 999, 130.0R)
+        block.SetMeasureLength(2, 10, 140.0R)
+        Dim blocks As New List(Of BmsRandomBlock) From {block}
+
+        Dim notesBefore As Note() = {
+            New Note(0, -1.0R, 1200000),
+            New Note(3, 1920.0R, 10000, 0, False, True, False, 0, 1)
+        }
+        Dim undoState As New UndoRedo.MeasureStateChange(baseMeasureLengths, baseMeasureLengths, notesBefore, blocks)
+
+        BmsMeasureStructure.RemoveMeasure(baseMeasureLengths, blocks, 10)
+
+        AssertApprox(384.0R, baseMeasureLengths(10), "next base measure should shift into removed measure")
+        AssertApprox(48.0R, baseMeasureLengths(11), "following base measure should shift")
+        AssertApprox(72.0R, baseMeasureLengths(998), "last base measure should shift to 998")
+        AssertApprox(72.0R, baseMeasureLengths(999), "last base measure should remain available")
+        AssertApprox(100.0R, block.GetMeasureLengthOverrides(1)(9), "earlier random override should remain")
+        AssertApprox(120.0R, block.GetMeasureLengthOverrides(1)(10), "next random override should shift into removed measure")
+        AssertApprox(130.0R, block.GetMeasureLengthOverrides(1)(998), "last random override should shift to 998")
+        AssertApprox(130.0R, block.GetMeasureLengthOverrides(1)(999), "last random override should remain available")
+        AssertFalse(block.MeasureLengthByValue.ContainsKey(2), "removed-only random override should disappear")
+
+        Dim notesAfter As Note() = {
+            New Note(0, -1.0R, 1200000),
+            New Note(3, 1824.0R, 10000, 0, False, True, False, 0, 1)
+        }
+        Dim redoState As New UndoRedo.MeasureStateChange(baseMeasureLengths, baseMeasureLengths, notesAfter, blocks)
+        Dim roundTripUndo As UndoRedo.MeasureStateChange = DirectCast(UndoRedo.fromBytes(undoState.toBytes()), UndoRedo.MeasureStateChange)
+        Dim roundTripRedo As UndoRedo.MeasureStateChange = DirectCast(UndoRedo.fromBytes(redoState.toBytes()), UndoRedo.MeasureStateChange)
+
+        Dim restoredBase() As Double = roundTripUndo.CopyBaseMeasureLengths()
+        roundTripUndo.RestoreRandomMeasureLengths(blocks)
+        Dim restoredNotes() As Note = roundTripUndo.CopyNotes()
+        AssertEqual(UndoRedo.opMeasureStateChange, roundTripUndo.ofType(), "measure undo command type")
+        AssertApprox(96.0R, restoredBase(10), "undo should restore removed base measure length")
+        AssertApprox(384.0R, restoredBase(11), "undo should restore following base measure length")
+        AssertApprox(110.0R, block.GetMeasureLengthOverrides(1)(10), "undo should restore removed random override")
+        AssertApprox(120.0R, block.GetMeasureLengthOverrides(1)(11), "undo should restore following random override")
+        AssertApprox(140.0R, block.GetMeasureLengthOverrides(2)(10), "undo should restore an override-only branch")
+        AssertApprox(1920.0R, restoredNotes(1).VPosition, "undo should restore note position")
+
+        restoredBase = roundTripRedo.CopyBaseMeasureLengths()
+        roundTripRedo.RestoreRandomMeasureLengths(blocks)
+        restoredNotes = roundTripRedo.CopyNotes()
+        AssertApprox(384.0R, restoredBase(10), "redo should restore removed base state")
+        AssertApprox(120.0R, block.GetMeasureLengthOverrides(1)(10), "redo should restore shifted random override")
+        AssertFalse(block.MeasureLengthByValue.ContainsKey(2), "redo should remove the override-only branch again")
+        AssertApprox(1824.0R, restoredNotes(1).VPosition, "redo should restore shifted note position")
     End Sub
 
     Private Sub AssertTrue(ByVal condition As Boolean, ByVal message As String)

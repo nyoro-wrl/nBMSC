@@ -20,6 +20,7 @@ Public Class UndoRedo
     Public Const opRandomBlockInsert As Byte = 22
     Public Const opRandomBlockRemove As Byte = 23
     Public Const opRandomDefinitionChange As Byte = 24
+    Public Const opMeasureStateChange As Byte = 25
 
     Public Const opNoOperation As Byte = 255
 
@@ -84,6 +85,7 @@ Public Class UndoRedo
             Case opRandomBlockInsert : Return New RandomBlockInsert(b)
             Case opRandomBlockRemove : Return New RandomBlockRemove(b)
             Case opRandomDefinitionChange : Return New RandomDefinitionChange(b)
+            Case opMeasureStateChange : Return New MeasureStateChange(b)
             Case opNoOperation : Return New NoOperation(b)
             Case Else : Return Nothing
         End Select
@@ -560,6 +562,175 @@ Public Class UndoRedo
 
         Public Overrides Function ofType() As Byte
             Return opChangeMeasureLength
+        End Function
+    End Class
+
+
+
+    Public Class MeasureStateChange : Inherits LinkedURCmd
+        Public Structure RandomMeasureLength
+            Public RandomIndex As Integer
+            Public RandomValue As Integer
+            Public MeasureIndex As Integer
+            Public Length As Double
+
+            Public Sub New(ByVal randomIndex As Integer,
+                           ByVal randomValue As Integer,
+                           ByVal measureIndex As Integer,
+                           ByVal length As Double)
+                Me.RandomIndex = randomIndex
+                Me.RandomValue = randomValue
+                Me.MeasureIndex = measureIndex
+                Me.Length = length
+            End Sub
+        End Structure
+
+        Public BaseMeasureLengths() As Double = New Double() {}
+        Public DisplayMeasureLengths() As Double = New Double() {}
+        Public Notes() As Note = New Note() {}
+        Public RandomMeasureLengths() As RandomMeasureLength = New RandomMeasureLength() {}
+
+        Public Sub New(ByVal baseMeasureLengths() As Double,
+                       ByVal displayMeasureLengths() As Double,
+                       ByVal notes() As Note,
+                       ByVal randomBlocks As IList(Of BmsRandomBlock))
+            Me.BaseMeasureLengths = CloneDoubleArray(baseMeasureLengths)
+            Me.DisplayMeasureLengths = CloneDoubleArray(displayMeasureLengths)
+            Me.Notes = CloneNotes(notes)
+
+            Dim randomMeasureLengths As New List(Of RandomMeasureLength)()
+            If randomBlocks IsNot Nothing Then
+                For randomIndex As Integer = 0 To randomBlocks.Count - 1
+                    Dim block As BmsRandomBlock = randomBlocks(randomIndex)
+                    If block Is Nothing Then Continue For
+
+                    For Each branch As KeyValuePair(Of Integer, Dictionary(Of Integer, Double)) In block.MeasureLengthByValue
+                        For Each measure As KeyValuePair(Of Integer, Double) In branch.Value
+                            randomMeasureLengths.Add(New RandomMeasureLength(randomIndex, branch.Key, measure.Key, measure.Value))
+                        Next
+                    Next
+                Next
+            End If
+
+            Me.RandomMeasureLengths = randomMeasureLengths.ToArray()
+        End Sub
+
+        Public Sub New(ByVal b() As Byte)
+            Dim br As New BinaryReader(New MemoryStream(b))
+            br.ReadByte()
+            BaseMeasureLengths = ReadDoubleArray(br)
+            DisplayMeasureLengths = ReadDoubleArray(br)
+
+            Dim noteCount As Integer = br.ReadInt32()
+            If noteCount > 0 Then
+                ReDim Notes(noteCount - 1)
+                For i As Integer = 0 To noteCount - 1
+                    Notes(i) = New Note()
+                    Notes(i).FromBinReader(br)
+                Next
+            End If
+
+            Dim randomMeasureLengthCount As Integer = br.ReadInt32()
+            If randomMeasureLengthCount > 0 Then
+                ReDim RandomMeasureLengths(randomMeasureLengthCount - 1)
+                For i As Integer = 0 To randomMeasureLengthCount - 1
+                    RandomMeasureLengths(i) = New RandomMeasureLength(br.ReadInt32(), br.ReadInt32(), br.ReadInt32(), br.ReadDouble())
+                Next
+            End If
+        End Sub
+
+        Public Function CopyBaseMeasureLengths() As Double()
+            Return CloneDoubleArray(BaseMeasureLengths)
+        End Function
+
+        Public Function CopyDisplayMeasureLengths() As Double()
+            Return CloneDoubleArray(DisplayMeasureLengths)
+        End Function
+
+        Public Function CopyNotes() As Note()
+            Return CloneNotes(Notes)
+        End Function
+
+        Public Sub RestoreRandomMeasureLengths(ByVal randomBlocks As IList(Of BmsRandomBlock))
+            If randomBlocks Is Nothing Then Return
+
+            For Each block As BmsRandomBlock In randomBlocks
+                If block IsNot Nothing Then block.MeasureLengthByValue.Clear()
+            Next
+
+            For Each item As RandomMeasureLength In RandomMeasureLengths
+                If item.RandomIndex < 0 OrElse item.RandomIndex >= randomBlocks.Count Then Continue For
+                randomBlocks(item.RandomIndex).SetMeasureLength(item.RandomValue, item.MeasureIndex, item.Length)
+            Next
+        End Sub
+
+        Public Overrides Function toBytes() As Byte()
+            Dim ms As New MemoryStream()
+            Dim bw As New BinaryWriter(ms)
+            bw.Write(ofType())
+            WriteDoubleArray(bw, BaseMeasureLengths)
+            WriteDoubleArray(bw, DisplayMeasureLengths)
+            bw.Write(If(Notes Is Nothing, 0, Notes.Length))
+
+            If Notes IsNot Nothing Then
+                For Each note As Note In Notes
+                    note.WriteBinWriter(bw)
+                Next
+            End If
+
+            bw.Write(If(RandomMeasureLengths Is Nothing, 0, RandomMeasureLengths.Length))
+            If RandomMeasureLengths IsNot Nothing Then
+                For Each item As RandomMeasureLength In RandomMeasureLengths
+                    bw.Write(item.RandomIndex)
+                    bw.Write(item.RandomValue)
+                    bw.Write(item.MeasureIndex)
+                    bw.Write(item.Length)
+                Next
+            End If
+
+            Return ms.ToArray()
+        End Function
+
+        Public Overrides Function EstimateBytes() As Long
+            Dim baseMeasureLengthCount As Long = If(BaseMeasureLengths Is Nothing, 0, BaseMeasureLengths.Length)
+            Dim displayMeasureLengthCount As Long = If(DisplayMeasureLengths Is Nothing, 0, DisplayMeasureLengths.Length)
+            Dim noteCount As Long = If(Notes Is Nothing, 0, Notes.Length)
+            Dim randomMeasureLengthCount As Long = If(RandomMeasureLengths Is Nothing, 0, RandomMeasureLengths.Length)
+
+            Return MyBase.EstimateBytes() +
+                   ArrayEstimateBytes * 4 +
+                   8 * (baseMeasureLengthCount + displayMeasureLengthCount) +
+                   NoteEstimateBytes * noteCount +
+                   20 * randomMeasureLengthCount
+        End Function
+
+        Public Overrides Function ofType() As Byte
+            Return opMeasureStateChange
+        End Function
+
+        Private Shared Function CloneDoubleArray(ByVal source() As Double) As Double()
+            If source Is Nothing Then Return New Double() {}
+            Return DirectCast(source.Clone(), Double())
+        End Function
+
+        Private Shared Sub WriteDoubleArray(ByVal bw As BinaryWriter, ByVal values() As Double)
+            bw.Write(If(values Is Nothing, 0, values.Length))
+            If values Is Nothing Then Return
+
+            For Each value As Double In values
+                bw.Write(value)
+            Next
+        End Sub
+
+        Private Shared Function ReadDoubleArray(ByVal br As BinaryReader) As Double()
+            Dim count As Integer = br.ReadInt32()
+            If count <= 0 Then Return New Double() {}
+
+            Dim values(count - 1) As Double
+            For i As Integer = 0 To count - 1
+                values(i) = br.ReadDouble()
+            Next
+            Return values
         End Function
     End Class
 

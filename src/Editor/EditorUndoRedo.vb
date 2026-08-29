@@ -121,6 +121,9 @@ Partial Public Class MainWindow
                     Next
                     xMeasureLengthChanged = True
 
+                Case UndoRedo.opMeasureStateChange
+                    ApplyMeasureStateChange(DirectCast(sCmd, UndoRedo.MeasureStateChange))
+
                 Case UndoRedo.opChangeTimeSelection
                     Dim xCmd As UndoRedo.ChangeTimeSelection = sCmd
                     vSelStart = xCmd.SelStart
@@ -269,6 +272,28 @@ Partial Public Class MainWindow
         RandomBlocks(cmd.Index).DefinitionValue = cmd.Value
         RandomBlocks(cmd.Index).Normalize()
         ApplySelectedRandomMeasureMap()
+        RefreshRandomPanel()
+    End Sub
+
+    Private Sub ApplyMeasureStateChange(ByVal cmd As UndoRedo.MeasureStateChange)
+        BaseMeasureLength = CopyMeasureLengthArray(cmd.CopyBaseMeasureLengths())
+        cmd.RestoreRandomMeasureLengths(RandomBlocks)
+
+        Dim sourceMeasureLengths() As Double = CopyMeasureLengthArray(cmd.CopyDisplayMeasureLengths())
+        Dim targetMeasureLengths() As Double = ActiveTargetMeasureLength()
+        Notes = ConvertNotesToMeasureMap(cmd.CopyNotes(), sourceMeasureLengths, targetMeasureLengths)
+        ApplyMeasureLengthArray(targetMeasureLengths)
+
+        If IsValidRandomIndex(SelectedRandomIndex) Then
+            Dim block As BmsRandomBlock = RandomBlocks(SelectedRandomIndex)
+            block.Normalize()
+            ActiveMeasureRandomIndex = SelectedRandomIndex
+            ActiveMeasureRandomValue = block.CurrentValue
+        Else
+            ActiveMeasureRandomIndex = -1
+            ActiveMeasureRandomValue = 0
+        End If
+
         RefreshRandomPanel()
     End Sub
 
