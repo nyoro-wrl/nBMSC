@@ -1859,7 +1859,11 @@ Partial Public Class MainWindow
         Dim xColumn As Integer = 0
         For Each i As Integer In ThemeColumnDisplayOrder(gColumns)
             If GetColumnWidth(i) <= 0 Then Continue For
-            If mLeft < nLeft(i) OrElse mLeft >= nLeft(i) + GetColumnWidth(i) Then Continue For
+            If mLeft < nLeft(i) Then
+                xColumn = i
+                Exit For
+            End If
+            If mLeft >= nLeft(i) + GetColumnWidth(i) Then Continue For
             xColumn = i
             Exit For
         Next

@@ -3131,7 +3131,6 @@ Public Class MainWindow
     End Sub
 
     Private Sub CalculateGreatestColumn()
-        ApplyAutoSpacers()
         UpdateColumnLefts()
         Dim xColumns As Integer = Math.Min(MaxBGMColumns, Math.Max(1, CInt(CGB.Value)))
         xColumns = Math.Max(xColumns, CalculateVisibleBGMColumns())
@@ -7186,9 +7185,13 @@ StartCount:     If Not NTInput Then
 
     Private Sub UpdateColumnLefts()
         Dim xLeft As Integer = 0
+        Dim xPreviousGroup As Integer = 0
         For Each xI1 As Integer In ThemeColumnDisplayOrder()
+            Dim xCurrentGroup As Integer = ThemeColumnGroup(xI1)
+            If ShouldInsertThemeColumnGap(xPreviousGroup, xCurrentGroup) Then xLeft += ThemeColumnGap
             column(xI1).Left = xLeft
             If column(xI1).isVisible Then xLeft += column(xI1).Width
+            xPreviousGroup = xCurrentGroup
         Next
     End Sub
 

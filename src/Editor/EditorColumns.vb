@@ -230,25 +230,17 @@ Partial Public Class MainWindow
         Return group = 2 OrElse group = 3
     End Function
 
-    Private Function ThemeSpacerBetween(ByVal previousGroup As Integer, ByVal currentGroup As Integer) As Integer
-        If previousGroup = 0 OrElse currentGroup = 0 OrElse previousGroup = currentGroup Then Return -1
-        If (previousGroup = 1 AndAlso IsPlayableThemeGroup(currentGroup)) OrElse (IsPlayableThemeGroup(previousGroup) AndAlso currentGroup = 1) Then Return niS1
-        If IsPlayableThemeGroup(previousGroup) AndAlso IsPlayableThemeGroup(currentGroup) Then Return niS2
-        If (IsPlayableThemeGroup(previousGroup) AndAlso currentGroup = 4) OrElse (previousGroup = 4 AndAlso IsPlayableThemeGroup(currentGroup)) Then Return niS3
-        If (previousGroup = 4 AndAlso currentGroup = 5) OrElse (previousGroup = 5 AndAlso currentGroup = 4) Then Return niS4
-        Return -1
+    Private Function ShouldInsertThemeColumnGap(ByVal previousGroup As Integer, ByVal currentGroup As Integer) As Boolean
+        If ThemeColumnGap <= 0 OrElse previousGroup = 0 OrElse currentGroup = 0 OrElse previousGroup = currentGroup Then Return False
+        If Not ThemePlayerGap AndAlso IsPlayableThemeGroup(previousGroup) AndAlso IsPlayableThemeGroup(currentGroup) Then Return False
+        Return True
     End Function
 
     Private Function ThemeColumnDisplayOrder(Optional ByVal maxColumn As Integer = -1) As Integer()
         Dim order As New List(Of Integer)
-        Dim previousGroup As Integer = 0
 
         For Each i As Integer In BaseThemeColumnOrder()
             If Not column(i).isVisible Then Continue For
-
-            Dim currentGroup As Integer = ThemeColumnGroup(i)
-            Dim spacer As Integer = ThemeSpacerBetween(previousGroup, currentGroup)
-            If spacer >= 0 AndAlso column(spacer).isVisible Then order.Add(spacer)
 
             If i = niB AndAlso maxColumn >= niB Then
                 For bgmColumn As Integer = niB To maxColumn
@@ -257,8 +249,6 @@ Partial Public Class MainWindow
             Else
                 order.Add(i)
             End If
-
-            previousGroup = currentGroup
         Next
 
         Return order.ToArray()
@@ -285,33 +275,6 @@ Partial Public Class MainWindow
     Private Function ThemeAllowsColumn(ByVal iCol As Integer) As Boolean
         Return ThemeColumnVisible Is Nothing OrElse ThemeColumnVisible.Length <> column.Length OrElse ThemeColumnVisible(iCol)
     End Function
-
-    Private Function HasVisibleColumn(ByVal startColumn As Integer, ByVal endColumn As Integer) As Boolean
-        For i As Integer = startColumn To endColumn
-            If column(i).isVisible Then Return True
-        Next
-        Return False
-    End Function
-
-    Private Sub SetAutoSpacer(ByVal iCol As Integer, ByVal isVisible As Boolean)
-        column(iCol).Title = ""
-        column(iCol).Width = ThemeColumnGap
-        column(iCol).isVisible = isVisible AndAlso ThemeColumnGap > 0
-    End Sub
-
-    Private Sub ApplyAutoSpacers()
-        Dim xControl As Boolean = column(niMeasure).isVisible OrElse column(niSCROLL).isVisible OrElse column(niBPM).isVisible OrElse column(niSTOP).isVisible
-        Dim xP1 As Boolean = HasVisibleColumn(niA1, niAQ)
-        Dim xP2 As Boolean = HasVisibleColumn(niD1, niDQ)
-        Dim xPlayable As Boolean = xP1 OrElse xP2
-        Dim xBga As Boolean = column(niBGA).isVisible OrElse column(niLAYER).isVisible OrElse column(niPOOR).isVisible
-        Dim xBgm As Boolean = column(niB).isVisible
-
-        SetAutoSpacer(niS1, xControl AndAlso xPlayable)
-        SetAutoSpacer(niS2, xP1 AndAlso xP2 AndAlso ThemePlayerGap)
-        SetAutoSpacer(niS3, xPlayable AndAlso xBga)
-        SetAutoSpacer(niS4, xBga AndAlso xBgm)
-    End Sub
 
     Private Function IsColumnNumeric(ByVal iCol As Integer) As Boolean
         If iCol < niB Then Return column(iCol).isNumeric Else Return column(niB).isNumeric

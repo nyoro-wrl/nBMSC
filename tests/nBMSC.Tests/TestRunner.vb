@@ -25,6 +25,7 @@ Module TestRunner
         Run("chart paths", AddressOf ChartPaths)
         Run("chart mode detection", AddressOf ChartModeDetection)
         Run("theme metadata", AddressOf ThemeMetadata)
+        Run("theme gaps follow visible groups", AddressOf ThemeGapsFollowVisibleGroups)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
@@ -266,6 +267,53 @@ Module TestRunner
         Finally
             If File.Exists(themePath) Then File.Delete(themePath)
         End Try
+    End Sub
+
+    Private Sub ThemeGapsFollowVisibleGroups()
+        Using window As New MainWindow()
+            For i As Integer = 0 To window.column.Length - 1
+                window.column(i).isVisible = False
+            Next
+
+            SetPrivateField(window, "ThemeColumnGap", 5)
+            SetPrivateField(window, "ThemePlayerGap", True)
+            SetPrivateField(window, "ThemeColumnOrder", New Integer() {
+                                MainWindow.niA1,
+                                MainWindow.niA2,
+                                MainWindow.niD1,
+                                MainWindow.niBGA,
+                                MainWindow.niB})
+
+            window.column(MainWindow.niA1).Width = 40
+            window.column(MainWindow.niA2).Width = 40
+            window.column(MainWindow.niD1).Width = 40
+            window.column(MainWindow.niBGA).Width = 40
+            window.column(MainWindow.niB).Width = 40
+            window.column(MainWindow.niA1).isVisible = True
+            window.column(MainWindow.niA2).isVisible = True
+            window.column(MainWindow.niBGA).isVisible = True
+            window.column(MainWindow.niB).isVisible = True
+
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertEqual(0, window.column(MainWindow.niA1).Left, "first visible group should start without a gap")
+            AssertEqual(40, window.column(MainWindow.niA2).Left, "columns in the same group should be adjacent")
+            AssertEqual(85, window.column(MainWindow.niBGA).Left, "BGA group should follow one group gap")
+            AssertEqual(130, window.column(MainWindow.niB).Left, "BGM group should follow one group gap")
+
+            window.column(MainWindow.niBGA).isVisible = False
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertEqual(85, window.column(MainWindow.niB).Left, "hiding BGA should keep one gap between playable and BGM groups")
+
+            window.column(MainWindow.niA2).isVisible = False
+            window.column(MainWindow.niD1).isVisible = True
+            SetPrivateField(window, "ThemePlayerGap", False)
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertEqual(40, window.column(MainWindow.niD1).Left, "disabled player gap should keep player groups adjacent")
+
+            SetPrivateField(window, "ThemePlayerGap", True)
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertEqual(45, window.column(MainWindow.niD1).Left, "enabled player gap should separate player groups")
+        End Using
     End Sub
 
     Private Sub ChartTextEncodingModes()
