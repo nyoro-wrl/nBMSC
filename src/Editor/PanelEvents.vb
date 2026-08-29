@@ -51,7 +51,7 @@ Partial Public Class MainWindow
                                                           muVPosition)
                     End If
                 Next
-                muVPosition -= 191999
+                muVPosition -= GetMaxVPosition() - 1
 
                 'xRedo = sCmdKMs(0, xVPosition - muVPosition, True)
                 Dim xVPos As Double

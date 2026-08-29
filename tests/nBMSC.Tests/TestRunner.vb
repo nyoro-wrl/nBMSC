@@ -26,6 +26,7 @@ Module TestRunner
         Run("chart mode detection", AddressOf ChartModeDetection)
         Run("theme metadata", AddressOf ThemeMetadata)
         Run("theme gaps follow visible groups", AddressOf ThemeGapsFollowVisibleGroups)
+        Run("up arrow follows variable chart bounds", AddressOf UpArrowFollowsVariableChartBounds)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
@@ -313,6 +314,36 @@ Module TestRunner
             SetPrivateField(window, "ThemePlayerGap", True)
             InvokePrivate(window, "UpdateColumnLefts", New Object() {})
             AssertEqual(45, window.column(MainWindow.niD1).Left, "enabled player gap should separate player groups")
+        End Using
+    End Sub
+
+    Private Sub UpArrowFollowsVariableChartBounds()
+        Using window As New MainWindow()
+            Dim lengths(999) As Double
+            For i As Integer = 0 To 999
+                lengths(i) = 96.0R
+            Next
+
+            Dim notes(1) As Note
+            notes(0) = PrivateField(Of Note())(window, "Notes")(0)
+            notes(1) = New Note(MainWindow.niA1, 120.0R, 10000)
+            notes(1).Selected = True
+            window.column(MainWindow.niA1).isVisible = True
+            SetPrivateField(window, "MeasureLength", lengths)
+            SetPrivateField(window, "Notes", notes)
+            SetPrivateField(window, "gDivide", 16)
+            InvokePrivate(window, "UpdateMeasureBottom", New Object() {})
+
+            Dim panel As System.Windows.Forms.Panel = DirectCast(window.Controls.Find("PMainIn", True)(0), System.Windows.Forms.Panel)
+            InvokePrivate(window,
+                          "PMainInPreviewKeyDown",
+                          New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(System.Windows.Forms.Keys.Up)})
+            AssertApprox(132.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "up arrow should move one grid step")
+
+            InvokePrivate(window,
+                          "PMainInPreviewKeyDown",
+                          New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(System.Windows.Forms.Keys.Down)})
+            AssertApprox(120.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "down arrow should return one grid step")
         End Using
     End Sub
 
