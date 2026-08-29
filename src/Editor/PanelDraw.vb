@@ -384,8 +384,17 @@ Partial Public Class MainWindow
                                xVSu As Integer) As Integer
         'Vertical line
         If gShowVerticalLine Then
+            Dim xPreviousGroup As Integer = 0
             For Each xI1 In ThemeColumnDisplayOrder(gColumns)
+                Dim xCurrentGroup As Integer = ThemeColumnGroup(xI1)
                 Dim xpos = nLeft(xI1) * gxWidth - xHS * gxWidth
+                If GetColumnWidth(xI1) > 0 AndAlso ShouldInsertThemeColumnGap(xPreviousGroup, xCurrentGroup) Then
+                    Dim xGapStart = xpos - ThemeColumnGap * gxWidth
+                    If xGapStart + 1 >= 0 AndAlso xGapStart + 1 <= xTWidth Then
+                        e1.Graphics.DrawLine(vo.pVLine, xGapStart, 0, xGapStart, xTHeight)
+                    End If
+                End If
+                xPreviousGroup = xCurrentGroup
                 If xpos + 1 < 0 Then Continue For
                 If xpos + 1 > xTWidth Then Continue For
                 If GetColumnWidth(xI1) > 0 Then e1.Graphics.DrawLine(vo.pVLine,

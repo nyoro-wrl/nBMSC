@@ -26,6 +26,7 @@ Module TestRunner
         Run("chart mode detection", AddressOf ChartModeDetection)
         Run("theme metadata", AddressOf ThemeMetadata)
         Run("theme gaps follow visible groups", AddressOf ThemeGapsFollowVisibleGroups)
+        Run("theme gaps retain both border lines", AddressOf ThemeGapsRetainBothBorderLines)
         Run("up arrow follows variable chart bounds", AddressOf UpArrowFollowsVariableChartBounds)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
@@ -314,6 +315,62 @@ Module TestRunner
             SetPrivateField(window, "ThemePlayerGap", True)
             InvokePrivate(window, "UpdateColumnLefts", New Object() {})
             AssertEqual(45, window.column(MainWindow.niD1).Left, "enabled player gap should separate player groups")
+        End Using
+    End Sub
+
+    Private Sub ThemeGapsRetainBothBorderLines()
+        Using window As New MainWindow()
+            For i As Integer = 0 To window.column.Length - 1
+                window.column(i).isVisible = False
+            Next
+
+            SetPrivateField(window, "ThemeColumnGap", 5)
+            SetPrivateField(window, "ThemeColumnOrder", New Integer() {
+                                MainWindow.niA1,
+                                MainWindow.niBGA,
+                                MainWindow.niB})
+            SetPrivateField(window, "gxWidth", 1.0F)
+            SetPrivateField(window, "gShowVerticalLine", True)
+            SetPrivateField(window, "gShowGrid", False)
+            SetPrivateField(window, "gShowSubGrid", False)
+            SetPrivateField(window, "gShowMeasureBar", False)
+            SetPrivateField(window, "gShowMeasureNumber", False)
+
+            window.column(MainWindow.niA1).Width = 10
+            window.column(MainWindow.niBGA).Width = 10
+            window.column(MainWindow.niB).Width = 10
+            window.column(MainWindow.niA1).isVisible = True
+            window.column(MainWindow.niBGA).isVisible = True
+            window.column(MainWindow.niB).isVisible = True
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertThemeGapBorders(window, New Integer() {10, 25}, "visible BGA")
+
+            window.column(MainWindow.niBGA).isVisible = False
+            InvokePrivate(window, "UpdateColumnLefts", New Object() {})
+            AssertThemeGapBorders(window, New Integer() {10}, "hidden BGA")
+        End Using
+    End Sub
+
+    Private Sub AssertThemeGapBorders(ByVal window As MainWindow,
+                                      ByVal gapStarts() As Integer,
+                                      ByVal state As String)
+        Using bitmap As New System.Drawing.Bitmap(40, 10)
+            Using graphics As System.Drawing.Graphics = System.Drawing.Graphics.FromImage(bitmap)
+                Using buffer As System.Drawing.BufferedGraphics = System.Drawing.BufferedGraphicsManager.Current.Allocate(
+                        graphics,
+                        New System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height))
+                    buffer.Graphics.Clear(System.Drawing.Color.Black)
+                    InvokePrivate(window, "DrawPanelLines", New Object() {buffer, bitmap.Height, bitmap.Width, 0, 0, 1})
+                    buffer.Render(graphics)
+                End Using
+            End Using
+
+            Dim lineColor As Integer = PrivateField(Of visualSettings)(window, "vo").pVLine.Color.ToArgb()
+            For Each gapStart As Integer In gapStarts
+                AssertEqual(lineColor, bitmap.GetPixel(gapStart, 5).ToArgb(), state & " gap should retain its left border")
+                AssertEqual(System.Drawing.Color.Black.ToArgb(), bitmap.GetPixel(gapStart + 1, 5).ToArgb(), state & " gap interior should remain black")
+                AssertEqual(lineColor, bitmap.GetPixel(gapStart + 5, 5).ToArgb(), state & " gap should retain its right border")
+            Next
         End Using
     End Sub
 
