@@ -5558,7 +5558,7 @@ EndSearch:
         RefreshPanelAll()
     End Sub
     Private Sub BGSlash_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles BGSlash.Click, mnSlashGrid.Click
-        Dim xd As Integer = Val(InputBox(Strings.Messages.PromptSlashValue, , gSlash))
+        Dim xd As Integer = Val(ShowTextInput(Strings.Messages.PromptSlashValue, "", gSlash.ToString(CultureInfo.InvariantCulture)))
         If xd = 0 Then Exit Sub
         If xd > CGDivide.Maximum Then xd = CGDivide.Maximum
         If xd < CGDivide.Minimum Then xd = CGDivide.Minimum
@@ -7535,7 +7535,7 @@ StartCount:     If Not NTInput Then
         If Not (xNum Or xLbl) Then Exit Sub
 
         If xNum Then
-            Dim xD1 As Double = Val(InputBox(Strings.Messages.PromptEnterNumeric, Text)) * 10000
+            Dim xD1 As Double = Val(ShowTextInput(Strings.Messages.PromptEnterNumeric, Text, SelectedNotePromptDefault(True))) * 10000
             If Not xD1 = 0 Then
                 If xD1 <= 0 Then xD1 = 1
 
@@ -7555,7 +7555,7 @@ StartCount:     If Not NTInput Then
         End If
 
         If xLbl Then
-            Dim xStr As String = Trim(InputBox(Strings.Messages.PromptEnter, Me.Text))
+            Dim xStr As String = Trim(ShowTextInput(Strings.Messages.PromptEnter, Me.Text, SelectedNotePromptDefault(False)))
             If Not UseBase62Definitions Then xStr = UCase(xStr)
 
             If Len(xStr) = 0 Then GoTo Jump2
@@ -8092,11 +8092,44 @@ Jump2:
         Next
     End Sub
 
+    Private Function NumericPromptValue(ByVal scaledValue As Long) As String
+        Return (CDec(scaledValue) / 10000D).ToString("0.####", CultureInfo.InvariantCulture)
+    End Function
+
+    Private Function SelectedNotePromptDefault(ByVal numeric As Boolean) As String
+        Dim xFound As Boolean = False
+        Dim xValue As Long = 0
+
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected OrElse IsColumnNumeric(Notes(xI1).ColumnIndex) <> numeric Then Continue For
+            If Not xFound Then
+                xValue = Notes(xI1).Value
+                xFound = True
+            ElseIf Notes(xI1).Value <> xValue Then
+                Return ""
+            End If
+        Next
+
+        If Not xFound Then Return ""
+        If numeric Then Return NumericPromptValue(xValue)
+        Return DefinitionLabel(xValue \ 10000)
+    End Function
+
+    Private Function ShowTextInput(ByVal prompt As String,
+                                   ByVal title As String,
+                                   Optional ByVal defaultResponse As String = "") As String
+        Using xDialog As New TextInputDialog(prompt, title, defaultResponse)
+            If xDialog.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then Return xDialog.InputText
+        End Using
+
+        Return ""
+    End Function
+
     ''' <summary>
     ''' Will return Double.PositiveInfinity if canceled.
     ''' </summary>
     Private Function InputBoxDouble(ByVal Prompt As String, ByVal LBound As Double, ByVal UBound As Double, Optional ByVal Title As String = "", Optional ByVal DefaultResponse As String = "") As Double
-        Dim xStr As String = InputBox(Prompt, Title, DefaultResponse)
+        Dim xStr As String = ShowTextInput(Prompt, Title, DefaultResponse)
         If xStr = "" Then Return Double.PositiveInfinity
 
         InputBoxDouble = Val(xStr)
@@ -9521,7 +9554,7 @@ case2:              Dim xI0 As Integer
     End Sub
 
     Private Sub mnGotoMeasure_Click(sender As Object, e As EventArgs) Handles mnGotoMeasure.Click
-        Dim s = InputBox(Strings.Messages.PromptEnterMeasure, Strings.Messages.GoToMeasureTitle)
+        Dim s = ShowTextInput(Strings.Messages.PromptEnterMeasure, Strings.Messages.GoToMeasureTitle)
 
         Dim i As Integer
         If Int32.TryParse(s, i) Then

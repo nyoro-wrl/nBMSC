@@ -854,7 +854,7 @@ Partial Public Class MainWindow
                 If xColumn = niSTOP Then xMessage = Strings.Messages.PromptEnterSTOP
                 If xColumn = niSCROLL Then xMessage = Strings.Messages.PromptEnterSCROLL
 
-                Dim valstr As String = InputBox(xMessage, Text)
+                Dim valstr As String = ShowTextInput(xMessage, Text)
                 Dim value As Double = Val(valstr) * 10000
 
                 If (xColumn = niSCROLL And valstr = "0") Or value <> 0 Then
@@ -1129,7 +1129,7 @@ Partial Public Class MainWindow
             If NoteColumn = niSCROLL Then xMessage = Strings.Messages.PromptEnterSCROLL
 
 
-            Dim valstr As String = InputBox(xMessage, Me.Text)
+            Dim valstr As String = ShowTextInput(xMessage, Me.Text, NumericPromptValue(Note.Value))
             Dim PromptValue As Double = Val(valstr) * 10000
             If (NoteColumn = niSCROLL And valstr = "0") Or PromptValue <> 0 Then
 
@@ -1145,7 +1145,7 @@ Partial Public Class MainWindow
             End If
         Else
             'Label prompt
-            Dim xStr As String = Trim(InputBox(Strings.Messages.PromptEnter, Me.Text))
+            Dim xStr As String = Trim(ShowTextInput(Strings.Messages.PromptEnter, Me.Text, DefinitionLabel(Note.Value \ 10000)))
             If Not UseBase62Definitions Then xStr = UCase(xStr)
 
             If Len(xStr) = 0 Then Return
@@ -1948,7 +1948,7 @@ Partial Public Class MainWindow
                         If xColumn = niSTOP Then xMessage = Strings.Messages.PromptEnterSTOP
                         If xColumn = niSCROLL Then xMessage = Strings.Messages.PromptEnterSCROLL
 
-                        Dim valstr As String = InputBox(xMessage, Me.Text)
+                        Dim valstr As String = ShowTextInput(xMessage, Me.Text)
                         Dim value As Long = Val(valstr) * 10000
 
                         If (xColumn = niSCROLL And valstr = "0") Or value <> 0 Then

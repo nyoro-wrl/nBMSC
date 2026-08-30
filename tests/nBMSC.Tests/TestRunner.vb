@@ -29,6 +29,8 @@ Module TestRunner
         Run("theme gaps retain both border lines", AddressOf ThemeGapsRetainBothBorderLines)
         Run("up arrow follows variable chart bounds", AddressOf UpArrowFollowsVariableChartBounds)
         Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
+        Run("text input dialog selects existing value", AddressOf TextInputDialogSelectsExistingValue)
+        Run("selected note input defaults", AddressOf SelectedNoteInputDefaults)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
@@ -466,6 +468,68 @@ Module TestRunner
         AssertFalse(UpdateChecker.TryParseVersionTag("5.1", version), "major.minor should not parse")
         AssertFalse(UpdateChecker.TryParseVersionTag("5.1.0.0", version), "four part versions should not parse")
         AssertFalse(UpdateChecker.TryParseVersionTag("", version), "empty versions should not parse")
+    End Sub
+
+    Private Sub TextInputDialogSelectsExistingValue()
+        Using dialog As New TextInputDialog("Enter a value.", "Edit value", "123.45")
+            Dim input As Windows.Forms.TextBox = DirectCast(dialog.Controls.Find("InputTextBox", True)(0), Windows.Forms.TextBox)
+            Dim prompt As Windows.Forms.Label = DirectCast(dialog.Controls.Find("PromptLabel", True)(0), Windows.Forms.Label)
+            Dim okButton As Windows.Forms.Button = DirectCast(dialog.Controls.Find("OKInputButton", True)(0), Windows.Forms.Button)
+            Dim cancelButton As Windows.Forms.Button = DirectCast(dialog.Controls.Find("CancelInputButton", True)(0), Windows.Forms.Button)
+            AssertEqual("Edit value", dialog.Text, "input dialog title")
+            AssertEqual("123.45", input.Text, "input dialog existing value")
+
+            Dim legacyType As Type = GetType(Microsoft.VisualBasic.Interaction).Assembly.GetType("Microsoft.VisualBasic.CompilerServices.VBInputBox", True)
+            Using legacy As Windows.Forms.Form = DirectCast(Activator.CreateInstance(
+                    legacyType,
+                    Reflection.BindingFlags.Instance Or Reflection.BindingFlags.NonPublic,
+                    Nothing,
+                    New Object() {"Enter a value.", "Edit value", "123.45", -1, -1},
+                    Globalization.CultureInfo.InvariantCulture), Windows.Forms.Form)
+                AssertEqual(legacy.ClientSize, dialog.ClientSize, "legacy input dialog client size")
+                AssertEqual(legacy.Controls.Find("Label", True)(0).Bounds, prompt.Bounds, "legacy input dialog prompt bounds")
+                AssertEqual(legacy.Controls.Find("TextBox", True)(0).Bounds, input.Bounds, "legacy input dialog text bounds")
+                AssertEqual(legacy.Controls.Find("OKButton", True)(0).Bounds, okButton.Bounds, "legacy input dialog OK bounds")
+                AssertEqual(legacy.Controls.Find("MyCancelButton", True)(0).Bounds, cancelButton.Bounds, "legacy input dialog cancel bounds")
+            End Using
+
+            InvokePrivate(dialog, "SelectInputText", New Object() {})
+            AssertEqual(0, input.SelectionStart, "input dialog selection start")
+            AssertEqual(input.Text.Length, input.SelectionLength, "input dialog selection length")
+        End Using
+    End Sub
+
+    Private Sub SelectedNoteInputDefaults()
+        Using window As New MainWindow()
+            Dim notes() As Note = {
+                PrivateField(Of Note())(window, "Notes")(0),
+                New Note(MainWindow.niBPM, 192.0R, 1285000, 0.0R, False, True),
+                New Note(MainWindow.niSTOP, 384.0R, 1285000, 0.0R, False, True),
+                New Note(MainWindow.niA1, 576.0R, 100000, 0.0R, False, True),
+                New Note(MainWindow.niA1, 768.0R, 100000, 0.0R, False, True)
+            }
+            For i As Integer = 1 To UBound(notes)
+                notes(i).Selected = True
+            Next
+            SetPrivateField(window, "Notes", notes)
+
+            AssertEqual("128.5",
+                        InvokePrivateFunction(Of String)(window, "SelectedNotePromptDefault", New Object() {True}),
+                        "matching numeric note values")
+            AssertEqual("0A",
+                        InvokePrivateFunction(Of String)(window, "SelectedNotePromptDefault", New Object() {False}),
+                        "matching definition labels")
+
+            notes(2).Value = 640000
+            notes(4).Value = 110000
+            SetPrivateField(window, "Notes", notes)
+            AssertEqual("",
+                        InvokePrivateFunction(Of String)(window, "SelectedNotePromptDefault", New Object() {True}),
+                        "mixed numeric note values")
+            AssertEqual("",
+                        InvokePrivateFunction(Of String)(window, "SelectedNotePromptDefault", New Object() {False}),
+                        "mixed definition labels")
+        End Using
     End Sub
 
     Private Sub UndoRedoSerialization()

@@ -151,6 +151,12 @@
     <Compile Include="Dialogs\SplashScreen1.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Dialogs\TextInputDialog.Designer.vb">
+      <DependentUpon>TextInputDialog.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\TextInputDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Dialogs\UpdateAvailableDialog.Designer.vb">
       <DependentUpon>UpdateAvailableDialog.vb</DependentUpon>
     </Compile>
