@@ -281,7 +281,11 @@ Partial Public Class MainWindow
 
         Dim sourceMeasureLengths() As Double = CopyMeasureLengthArray(cmd.CopyDisplayMeasureLengths())
         Dim targetMeasureLengths() As Double = ActiveTargetMeasureLength()
-        Notes = ConvertNotesToMeasureMap(cmd.CopyNotes(), sourceMeasureLengths, targetMeasureLengths)
+        If MeasureLengthArraysEqual(sourceMeasureLengths, targetMeasureLengths) Then
+            Notes = cmd.CopyNotes()
+        Else
+            Notes = ConvertNotesToMeasureMap(cmd.CopyNotes(), sourceMeasureLengths, targetMeasureLengths)
+        End If
         ApplyMeasureLengthArray(targetMeasureLengths)
 
         If IsValidRandomIndex(SelectedRandomIndex) Then

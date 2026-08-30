@@ -40,6 +40,7 @@ Module TestRunner
         Run("context measure removal undo redo", AddressOf ContextMeasureRemovalUndoRedo)
         Run("measure join availability", AddressOf MeasureJoinAvailability)
         Run("multiple measure join", AddressOf MultipleMeasureJoin)
+        RunBeatChangeModeTests()
 
         Console.WriteLine()
         Console.WriteLine("Passed: " & Passed.ToString())
@@ -672,6 +673,242 @@ Module TestRunner
             InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
             AssertContextRemovalState(window, blocks, "remove redo")
         End Using
+    End Sub
+
+    Private Sub RunBeatChangeModeTests()
+        For Each ntInput As Boolean In New Boolean() {True, False}
+            For Each targetRatio As Double In New Double() {1.5R, 0.5R}
+                For Each useRandomLayer As Boolean In New Boolean() {False, True}
+                    For operationMode As Integer = 0 To 3
+                        Dim currentNtInput As Boolean = ntInput
+                        Dim currentTargetRatio As Double = targetRatio
+                        Dim currentUseRandomLayer As Boolean = useRandomLayer
+                        Dim currentOperationMode As Integer = operationMode
+                        Dim inputName As String = If(currentNtInput, "NT", "BMSE")
+                        Dim lengthName As String = If(currentTargetRatio > 1.0R, "expand", "shrink")
+                        Dim layerName As String = If(currentUseRandomLayer, "random", "common")
+                        Dim testName As String = "beat mode " & currentOperationMode.ToString() & " " & inputName & " " & lengthName & " " & layerName & " undo redo mode matrix"
+
+                        Run(testName,
+                            Sub()
+                                BeatChangeModeUndoRedoCase(currentNtInput,
+                                                           currentTargetRatio,
+                                                           currentUseRandomLayer,
+                                                           currentOperationMode)
+                            End Sub)
+                    Next
+                Next
+            Next
+        Next
+    End Sub
+
+    Private Sub BeatChangeModeUndoRedoCase(ByVal ntInput As Boolean,
+                                           ByVal targetRatio As Double,
+                                           ByVal useRandomLayer As Boolean,
+                                           ByVal operationMode As Integer)
+        Using window As New MainWindow()
+            PrepareBeatChangeModeWindow(window, ntInput, useRandomLayer)
+            SetPrivateField(window, "BeatChangeMode", operationMode)
+
+            Dim before As UndoRedo.MeasureStateChange = CaptureBeatState(window)
+            InvokePrivate(window, "ApplyBeat", New Object() {targetRatio, targetRatio.ToString()})
+            Dim after As UndoRedo.MeasureStateChange = CaptureBeatState(window)
+            AssertDoubleBits(192.0R * targetRatio,
+                             after.CopyBaseMeasureLengths()(2),
+                             "beat operation should change the selected base measure")
+
+            For undoMode As Integer = 0 To 3
+                For redoMode As Integer = 0 To 3
+                    SetPrivateField(window, "BeatChangeMode", undoMode)
+                    InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+                    AssertBeatState(before,
+                                    window,
+                                    "operation mode " & operationMode.ToString() &
+                                    ", undo mode " & undoMode.ToString())
+
+                    SetPrivateField(window, "BeatChangeMode", redoMode)
+                    InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+                    AssertBeatState(after,
+                                    window,
+                                    "operation mode " & operationMode.ToString() &
+                                    ", undo mode " & undoMode.ToString() &
+                                    ", redo mode " & redoMode.ToString())
+                Next
+            Next
+
+            If useRandomLayer Then
+                SetPrivateField(window, "BeatChangeMode", (operationMode + 1) Mod 4)
+                InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+                SetBeatChangeRandomValue(window, 2)
+                Dim beforeSecondRandomValue As UndoRedo.MeasureStateChange = CaptureBeatState(window)
+
+                SetBeatChangeRandomValue(window, 1)
+                InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+                SetBeatChangeRandomValue(window, 2)
+                Dim afterSecondRandomValue As UndoRedo.MeasureStateChange = CaptureBeatState(window)
+
+                SetPrivateField(window, "BeatChangeMode", (operationMode + 2) Mod 4)
+                InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+                AssertBeatState(beforeSecondRandomValue,
+                                window,
+                                "operation mode " & operationMode.ToString() & " undo after random value change")
+
+                SetPrivateField(window, "BeatChangeMode", (operationMode + 3) Mod 4)
+                InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+                AssertBeatState(afterSecondRandomValue,
+                                window,
+                                "operation mode " & operationMode.ToString() & " redo after random value change")
+            End If
+        End Using
+    End Sub
+
+    Private Sub SetBeatChangeRandomValue(ByVal window As MainWindow, ByVal value As Integer)
+        Dim blocks As List(Of BmsRandomBlock) = PrivateField(Of List(Of BmsRandomBlock))(window, "RandomBlocks")
+        blocks(0).CurrentValue = value
+        blocks(0).Normalize()
+        InvokePrivate(window, "ApplySelectedRandomMeasureMap", New Object() {})
+    End Sub
+
+    Private Sub PrepareBeatChangeModeWindow(ByVal window As MainWindow,
+                                            ByVal ntInput As Boolean,
+                                            ByVal useRandomLayer As Boolean)
+        Dim baseLengths(999) As Double
+        For i As Integer = 0 To 999
+            baseLengths(i) = 192.0R
+        Next
+
+        Dim displayLengths() As Double = CType(baseLengths.Clone(), Double())
+        Dim blocks As New List(Of BmsRandomBlock)()
+        If useRandomLayer Then
+            Dim block As New BmsRandomBlock(2)
+            block.CurrentValue = 1
+            block.SetMeasureLength(1, 1, 168.0R)
+            block.SetMeasureLength(1, 2, 216.0R)
+            block.SetMeasureLength(2, 2, 120.0R)
+            blocks.Add(block)
+            displayLengths(1) = 168.0R
+            displayLengths(2) = 216.0R
+        End If
+
+        Dim notes() As Note = BeatChangeModeNotes(window, ntInput, useRandomLayer)
+        SetPrivateField(window, "BaseMeasureLength", baseLengths)
+        SetPrivateField(window, "MeasureLength", displayLengths)
+        SetPrivateField(window, "Notes", notes)
+        SetPrivateField(window, "RandomBlocks", blocks)
+        SetPrivateField(window, "SelectedRandomIndex", If(useRandomLayer, 0, -1))
+        SetPrivateField(window, "ActiveMeasureRandomIndex", If(useRandomLayer, 0, -1))
+        SetPrivateField(window, "ActiveMeasureRandomValue", If(useRandomLayer, 1, 0))
+        SetPrivateField(window, "NTInput", ntInput)
+        InvokePrivate(window, "UpdateMeasureBottom", New Object() {})
+
+        Dim beatList As Windows.Forms.ListBox = DirectCast(window.Controls.Find("LBeat", True)(0), Windows.Forms.ListBox)
+        beatList.Items.Clear()
+        For i As Integer = 0 To 999
+            beatList.Items.Add(i.ToString())
+        Next
+        beatList.ClearSelected()
+        beatList.SelectedIndices.Add(2)
+        InvokePrivate(window, "ClearUndo", New Object() {})
+    End Sub
+
+    Private Function BeatChangeModeNotes(ByVal window As MainWindow,
+                                         ByVal ntInput As Boolean,
+                                         ByVal useRandomLayer As Boolean) As Note()
+        Dim randomIndex As Integer = If(useRandomLayer, 0, -1)
+        Dim firstRandomValue As Integer = If(useRandomLayer, 1, 0)
+        Dim secondRandomValue As Integer = If(useRandomLayer, 2, 0)
+        Dim notes() As Note = {
+            PrivateField(Of Note())(window, "Notes")(0),
+            New Note(3, 350.0R, 10000, If(ntInput, 260.0R, 0.0R), False, False, False, randomIndex, firstRandomValue),
+            New Note(4, 360.0R, 20000, If(ntInput, 48.0R, 0.0R), False, False, False, randomIndex, secondRandomValue),
+            New Note(5, 400.0R, 30000, If(ntInput, 20.0R, 0.0R), False, False, False, randomIndex, firstRandomValue),
+            New Note(6, 450.0R, 40000, If(ntInput, 12.0R, 0.0R), False, False, False, randomIndex, secondRandomValue),
+            New Note(7, 500.0R, 50000, If(ntInput, 20.0R, 0.0R), False, False, False, randomIndex, firstRandomValue),
+            New Note(8, 510.0R, 60000, If(ntInput, 100.0R, 0.0R), False, False, False, randomIndex, secondRandomValue),
+            New Note(9, 540.0R, 70000, If(ntInput, 72.0R, 0.0R), False, False, False, randomIndex, firstRandomValue),
+            New Note(10, 600.0R, 80000, 0.0R, False, False, False, randomIndex, secondRandomValue),
+            New Note(11, 700.0R, 90000, If(ntInput, 24.0R, 0.0R), False, False, False, randomIndex, firstRandomValue),
+            New Note(12, 900.0R, 100000, If(ntInput, 36.0R, 0.0R), False, False, False, randomIndex, secondRandomValue),
+            New Note(13, 1200.0R, 110000, If(ntInput, 48.0R, 0.0R), False, False, False, randomIndex, firstRandomValue)
+        }
+        Return notes
+    End Function
+
+    Private Function CaptureBeatState(ByVal window As MainWindow) As UndoRedo.MeasureStateChange
+        Return New UndoRedo.MeasureStateChange(
+            PrivateField(Of Double())(window, "BaseMeasureLength"),
+            PrivateField(Of Double())(window, "MeasureLength"),
+            PrivateField(Of Note())(window, "Notes"),
+            PrivateField(Of List(Of BmsRandomBlock))(window, "RandomBlocks"))
+    End Function
+
+    Private Sub AssertBeatState(ByVal expected As UndoRedo.MeasureStateChange,
+                                ByVal window As MainWindow,
+                                ByVal operation As String)
+        Dim actual As UndoRedo.MeasureStateChange = CaptureBeatState(window)
+        AssertDoubleArrayBits(expected.CopyBaseMeasureLengths(),
+                              actual.CopyBaseMeasureLengths(),
+                              operation & " base measure lengths")
+        AssertDoubleArrayBits(expected.CopyDisplayMeasureLengths(),
+                              actual.CopyDisplayMeasureLengths(),
+                              operation & " display measure lengths")
+        AssertNoteArrays(expected.CopyNotes(), actual.CopyNotes(), operation & " notes")
+        AssertRandomMeasureLengths(expected.RandomMeasureLengths,
+                                   actual.RandomMeasureLengths,
+                                   operation & " random measure lengths")
+    End Sub
+
+    Private Sub AssertDoubleArrayBits(ByVal expected() As Double,
+                                      ByVal actual() As Double,
+                                      ByVal message As String)
+        AssertEqual(expected.Length, actual.Length, message & " count")
+        For i As Integer = 0 To expected.Length - 1
+            AssertDoubleBits(expected(i), actual(i), message & " at " & i.ToString())
+        Next
+    End Sub
+
+    Private Sub AssertNoteArrays(ByVal expected() As Note,
+                                 ByVal actual() As Note,
+                                 ByVal message As String)
+        AssertEqual(expected.Length, actual.Length, message & " count")
+        For i As Integer = 0 To expected.Length - 1
+            AssertDoubleBits(expected(i).VPosition, actual(i).VPosition, message & " position " & i.ToString())
+            AssertDoubleBits(expected(i).Length, actual(i).Length, message & " length " & i.ToString())
+            AssertEqual(expected(i).ColumnIndex, actual(i).ColumnIndex, message & " column " & i.ToString())
+            AssertEqual(expected(i).Value, actual(i).Value, message & " value " & i.ToString())
+            AssertEqual(expected(i).LongNote, actual(i).LongNote, message & " long flag " & i.ToString())
+            AssertEqual(expected(i).Hidden, actual(i).Hidden, message & " hidden flag " & i.ToString())
+            AssertEqual(expected(i).Landmine, actual(i).Landmine, message & " landmine flag " & i.ToString())
+            AssertEqual(expected(i).RandomIndex, actual(i).RandomIndex, message & " random index " & i.ToString())
+            AssertEqual(expected(i).RandomValue, actual(i).RandomValue, message & " random value " & i.ToString())
+        Next
+    End Sub
+
+    Private Sub AssertRandomMeasureLengths(ByVal expected() As UndoRedo.MeasureStateChange.RandomMeasureLength,
+                                           ByVal actual() As UndoRedo.MeasureStateChange.RandomMeasureLength,
+                                           ByVal message As String)
+        AssertEqual(expected.Length, actual.Length, message & " count")
+        For Each expectedItem As UndoRedo.MeasureStateChange.RandomMeasureLength In expected
+            Dim found As Boolean = False
+            For Each actualItem As UndoRedo.MeasureStateChange.RandomMeasureLength In actual
+                If actualItem.RandomIndex = expectedItem.RandomIndex AndAlso
+                   actualItem.RandomValue = expectedItem.RandomValue AndAlso
+                   actualItem.MeasureIndex = expectedItem.MeasureIndex Then
+                    AssertDoubleBits(expectedItem.Length, actualItem.Length, message & " value")
+                    found = True
+                    Exit For
+                End If
+            Next
+            AssertTrue(found, message & " missing entry")
+        Next
+    End Sub
+
+    Private Sub AssertDoubleBits(ByVal expected As Double,
+                                 ByVal actual As Double,
+                                 ByVal message As String)
+        If BitConverter.DoubleToInt64Bits(expected) <> BitConverter.DoubleToInt64Bits(actual) Then
+            Throw New InvalidOperationException(message & ": expected " & expected.ToString("R") & ", actual " & actual.ToString("R"))
+        End If
     End Sub
 
     Private Function VariableMeasureLengths() As Double()

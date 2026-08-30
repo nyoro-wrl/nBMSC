@@ -9120,16 +9120,11 @@ Jump2:
 
 
     Private Sub ApplyBeat(ByVal xRatio As Double, ByVal xDisplay As String)
+        Dim xUndo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
         Dim xReturnToSelectedLayer As Boolean = IsValidRandomIndex(SelectedRandomIndex)
         If xReturnToSelectedLayer Then ApplyBaseMeasureMapForBeatEdit()
 
         SortByVPositionInsertion()
-
-        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
-        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
-        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
-
-        Me.RedoChangeMeasureLengthSelected(192 * xRatio, xUndo, xRedo)
 
         Dim xIndices(LBeat.SelectedIndices.Count - 1) As Integer
         LBeat.SelectedIndices.CopyTo(xIndices, 0)
@@ -9154,7 +9149,6 @@ case2:              Dim xI0 As Integer
                         For xI0 = 1 To UBound(Notes)
                             If Notes(xI0).VPosition >= xUpBefore Then Exit For
                             If Notes(xI0).VPosition + Notes(xI0).Length >= xUpBefore Then
-                                Me.RedoLongNoteModify(Notes(xI0), Notes(xI0).VPosition, Notes(xI0).Length + dLength, xUndo, xRedo)
                                 Notes(xI0).Length += dLength
                             End If
                         Next
@@ -9165,7 +9159,6 @@ case2:              Dim xI0 As Integer
                     End If
 
                     For xI9 As Integer = xI0 To UBound(Notes)
-                        Me.RedoLongNoteModify(Notes(xI9), Notes(xI9).VPosition + dLength, Notes(xI9).Length, xUndo, xRedo)
                         Notes(xI9).VPosition += dLength
                     Next
 
@@ -9178,18 +9171,15 @@ case2:              Dim xI0 As Integer
                                 If Notes(xI0).VPosition < xUpAfter Then
                                     If Notes(xI0).VPosition + Notes(xI0).Length >= xUpAfter And Notes(xI0).VPosition + Notes(xI0).Length < xUpBefore Then
                                         Dim nLen As Double = xUpAfter - Notes(xI0).VPosition - 1.0R
-                                        Me.RedoLongNoteModify(Notes(xI0), Notes(xI0).VPosition, nLen, xUndo, xRedo)
                                         Notes(xI0).Length = nLen
                                     End If
                                 ElseIf Notes(xI0).VPosition < xUpBefore Then
                                     If Notes(xI0).VPosition + Notes(xI0).Length < xUpBefore Then
-                                        Me.RedoRemoveNote(Notes(xI0), xUndo, xRedo)
                                         RemoveNote(xI0)
                                         xI0 -= 1
                                         xU -= 1
                                     Else
                                         Dim nLen As Double = Notes(xI0).Length - xUpBefore + Notes(xI0).VPosition
-                                        Me.RedoLongNoteModify(Notes(xI0), xUpBefore, nLen, xUndo, xRedo)
                                         Notes(xI0).Length = nLen
                                         Notes(xI0).VPosition = xUpBefore
                                     End If
@@ -9206,9 +9196,6 @@ case2:              Dim xI0 As Integer
                                 If Notes(xI9).VPosition >= xUpBefore Then Exit For
                             Next
 
-                            For xI8 As Integer = xI0 To xI9 - 1
-                                Me.RedoRemoveNote(Notes(xI8), xUndo, xRedo)
-                            Next
                             For xI8 As Integer = xI9 To UBound(Notes)
                                 Notes(xI8 - xI9 + xI0) = Notes(xI8)
                             Next
@@ -9223,29 +9210,24 @@ case2:              Dim xI0 As Integer
                         For xI0 As Integer = 1 To UBound(Notes)
                             If Notes(xI0).VPosition < xBottom Then
                                 If Notes(xI0).VPosition + Notes(xI0).Length > xUpBefore Then
-                                    Me.RedoLongNoteModify(Notes(xI0), Notes(xI0).VPosition, Notes(xI0).Length + dLength, xUndo, xRedo)
                                     Notes(xI0).Length += dLength
                                 ElseIf Notes(xI0).VPosition + Notes(xI0).Length > xBottom Then
                                     Dim nLen As Double = (Notes(xI0).Length + Notes(xI0).VPosition - xBottom) * dRatio + xBottom - Notes(xI0).VPosition
-                                    Me.RedoLongNoteModify(Notes(xI0), Notes(xI0).VPosition, nLen, xUndo, xRedo)
                                     Notes(xI0).Length = nLen
                                 End If
                             ElseIf Notes(xI0).VPosition < xUpBefore Then
                                 If Notes(xI0).VPosition + Notes(xI0).Length > xUpBefore Then
                                     Dim nLen As Double = (xUpBefore - Notes(xI0).VPosition) * dRatio + Notes(xI0).VPosition + Notes(xI0).Length - xUpBefore
                                     Dim nVPos As Double = (Notes(xI0).VPosition - xBottom) * dRatio + xBottom
-                                    Me.RedoLongNoteModify(Notes(xI0), nVPos, nLen, xUndo, xRedo)
                                     Notes(xI0).Length = nLen
                                     Notes(xI0).VPosition = nVPos
                                 Else
                                     Dim nLen As Double = Notes(xI0).Length * dRatio
                                     Dim nVPos As Double = (Notes(xI0).VPosition - xBottom) * dRatio + xBottom
-                                    Me.RedoLongNoteModify(Notes(xI0), nVPos, nLen, xUndo, xRedo)
                                     Notes(xI0).Length = nLen
                                     Notes(xI0).VPosition = nVPos
                                 End If
                             Else
-                                Me.RedoLongNoteModify(Notes(xI0), Notes(xI0).VPosition + dLength, Notes(xI0).Length, xUndo, xRedo)
                                 Notes(xI0).VPosition += dLength
                             End If
                         Next
@@ -9261,14 +9243,12 @@ case2:              Dim xI0 As Integer
 
                         For xI8 As Integer = xI0 To xI9 - 1
                             Dim nVP As Double = (Notes(xI8).VPosition - xBottom) * dRatio + xBottom
-                            Me.RedoLongNoteModify(Notes(xI0), nVP, Notes(xI0).Length, xUndo, xRedo)
                             Notes(xI8).VPosition = nVP
                         Next
 
                         'GoTo case2
 
                         For xI8 As Integer = xI9 To UBound(Notes)
-                            Me.RedoLongNoteModify(Notes(xI8), Notes(xI8).VPosition + dLength, Notes(xI8).Length, xUndo, xRedo)
                             Notes(xI8).VPosition += dLength
                         Next
                     End If
@@ -9279,20 +9259,18 @@ case2:              Dim xI0 As Integer
         Next
         UpdateMeasureBottom()
         CopyCurrentMeasureLengthToBase()
-        'xUndo &= vbCrLf & xUndo2
-        'xRedo &= vbCrLf & xRedo2
-
         LBeat.SelectedIndices.Clear()
         For xI1 As Integer = 0 To UBound(xIndices)
             LBeat.SelectedIndices.Add(xIndices(xI1))
         Next
 
-        AddUndo(xUndo, xBaseRedo.Next)
         If xReturnToSelectedLayer Then ApplySelectedRandomMeasureMap()
         SortByVPositionInsertion()
         UpdatePairing()
         CalculateTotalPlayableNotes()
         CalculateGreatestVPosition()
+        Dim xRedo As New UndoRedo.MeasureStateChange(BaseMeasureLength, MeasureLength, Notes, RandomBlocks)
+        AddUndo(xUndo, xRedo)
         RefreshPanelAll()
         POStatusRefresh()
     End Sub
