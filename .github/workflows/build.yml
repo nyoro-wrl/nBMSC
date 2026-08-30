@@ -54,7 +54,12 @@ jobs:
             throw "Theme directory was not found: $themePath"
           }
 
+      - name: Build tests
+        shell: pwsh
+        run: |
+          & '${{ steps.msbuild.outputs.path }}' tests/nBMSC.Tests/nBMSC.Tests.vbproj /t:Rebuild /p:Configuration=Debug
+
       - name: Run tests
         shell: pwsh
         run: |
-          & 'tests/nBMSC.Tests/bin/Release/nBMSC.Tests.exe'
+          & 'tests/nBMSC.Tests/bin/Debug/nBMSC.Tests.exe'
