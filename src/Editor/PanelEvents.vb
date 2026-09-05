@@ -16,7 +16,19 @@ Partial Public Class MainWindow
                                            e.Shift,
                                            e.Alt) Then Return
 
-        If e.Control AndAlso e.Alt AndAlso (e.KeyCode = Keys.Up OrElse e.KeyCode = Keys.Down) Then
+        If e.KeyCode = Keys.Tab AndAlso Not e.Control AndAlso Not e.Alt Then
+            e.IsInputKey = True
+            EndKeyMove()
+            Dim xPanelIndex As Integer = sender.Tag
+            If Not IsValidPanelIndex(xPanelIndex) Then Return
+            ReDim SelectedNotes(-1)
+            MoveSelectedNotesToColumnGroup(xPanelIndex)
+            PMainInMouseMove(sender)
+            POStatusRefresh()
+            Return
+        End If
+
+        If e.Control AndAlso e.Alt AndAlso IsMoveKey(e.KeyCode) Then
             EndKeyMove()
             Dim xPanelIndex As Integer = sender.Tag
             If Not IsValidPanelIndex(xPanelIndex) Then Return
@@ -469,18 +481,261 @@ Partial Public Class MainWindow
         Return MeasureBottom(xTargetMeasure) + xFraction * MeasureLength(xTargetMeasure) - xFirstPosition
     End Function
 
+    Private Sub MoveSelectedNotesToColumnGroup(ByVal panelIndex As Integer)
+        Dim xGroups() As List(Of Integer) = {New List(Of Integer), New List(Of Integer)}
+        For Each xColumn As Integer In ThemeColumnDisplayOrder(gColumns)
+            If Not nEnabled(xColumn) OrElse Not IsColumnSound(xColumn) Then Continue For
+            xGroups(If(xColumn < niB, 0, 1)).Add(xColumn)
+        Next
+
+        Dim xNextColumns(UBound(Notes)) As Integer
+        Dim xToBgm(UBound(Notes)) As Boolean
+        Dim xToPlay(UBound(Notes)) As Boolean
+        Dim xPlaySources As New SortedDictionary(Of Integer, List(Of Integer))
+        For i As Integer = 1 To UBound(Notes)
+            xNextColumns(i) = Notes(i).ColumnIndex
+            If Not Notes(i).Selected Then Continue For
+            Dim xSourceGroup As Integer = If(Notes(i).ColumnIndex < niB, 0, 1)
+            Dim xSourceIndex As Integer = xGroups(xSourceGroup).IndexOf(Notes(i).ColumnIndex)
+            If xSourceIndex < 0 OrElse xGroups(1 - xSourceGroup).Count = 0 Then Continue For
+            xToBgm(i) = xSourceGroup = 0
+            xToPlay(i) = Not xToBgm(i)
+            If xToBgm(i) Then
+                xNextColumns(i) = niB + xSourceIndex
+            Else
+                If Not xPlaySources.ContainsKey(Notes(i).ColumnIndex) Then
+                    xPlaySources.Add(Notes(i).ColumnIndex, New List(Of Integer))
+                End If
+                xPlaySources(Notes(i).ColumnIndex).Add(i)
+            End If
+        Next
+
+        If xPlaySources.Count > 0 Then
+            Dim xSourceColumns As New List(Of Integer)(xPlaySources.Keys)
+            Dim xPlayCount As Integer = xGroups(0).Count
+            Dim xOccupants(xPlayCount - 1) As List(Of Integer)
+            For p As Integer = 0 To xPlayCount - 1
+                xOccupants(p) = New List(Of Integer)
+            Next
+            For j As Integer = 1 To UBound(Notes)
+                If xToBgm(j) OrElse xToPlay(j) Then Continue For
+                Dim p As Integer = xGroups(0).IndexOf(Notes(j).ColumnIndex)
+                If p >= 0 Then xOccupants(p).Add(j)
+            Next
+            Dim xOverlapCounts(xSourceColumns.Count - 1, xPlayCount - 1) As Long
+            For s As Integer = 0 To xSourceColumns.Count - 1
+                For p As Integer = 0 To xPlayCount - 1
+                    For Each i As Integer In xPlaySources(xSourceColumns(s))
+                        For Each j As Integer In xOccupants(p)
+                            If Not NotesOverlapInTime(Notes(i), Notes(j)) Then Continue For
+                            xOverlapCounts(s, p) += 1
+                        Next
+                    Next
+                Next
+            Next
+
+            'Try a shared rightward offset before removing gaps between source lanes.
+            Dim xPlacement() As Integer = Nothing
+            Dim xLastOrdinal As Integer = xSourceColumns(xSourceColumns.Count - 1) - niB
+            For xOffset As Integer = 0 To xPlayCount - 1 - xLastOrdinal
+                Dim xCandidate(xSourceColumns.Count - 1) As Integer
+                Dim xFits As Boolean = True
+                For s As Integer = 0 To xSourceColumns.Count - 1
+                    Dim p As Integer = xSourceColumns(s) - niB + xOffset
+                    If xOverlapCounts(s, p) > 0 Then
+                        xFits = False
+                        Exit For
+                    End If
+                    xCandidate(s) = p
+                Next
+                If Not xFits Then Continue For
+                xPlacement = xCandidate
+                Exit For
+            Next
+
+            If xPlacement Is Nothing Then
+                xPlacement = FindLeastOverlappingPlayPlacement(xSourceColumns, xPlaySources, xOverlapCounts)
+            End If
+            For s As Integer = 0 To xSourceColumns.Count - 1
+                For Each i As Integer In xPlaySources(xSourceColumns(s))
+                    xNextColumns(i) = xGroups(0)(xPlacement(s))
+                Next
+            Next
+        End If
+
+        'BGM-bound notes share one offset so their relative lane arrangement is retained.
+        Dim xBgmOffset As Integer = 0
+        Dim xBgmOccupied As Boolean
+        Do
+            xBgmOccupied = False
+            For i As Integer = 1 To UBound(Notes)
+                If Not xToBgm(i) Then Continue For
+                For j As Integer = 1 To UBound(Notes)
+                    If xToBgm(j) Then Continue For
+                    If xNextColumns(j) <> xNextColumns(i) + xBgmOffset OrElse Not NotesOverlapInTime(Notes(i), Notes(j)) Then Continue For
+                    xBgmOccupied = True
+                    Exit For
+                Next
+                If xBgmOccupied Then Exit For
+            Next
+            If xBgmOccupied Then xBgmOffset += 1
+        Loop While xBgmOccupied
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        For i As Integer = 1 To UBound(Notes)
+            Dim xTargetColumn As Integer = xNextColumns(i) + If(xToBgm(i), xBgmOffset, 0)
+            If xTargetColumn = Notes(i).ColumnIndex Then Continue For
+            RedoMoveNote(Notes(i), xTargetColumn, Notes(i).VPosition, xUndo, xRedo)
+            Notes(i).ColumnIndex = xTargetColumn
+        Next
+        If xUndo Is Nothing Then Return
+
+        AddUndo(xUndo, xBaseRedo.Next)
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
+        CalculateGreatestColumn()
+        FollowSelectedNotes(panelIndex, Keys.Right)
+        RefreshPanelAll()
+    End Sub
+
+    Private Function FindLeastOverlappingPlayPlacement(ByVal sourceColumns As List(Of Integer),
+                                                       ByVal sourceNotes As SortedDictionary(Of Integer, List(Of Integer)),
+                                                       ByVal overlapCounts(,) As Long) As Integer()
+        Dim xSourceCount As Integer = sourceColumns.Count
+        Dim xPlayCount As Integer = overlapCounts.GetLength(1)
+        Dim xPlacement(xSourceCount - 1) As Integer
+        If xSourceCount <= xPlayCount Then
+            Dim xCosts(xSourceCount - 1, xPlayCount - 1) As Long
+            Dim xStarts(xSourceCount - 1, xPlayCount - 1) As Integer
+            Dim xPrevious(xSourceCount - 1, xPlayCount - 1) As Integer
+            For s As Integer = 0 To xSourceCount - 1
+                For p As Integer = 0 To xPlayCount - 1
+                    xCosts(s, p) = Long.MaxValue
+                Next
+            Next
+            For p As Integer = 0 To xPlayCount - 1
+                xCosts(0, p) = overlapCounts(0, p)
+                xStarts(0, p) = p
+            Next
+            For s As Integer = 1 To xSourceCount - 1
+                For p As Integer = s To xPlayCount - 1
+                    For previous As Integer = s - 1 To p - 1
+                        If xCosts(s - 1, previous) = Long.MaxValue Then Continue For
+                        Dim xCost As Long = xCosts(s - 1, previous) + overlapCounts(s, p)
+                        If xCost > xCosts(s, p) Then Continue For
+                        If xCost = xCosts(s, p) AndAlso xStarts(s - 1, previous) <= xStarts(s, p) Then Continue For
+                        xCosts(s, p) = xCost
+                        xStarts(s, p) = xStarts(s - 1, previous)
+                        xPrevious(s, p) = previous
+                    Next
+                Next
+            Next
+            Dim xBest As Integer = xSourceCount - 1
+            For p As Integer = xSourceCount To xPlayCount - 1
+                Dim xLast As Integer = xSourceCount - 1
+                If xCosts(xLast, p) < xCosts(xLast, xBest) OrElse
+                   (xCosts(xLast, p) = xCosts(xLast, xBest) AndAlso
+                    p - xStarts(xLast, p) < xBest - xStarts(xLast, xBest)) Then xBest = p
+            Next
+            For s As Integer = xSourceCount - 1 To 0 Step -1
+                xPlacement(s) = xBest
+                xBest = xPrevious(s, xBest)
+            Next
+            Return xPlacement
+        End If
+
+        'With more source lanes than play lanes, only adjacent source lanes may share a destination.
+        Dim xSourceIndices As New Dictionary(Of Integer, Integer)
+        Dim xSortedNotes As New List(Of Integer)
+        For s As Integer = 0 To xSourceCount - 1
+            xSourceIndices.Add(sourceColumns(s), s)
+            xSortedNotes.AddRange(sourceNotes(sourceColumns(s)))
+        Next
+        xSortedNotes.Sort(Function(a, b) Notes(a).VPosition.CompareTo(Notes(b).VPosition))
+        Dim xSharedOverlaps(xSourceCount - 1, xSourceCount - 1) As Long
+        For a As Integer = 0 To xSortedNotes.Count - 1
+            Dim xFirst As Note = Notes(xSortedNotes(a))
+            Dim xEnd As Double = xFirst.VPosition + If(NTInput, xFirst.Length, 0)
+            For b As Integer = a + 1 To xSortedNotes.Count - 1
+                Dim xSecond As Note = Notes(xSortedNotes(b))
+                If xSecond.VPosition > xEnd Then Exit For
+                If xFirst.ColumnIndex = xSecond.ColumnIndex OrElse Not NotesOverlapInTime(xFirst, xSecond) Then Continue For
+                Dim xLeft As Integer = xSourceIndices(xFirst.ColumnIndex)
+                Dim xRight As Integer = xSourceIndices(xSecond.ColumnIndex)
+                xSharedOverlaps(Math.Min(xLeft, xRight), Math.Max(xLeft, xRight)) += 1
+            Next
+        Next
+        For first As Integer = xSourceCount - 1 To 0 Step -1
+            Dim xRowTotal As Long = 0
+            For last As Integer = first + 1 To xSourceCount - 1
+                xRowTotal += xSharedOverlaps(first, last)
+                xSharedOverlaps(first, last) = xSharedOverlaps(first + 1, last) + xRowTotal
+            Next
+        Next
+        Dim xExistingOverlaps(xSourceCount, xPlayCount - 1) As Long
+        For s As Integer = 0 To xSourceCount - 1
+            For p As Integer = 0 To xPlayCount - 1
+                xExistingOverlaps(s + 1, p) = xExistingOverlaps(s, p) + overlapCounts(s, p)
+            Next
+        Next
+        Dim xPartitionCosts(xSourceCount, xPlayCount) As Long
+        Dim xPartitionStarts(xSourceCount, xPlayCount) As Integer
+        For s As Integer = 0 To xSourceCount
+            For p As Integer = 0 To xPlayCount
+                xPartitionCosts(s, p) = Long.MaxValue
+            Next
+        Next
+        xPartitionCosts(0, 0) = 0
+        For p As Integer = 1 To xPlayCount
+            For count As Integer = p To xSourceCount - (xPlayCount - p)
+                For first As Integer = p - 1 To count - 1
+                    If xPartitionCosts(first, p - 1) = Long.MaxValue Then Continue For
+                    Dim xCost As Long = xPartitionCosts(first, p - 1) +
+                                        xExistingOverlaps(count, p - 1) - xExistingOverlaps(first, p - 1) +
+                                        xSharedOverlaps(first, count - 1)
+                    If xCost >= xPartitionCosts(count, p) Then Continue For
+                    xPartitionCosts(count, p) = xCost
+                    xPartitionStarts(count, p) = first
+                Next
+            Next
+        Next
+        Dim xCount As Integer = xSourceCount
+        For p As Integer = xPlayCount To 1 Step -1
+            Dim xFirst As Integer = xPartitionStarts(xCount, p)
+            For s As Integer = xFirst To xCount - 1
+                xPlacement(s) = p - 1
+            Next
+            xCount = xFirst
+        Next
+        Return xPlacement
+    End Function
+
+    Private Function NotesOverlapInTime(ByVal first As Note, ByVal second As Note) As Boolean
+        If Not NTInput Then Return first.VPosition = second.VPosition
+        Return first.VPosition <= second.VPosition + second.Length AndAlso
+               first.VPosition + first.Length >= second.VPosition
+    End Function
+
     Private Sub DuplicateSelectedNotesFromKeyboard(ByVal keyCode As Keys, ByVal byMeasure As Boolean, ByVal panelIndex As Integer)
-        Dim xDelta As Double = SelectedKeyMoveDelta(keyCode, False, byMeasure, False)
+        Dim xHorizontal As Boolean = keyCode = Keys.Left OrElse keyCode = Keys.Right
+        Dim xColumnDelta As Integer = If(xHorizontal, If(keyCode = Keys.Left, -1, 1), 0)
+        Dim xDelta As Double = If(xHorizontal, 0, SelectedKeyMoveDelta(keyCode, False, byMeasure, False))
         Dim xSelectedCount As Integer = 0
         For i As Integer = 1 To UBound(Notes)
             If Not Notes(i).Selected Then Continue For
 
             xSelectedCount += 1
-            xDelta = Math.Max(-Notes(i).VPosition, xDelta)
-            Dim xEnd As Double = Notes(i).VPosition + If(NTInput, Notes(i).Length, 0)
-            xDelta = Math.Min(Math.Max(0, GetMaxVPosition() - 1 - xEnd), xDelta)
+            If xHorizontal Then
+                xColumnDelta = Math.Max(-ColumnArrayIndexToEnabledColumnIndex(Notes(i).ColumnIndex), xColumnDelta)
+            Else
+                xDelta = Math.Max(-Notes(i).VPosition, xDelta)
+                Dim xEnd As Double = Notes(i).VPosition + If(NTInput, Notes(i).Length, 0)
+                xDelta = Math.Min(Math.Max(0, GetMaxVPosition() - 1 - xEnd), xDelta)
+            End If
         Next
-        If xSelectedCount = 0 OrElse xDelta = 0 Then Return
+        If xSelectedCount = 0 OrElse (xDelta = 0 AndAlso xColumnDelta = 0) Then Return
 
         Dim xUndo As UndoRedo.LinkedURCmd = Nothing
         Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
@@ -493,6 +748,7 @@ Partial Public Class MainWindow
 
             Dim xCopy As Note = Notes(i)
             xCopy.VPosition += xDelta
+            If xHorizontal Then xCopy.ColumnIndex = EnabledColumnIndexToColumnArrayIndex(ColumnArrayIndexToEnabledColumnIndex(xCopy.ColumnIndex) + xColumnDelta)
             RedoAddNote(xCopy, xUndo, xRedo)
             Notes(i).Selected = False
             Notes(xNext) = xCopy

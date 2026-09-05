@@ -42,6 +42,16 @@ Module TestRunner
         Run("arrow modifier compatibility", AddressOf ArrowModifierCompatibility)
         Run("Ctrl Alt arrows duplicate notes", AddressOf CtrlAltArrowsDuplicateNotes)
         Run("Ctrl Alt Shift arrows duplicate across measures", AddressOf CtrlAltShiftArrowsDuplicateAcrossMeasures)
+        Run("Ctrl Alt horizontal arrows duplicate across visible lanes", AddressOf CtrlAltHorizontalArrowsDuplicateNotes)
+        Run("Ctrl Alt Shift horizontal arrows duplicate notes", AddressOf CtrlAltShiftHorizontalArrowsDuplicateNotes)
+        Run("Ctrl Alt horizontal arrows clamp the left boundary", AddressOf CtrlAltHorizontalArrowsClampLeftBoundary)
+        Run("Tab toggles play and BGM", AddressOf TabTogglesPlayAndBgm)
+        Run("Tab overflow and unavailable group", AddressOf TabOverflowAndUnavailableGroup)
+        Run("Tab selection and modifiers", AddressOf TabSelectionAndModifiers)
+        Run("Tab avoids overlapping destinations", AddressOf TabAvoidsOverlappingDestinations)
+        Run("Tab swaps selected sources", AddressOf TabSwapsSelectedSources)
+        Run("Tab compacts BGM into play lanes", AddressOf TabCompactsBgmIntoPlayLanes)
+        Run("Tab minimizes unavoidable play overlaps", AddressOf TabMinimizesUnavoidablePlayOverlaps)
         Run("Ctrl Alt arrows clamp chart bounds", AddressOf CtrlAltArrowsClampChartBounds)
         Run("Ctrl Alt duplicate follows vertical scroll", AddressOf CtrlAltDuplicateFollowsVerticalScroll)
         Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
@@ -827,6 +837,463 @@ Module TestRunner
                                 False, False, -1, 0, "measure Down should preserve spacing across variable measures")
         End Using
     End Sub
+
+    Private Sub CtrlAltHorizontalArrowsDuplicateNotes()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120}, New Double() {24})
+            Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+            notes(1).Hidden = True
+            notes(1).RandomIndex = 7
+            notes(1).RandomValue = 4
+            window.column(MainWindow.niA2).isVisible = False
+            window.column(MainWindow.niA3).isVisible = True
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Right)
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "horizontal Right should add one copy")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 24.0R, 10000, False,
+                                True, False, 7, 4, "horizontal Right should retain the original")
+            AssertDuplicateNote(window, MainWindow.niA3, 120.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "horizontal Right should skip the hidden lane")
+            AssertEqual(1, CountSelectedNotes(window),
+                        "horizontal Right should select only the copy")
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Right)
+            AssertEqual(4, PrivateField(Of Note())(window, "Notes").Length,
+                        "repeating horizontal Right should copy the selected lane")
+            AssertDuplicateNote(window, MainWindow.niA3, 120.0R, 24.0R, 10000, False,
+                                True, False, 7, 4, "repeat should deselect the previous horizontal copy")
+            AssertDuplicateNote(window, MainWindow.niA4, 120.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "repeat should select the newest horizontal copy")
+            AssertEqual(1, CountSelectedNotes(window),
+                        "repeated horizontal Right should replace the selection")
+
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "undo should remove the repeated horizontal copy")
+            AssertNoNoteAt(window, MainWindow.niA4, 120.0R,
+                           "undo should remove the newest horizontal copy")
+
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertEqual(4, PrivateField(Of Note())(window, "Notes").Length,
+                        "redo should restore the repeated horizontal copy")
+            AssertDuplicateNote(window, MainWindow.niA4, 120.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "redo should restore the selected horizontal copy")
+        End Using
+    End Sub
+
+    Private Sub CtrlAltShiftHorizontalArrowsDuplicateNotes()
+        For Each direction As System.Windows.Forms.Keys In {
+                System.Windows.Forms.Keys.Left, System.Windows.Forms.Keys.Right}
+            Using window As MainWindow = CreateArrowTestWindow(New Double() {120}, New Double() {24})
+                PrivateField(Of Note())(window, "Notes")(1).ColumnIndex = MainWindow.niA3
+                Dim targetColumn As Integer = If(direction = System.Windows.Forms.Keys.Left,
+                                                 MainWindow.niA2, MainWindow.niA4)
+                window.column(MainWindow.niA3).isVisible = True
+                window.column(targetColumn).isVisible = True
+                PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or
+                                   System.Windows.Forms.Keys.Shift Or direction)
+                AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                            "Shift should preserve horizontal duplication")
+                AssertDuplicateNote(window, MainWindow.niA3, 120.0R, 24.0R, 10000, False,
+                                    False, False, -1, 0, "Shift should retain the original note")
+                AssertDuplicateNote(window, targetColumn, 120.0R, 24.0R, 10000, True,
+                                    False, False, -1, 0, "Shift should copy one lane without changing time")
+            End Using
+        Next
+    End Sub
+
+    Private Sub CtrlAltHorizontalArrowsClampLeftBoundary()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120}, New Double() {24})
+            Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+            notes(1).ColumnIndex = MainWindow.niA3
+            window.column(MainWindow.niA2).isVisible = False
+            window.column(MainWindow.niA3).isVisible = True
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Left)
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "horizontal Left should add a copy from the visible lane")
+            AssertDuplicateNote(window, MainWindow.niA3, 120.0R, 24.0R, 10000, False,
+                                False, False, -1, 0, "horizontal Left should retain the original")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "horizontal Left should skip the hidden lane")
+        End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120, 216}, New Double() {24, 0})
+            Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+            notes(2).ColumnIndex = MainWindow.niA3
+            window.column(MainWindow.niSCROLL).isVisible = False
+            window.column(MainWindow.niBPM).isVisible = False
+            window.column(MainWindow.niSTOP).isVisible = False
+            window.column(MainWindow.niA2).isVisible = False
+            window.column(MainWindow.niA3).isVisible = True
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Left)
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "a left boundary shared by the selection should create no copies")
+            AssertEqual(2, CountSelectedNotes(window),
+                        "a zero horizontal delta should preserve the whole selection")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "left boundary should preserve the first selected note")
+            AssertDuplicateNote(window, MainWindow.niA3, 216.0R, 0.0R, 20000, True,
+                                False, False, -1, 0, "left boundary should preserve the second selected note")
+        End Using
+    End Sub
+
+    Private Sub TabTogglesPlayAndBgm()
+        Dim testNotes() As Note = {
+            New Note(MainWindow.niA3, 96.0R, 10000, 24, True, True, False, 2, 4),
+            New Note(MainWindow.niD1, 192.0R, 20000, 0, False, True, True),
+            New Note(MainWindow.niB + 2, 288.0R, 30000),
+            New Note(MainWindow.niBGA, 384.0R, 40000),
+            New Note(MainWindow.niBPM, 480.0R, 50000)}
+        Dim order() As Integer = {MainWindow.niBPM, MainWindow.niA3, MainWindow.niA1,
+                                 MainWindow.niD2, MainWindow.niD1, MainWindow.niBGA, MainWindow.niB}
+        Using window As MainWindow = CreateThemeNavigationWindow(testNotes, order, order, MainWindow.niB + 3)
+            SelectTestNotes(window, 1, 2, 3, 4, 5)
+            Dim tabEvent = PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertTrue(tabEvent.IsInputKey, "Tab should remain editor input")
+            AssertDuplicateNote(window, MainWindow.niB, 96.0R, 24.0R, 10000, True,
+                                True, False, 2, 4, "1P should move to BGM with its attributes")
+            AssertDuplicateNote(window, MainWindow.niB + 3, 192.0R, 0.0R, 20000, True,
+                                False, True, -1, 0, "2P should use its ordinal in the combined play lanes")
+            AssertDuplicateNote(window, MainWindow.niD2, 288.0R, 0.0R, 30000, True,
+                                False, False, -1, 0, "BGM should reach 2P through the combined play lanes")
+            AssertDuplicateNote(window, MainWindow.niBGA, 384.0R, 0.0R, 40000, True,
+                                False, False, -1, 0, "selected image notes should stay in place")
+            AssertDuplicateNote(window, MainWindow.niBPM, 480.0R, 0.0R, 50000, True,
+                                False, False, -1, 0, "selected control notes should stay in place")
+            AssertEqual(5, CountSelectedNotes(window), "mixed selection should be preserved")
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertDuplicateNote(window, MainWindow.niD1, 192.0R, 0.0R, 20000, True,
+                                False, True, -1, 0, "undo should restore the original 2P lane")
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertDuplicateNote(window, MainWindow.niB + 3, 192.0R, 0.0R, 20000, True,
+                                False, True, -1, 0, "redo should restore the BGM destination")
+            Dim shiftTab = PressPreviewKey(window, System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Tab)
+            AssertTrue(shiftTab.IsInputKey, "Shift Tab should remain editor input")
+            AssertDuplicateNote(window, MainWindow.niD1, 192.0R, 0.0R, 20000, True,
+                                False, True, -1, 0, "Shift Tab should toggle BGM back to the combined play lanes")
+            AssertDuplicateNote(window, MainWindow.niB + 2, 288.0R, 0.0R, 30000, True,
+                                False, False, -1, 0, "Shift Tab should toggle 2P back to BGM")
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niB + 3, 192.0R, 0.0R, 20000, True,
+                                False, True, -1, 0, "Tab should keep toggling repeatedly")
+        End Using
+    End Sub
+
+    Private Sub TabOverflowAndUnavailableGroup()
+        Dim testNotes() As Note = {
+            New Note(MainWindow.niD1, 96.0R, 10000),
+            New Note(MainWindow.niB + 2, 192.0R, 20000)}
+        Dim order() As Integer = {MainWindow.niBPM, MainWindow.niA1, MainWindow.niD1,
+                                 MainWindow.niBGA, MainWindow.niB}
+        Using window As MainWindow = CreateThemeNavigationWindow(testNotes, order, order, MainWindow.niB + 2)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niB + 1, 96.0R, 0.0R, 10000, True,
+                                False, False, -1, 0, "2P should share the play lane ordinal")
+            AssertDuplicateNote(window, MainWindow.niA1, 192.0R, 0.0R, 20000, True,
+                                False, False, -1, 0, "BGM overflow should stay in the play range")
+        End Using
+        Dim playNotes() As Note = {New Note(MainWindow.niD1, 96.0R, 10000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(playNotes, order, order)
+            SelectTestNotes(window, 1)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niB + 1, 96.0R, 0.0R, 10000, True,
+                                False, False, -1, 0, "BGM should expand beyond its displayed lane count")
+        End Using
+        Using window As MainWindow = CreateThemeNavigationWindow(playNotes, order,
+                New Integer() {MainWindow.niA1, MainWindow.niD1, MainWindow.niBGA})
+            SelectTestNotes(window, 1)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niD1, 96.0R, 0.0R, 10000, True,
+                                False, False, -1, 0, "an unavailable BGM group should leave play notes in place")
+        End Using
+    End Sub
+
+    Private Sub TabSelectionAndModifiers()
+        Dim testNotes() As Note = {New Note(MainWindow.niA1, 96.0R, 10000),
+                                  New Note(MainWindow.niA1, 192.0R, 10000)}
+        Dim order() As Integer = {MainWindow.niA1, MainWindow.niB}
+        Using window As MainWindow = CreateThemeNavigationWindow(testNotes, order, order)
+            SelectTestNotes(window)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertEqual(0, CountSelectedNotes(window), "Tab should keep an empty selection empty")
+            SelectTestNotes(window, 1)
+            For Each keyData As System.Windows.Forms.Keys In {
+                    System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Tab,
+                    System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Tab}
+                PressPreviewKey(window, keyData)
+                AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 0.0R, 10000, True,
+                                    False, False, -1, 0, "excluded shortcuts should leave the note untouched")
+                AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                            "excluded shortcuts should create no copies")
+            Next
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niB, 96.0R, 0.0R, 10000, True,
+                                False, False, -1, 0, "Tab should move the original selected note")
+            AssertDuplicateNote(window, MainWindow.niA1, 192.0R, 0.0R, 10000, False,
+                                False, False, -1, 0, "Tab should not select the next same-WAV note")
+            AssertEqual(1, CountSelectedNotes(window), "Tab should preserve selection cardinality")
+        End Using
+    End Sub
+
+    Private Sub TabAvoidsOverlappingDestinations()
+        Dim order() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3,
+                                  MainWindow.niD1, MainWindow.niBGA, MainWindow.niBPM, MainWindow.niB}
+
+        Dim ntNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 10000, 24, True, False, True, 5, 6),
+            New Note(MainWindow.niB + 1, 192.0R, 20000, 0, False, False, True, 7, 8),
+            New Note(MainWindow.niA1, 120.0R, 30000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(ntNotes, order,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3,
+                               MainWindow.niD1, MainWindow.niBGA, MainWindow.niBPM, MainWindow.niB},
+                MainWindow.niB + 1)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA2, 96.0R, 24.0R, 10000, True,
+                                True, True, 5, 6, "NT overlap should shift the whole BGM selection by one lane")
+            AssertDuplicateNote(window, MainWindow.niA3, 192.0R, 0.0R, 20000, True,
+                                False, True, 7, 8, "NT overlap should preserve the second BGM note's relative lane")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 0.0R, 30000, False,
+                                False, False, -1, 0, "NT overlap should retain the unselected note")
+        End Using
+
+        Dim nonNtNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 30000, 24, True, False, False, 7, 8),
+            New Note(MainWindow.niB + 1, 192.0R, 40000, 0, False, False, True, 9, 10),
+            New Note(MainWindow.niA1, 120.0R, 50000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(nonNtNotes, order,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3,
+                               MainWindow.niD1, MainWindow.niBGA, MainWindow.niBPM, MainWindow.niB},
+                MainWindow.niB + 1)
+            SetPrivateField(window, "NTInput", False)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 24.0R, 30000, True,
+                                True, False, 7, 8, "non-NT overlap should compare start times only")
+            AssertDuplicateNote(window, MainWindow.niA2, 192.0R, 0.0R, 40000, True,
+                                False, True, 9, 10, "non-NT movement should keep the second BGM lane offset")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 0.0R, 50000, False,
+                                False, False, -1, 0, "non-NT overlap should retain the later note")
+        End Using
+
+        Dim playNotes() As Note = {
+            New Note(MainWindow.niA1, 96.0R, 50000, 24, True, False, False, 9, 10),
+            New Note(MainWindow.niA2, 192.0R, 60000, 0, False, False, True),
+            New Note(MainWindow.niB, 120.0R, 70000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(playNotes, order,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3,
+                               MainWindow.niD1, MainWindow.niBGA, MainWindow.niBPM, MainWindow.niB},
+                MainWindow.niB + 2)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niB + 1, 96.0R, 24.0R, 50000, True,
+                                True, False, 9, 10, "BGM overlap should shift the whole selected play group")
+            AssertDuplicateNote(window, MainWindow.niB + 2, 192.0R, 0.0R, 60000, True,
+                                False, True, -1, 0, "BGM overlap should preserve the selected group offset")
+            AssertDuplicateNote(window, MainWindow.niB, 120.0R, 0.0R, 70000, False,
+                                False, False, -1, 0, "BGM overlap should retain the existing note")
+        End Using
+    End Sub
+
+    Private Sub TabSwapsSelectedSources()
+        Dim swapOrder() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niB}
+        Dim swapNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 80000, 24, True, False, True, 11, 12),
+            New Note(MainWindow.niA1, 96.0R, 90000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(swapNotes, swapOrder,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niB}, MainWindow.niB + 1)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 24.0R, 80000, True,
+                                True, True, 11, 12, "selected source positions should not block a swap")
+            AssertDuplicateNote(window, MainWindow.niB, 96.0R, 0.0R, 90000, True,
+                                False, False, -1, 0, "selected source positions should be vacated before checking overlap")
+            AssertEqual(2, CountSelectedNotes(window), "a selected swap should preserve both selections")
+        End Using
+    End Sub
+
+    Private Sub TabCompactsBgmIntoPlayLanes()
+        Dim compactOrder() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB}
+        Dim compactNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 130000),
+            New Note(MainWindow.niB + 2, 96.0R, 140000),
+            New Note(MainWindow.niB + 2, 192.0R, 150000),
+            New Note(MainWindow.niA1, 96.0R, 160000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(compactNotes, compactOrder,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB},
+                MainWindow.niB + 2)
+            SelectTestNotes(window, 1, 2, 3)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA2, 96.0R, 0.0R, 130000, True,
+                                False, False, -1, 0, "compact movement should shift the first occupied source lane right")
+            AssertDuplicateNote(window, MainWindow.niA3, 96.0R, 0.0R, 140000, True,
+                                False, False, -1, 0, "compact movement should preserve occupied source order")
+            AssertDuplicateNote(window, MainWindow.niA3, 192.0R, 0.0R, 150000, True,
+                                False, False, -1, 0, "notes from one source lane should stay together")
+            AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 0.0R, 160000, False,
+                                False, False, -1, 0, "compact movement should retain the existing play note")
+        End Using
+
+        Dim overflowOrder() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niB}
+        Dim overflowNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 170000),
+            New Note(MainWindow.niB + 1, 96.0R, 180000),
+            New Note(MainWindow.niB + 2, 96.0R, 190000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(overflowNotes, overflowOrder,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niB},
+                MainWindow.niB + 2)
+            SelectTestNotes(window, 1, 2, 3)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 0.0R, 170000, True,
+                                False, False, -1, 0, "overflow should use the first play lane")
+            Dim overlappingValues As New List(Of Long)
+            For Each note As Note In PrivateField(Of Note())(window, "Notes")
+                If note.ColumnIndex <> MainWindow.niA2 OrElse note.VPosition <> 96.0R Then Continue For
+                AssertTrue(note.Selected, "overlapping notes should remain selected")
+                overlappingValues.Add(note.Value)
+            Next
+            AssertEqual(2, overlappingValues.Count, "overflow should keep both notes at the play right edge")
+            AssertTrue(overlappingValues.Contains(180000) AndAlso overlappingValues.Contains(190000),
+                       "overflow should preserve both overlapping note values")
+            AssertNoNoteAt(window, MainWindow.niB, 96.0R, "overflow should not leave the first BGM source note")
+            AssertNoNoteAt(window, MainWindow.niB + 1, 96.0R, "overflow should not leave the second BGM source note")
+            AssertNoNoteAt(window, MainWindow.niB + 2, 96.0R, "overflow should not leave the third BGM source note")
+        End Using
+    End Sub
+
+    Private Sub TabMinimizesUnavoidablePlayOverlaps()
+        Dim partialOrder() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB}
+        Dim partialNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 200000),
+            New Note(MainWindow.niB + 1, 96.0R, 210000),
+            New Note(MainWindow.niA1, 96.0R, 220000),
+            New Note(MainWindow.niA2, 96.0R, 230000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(partialNotes, partialOrder,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB},
+                MainWindow.niB + 1)
+            SelectTestNotes(window, 1, 2)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+            AssertDuplicateNote(window, MainWindow.niA2, 96.0R, 0.0R, 200000, True,
+                                False, False, -1, 0, "one unavoidable collision should remain after compact placement")
+            AssertDuplicateNote(window, MainWindow.niA3, 96.0R, 0.0R, 210000, True,
+                                False, False, -1, 0, "the other source lane should move right to avoid its collision")
+            AssertDuplicateNote(window, MainWindow.niA1, 96.0R, 0.0R, 220000, False,
+                                False, False, -1, 0, "the first blocking play note should remain")
+            Dim blockerFound As Boolean = False
+            For Each note As Note In PrivateField(Of Note())(window, "Notes")
+                If note.Value <> 230000 Then Continue For
+                AssertEqual(MainWindow.niA2, note.ColumnIndex, "the second blocking play note should keep its lane")
+                AssertApprox(96.0R, note.VPosition, "the second blocking play note should keep its time")
+                AssertFalse(note.Selected, "the second blocking play note should remain unselected")
+                blockerFound = True
+            Next
+            AssertTrue(blockerFound, "the second blocking play note should remain")
+        End Using
+
+        Dim spreadOrder() As Integer = {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB}
+        Dim spreadNotes() As Note = {
+            New Note(MainWindow.niB, 96.0R, 240000),
+            New Note(MainWindow.niB + 1, 96.0R, 250000),
+            New Note(MainWindow.niB + 2, 96.0R, 260000),
+            New Note(MainWindow.niB + 3, 96.0R, 270000),
+            New Note(MainWindow.niB + 4, 96.0R, 280000)}
+        Using window As MainWindow = CreateThemeNavigationWindow(spreadNotes, spreadOrder,
+                New Integer() {MainWindow.niA1, MainWindow.niA2, MainWindow.niA3, MainWindow.niB},
+                MainWindow.niB + 4)
+            SelectTestNotes(window, 1, 2, 3, 4, 5)
+            PressPreviewKey(window, System.Windows.Forms.Keys.Tab)
+
+            Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+            Dim assignedColumns(4) As Integer
+            Dim counts(2) As Integer
+            For sourceIndex As Integer = 0 To 4
+                Dim expectedValue As Long = 240000 + sourceIndex * 10000
+                Dim found As Boolean = False
+                For i As Integer = 1 To UBound(notes)
+                    If notes(i).Value <> expectedValue Then Continue For
+                    AssertTrue(notes(i).Selected, "distributed overlap notes should remain selected")
+                    AssertTrue(notes(i).ColumnIndex >= MainWindow.niA1 AndAlso
+                               notes(i).ColumnIndex <= MainWindow.niA3,
+                               "distributed overlap notes should remain in play lanes")
+                    assignedColumns(sourceIndex) = notes(i).ColumnIndex
+                    counts(notes(i).ColumnIndex - MainWindow.niA1) += 1
+                    found = True
+                    Exit For
+                Next
+                AssertTrue(found, "every source note should receive a play destination")
+            Next
+
+            For sourceIndex As Integer = 1 To 4
+                AssertTrue(assignedColumns(sourceIndex - 1) <= assignedColumns(sourceIndex),
+                           "distributed destinations should preserve source order")
+            Next
+            AssertEqual(5, counts(0) + counts(1) + counts(2),
+                        "distributed destinations should place every source note")
+            AssertTrue(counts(0) > 0 AndAlso counts(1) > 0 AndAlso counts(2) > 0,
+                       "distributed destinations should use every play lane")
+            AssertTrue(Math.Max(counts(0), Math.Max(counts(1), counts(2))) <= 2,
+                       "distributed destinations should avoid a three-note overlap cluster")
+        End Using
+    End Sub
+
+    Private Function CreateThemeNavigationWindow(ByVal testNotes() As Note,
+                                                 ByVal themeOrder() As Integer,
+                                                 ByVal visibleColumns() As Integer,
+                                                 Optional ByVal maxColumn As Integer = -1) As MainWindow
+        Dim window As New MainWindow()
+        For i As Integer = 0 To window.column.Length - 1
+            window.column(i).isVisible = False
+        Next
+        For Each columnIndex As Integer In visibleColumns
+            window.column(columnIndex).isVisible = True
+        Next
+
+        SetPrivateField(window, "ThemeColumnVisible", Nothing)
+        SetPrivateField(window, "ThemeColumnOrder", CType(themeOrder.Clone(), Integer()))
+        SetPrivateField(window, "ThemeColumnGap", 0)
+        SetPrivateField(window, "ThemePlayerGap", False)
+        SetPrivateField(window, "gColumns", If(maxColumn < 0, MainWindow.niB, maxColumn))
+
+        Dim notes(testNotes.Length) As Note
+        notes(0) = PrivateField(Of Note())(window, "Notes")(0)
+        For i As Integer = 0 To testNotes.Length - 1
+            notes(i + 1) = testNotes(i)
+        Next
+
+        Dim lengths(999) As Double
+        For i As Integer = 0 To 999
+            lengths(i) = 192.0R
+        Next
+        SetPrivateField(window, "MeasureLength", lengths)
+        SetPrivateField(window, "Notes", notes)
+        SetPrivateField(window, "NTInput", True)
+        InvokePrivate(window, "UpdateMeasureBottom", New Object() {})
+        Return window
+    End Function
+
+    Private Sub SelectTestNotes(ByVal window As MainWindow, ParamArray indices() As Integer)
+        Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+        For i As Integer = 1 To UBound(notes)
+            notes(i).Selected = False
+        Next
+        For Each index As Integer In indices
+            If index < 1 OrElse index > UBound(notes) Then
+                Throw New InvalidOperationException("Invalid test note index: " & index.ToString())
+            End If
+            notes(index).Selected = True
+        Next
+    End Sub
+
+    Private Function PressPreviewKey(ByVal window As MainWindow,
+                                     ByVal keyData As System.Windows.Forms.Keys) As System.Windows.Forms.PreviewKeyDownEventArgs
+        Dim panel As System.Windows.Forms.Panel = DirectCast(window.Controls.Find("PMainIn", True)(0), System.Windows.Forms.Panel)
+        Dim eventArgs As New System.Windows.Forms.PreviewKeyDownEventArgs(keyData)
+        InvokePrivate(window, "PMainInPreviewKeyDown", New Object() {panel, eventArgs})
+        Return eventArgs
+    End Function
 
     Private Sub CtrlAltArrowsClampChartBounds()
         Using window As MainWindow = CreateArrowTestWindow(New Double() {192070, 192080}, New Double() {20, 10})
