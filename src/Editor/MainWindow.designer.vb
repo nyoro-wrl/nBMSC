@@ -244,6 +244,7 @@ Partial Class MainWindow
         Me.mnFile = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnNew = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnOpen = New System.Windows.Forms.ToolStripMenuItem()
+        Me.mnShowInExplorer = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnReloadEncoding = New System.Windows.Forms.ToolStripMenuItem()
         Me.mnImportNBMSC = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator14 = New System.Windows.Forms.ToolStripSeparator()
@@ -3177,7 +3178,7 @@ Partial Class MainWindow
         '
         'mnFile
         '
-        Me.mnFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNew, Me.mnOpen, Me.mnReloadEncoding, Me.mnImportNBMSC, Me.ToolStripSeparator14, Me.mnSave, Me.mnSaveAs, Me.mnExportNBMSC, Me.mnExportBMSON, Me.ToolStripSeparator15, Me.mnOpenR0, Me.mnOpenR1, Me.mnOpenR2, Me.mnOpenR3, Me.mnOpenR4, Me.ToolStripSeparator16, Me.mnQuit})
+        Me.mnFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.mnNew, Me.mnOpen, Me.mnShowInExplorer, Me.mnReloadEncoding, Me.mnImportNBMSC, Me.ToolStripSeparator14, Me.mnSave, Me.mnSaveAs, Me.mnExportNBMSC, Me.mnExportBMSON, Me.ToolStripSeparator15, Me.mnOpenR0, Me.mnOpenR1, Me.mnOpenR2, Me.mnOpenR3, Me.mnOpenR4, Me.ToolStripSeparator16, Me.mnQuit})
         Me.mnFile.Name = "mnFile"
         Me.mnFile.Size = New System.Drawing.Size(37, 19)
         Me.mnFile.Text = "&File"
@@ -3197,6 +3198,13 @@ Partial Class MainWindow
         Me.mnOpen.ShortcutKeys = CType((System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.O), System.Windows.Forms.Keys)
         Me.mnOpen.Size = New System.Drawing.Size(199, 22)
         Me.mnOpen.Text = "&Open"
+        '
+        'mnShowInExplorer
+        '
+        Me.mnShowInExplorer.Enabled = False
+        Me.mnShowInExplorer.Name = "mnShowInExplorer"
+        Me.mnShowInExplorer.Size = New System.Drawing.Size(199, 22)
+        Me.mnShowInExplorer.Text = "Show in Explorer"
         '
         'mnReloadEncoding
         '
@@ -5079,6 +5087,7 @@ Partial Class MainWindow
     Friend WithEvents mnFile As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnNew As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnOpen As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents mnShowInExplorer As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents mnImportNBMSC As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator14 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents mnSave As System.Windows.Forms.ToolStripMenuItem

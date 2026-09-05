@@ -1398,6 +1398,7 @@ Public Class MainWindow
         SetText("Menu.File.Title", mnFile.Text)
         SetText("Menu.File.New", mnNew.Text)
         SetText("Menu.File.Open", mnOpen.Text)
+        SetText("Menu.File.ShowInExplorer", mnShowInExplorer.Text)
         SetText("Menu.File.ImportNBMSC", mnImportNBMSC.Text)
         SetText("Menu.File.Save", mnSave.Text)
         SetText("Menu.File.SaveAs", mnSaveAs.Text)
@@ -5207,6 +5208,28 @@ EndSearch:
         InitPath = ExcludeFileName(xDOpen.FileName)
         ShowLoadFileProgress(New String() {xDOpen.FileName}, True)
         'pIsSaved.Visible = Not IsSaved
+    End Sub
+
+    Private Sub mnFile_DropDownOpening(ByVal sender As Object, ByVal e As EventArgs) Handles mnFile.DropDownOpening
+        mnShowInExplorer.Enabled = ExcludeFileName(FileName) <> "" AndAlso File.Exists(FileName)
+    End Sub
+
+    Private Sub mnShowInExplorer_Click(ByVal sender As Object, ByVal e As EventArgs) Handles mnShowInExplorer.Click
+        If ExcludeFileName(FileName) = "" Then Return
+        If Not File.Exists(FileName) Then
+            MsgBox(Strings.Messages.CannotFind.Replace("{}", FileName), MsgBoxStyle.Exclamation, Strings.Messages.Err)
+            Return
+        End If
+
+        Try
+            Dim xInfo As New ProcessStartInfo()
+            xInfo.FileName = "explorer.exe"
+            xInfo.Arguments = "/select,""" & Path.GetFullPath(FileName) & """"
+            xInfo.UseShellExecute = True
+            Process.Start(xInfo)
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Exclamation, Strings.Messages.Err)
+        End Try
     End Sub
 
     Private Sub ReloadEncodingMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs)

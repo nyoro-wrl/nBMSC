@@ -330,6 +330,9 @@
   <data name="Menu.File.Open" xml:space="preserve">
     <value>開く</value>
   </data>
+  <data name="Menu.File.ShowInExplorer" xml:space="preserve">
+    <value>エクスプローラーで表示</value>
+  </data>
   <data name="Menu.File.Quit" xml:space="preserve">
     <value>終了</value>
   </data>

@@ -327,6 +327,9 @@
   <data name="Menu.File.Open" xml:space="preserve">
     <value>열기</value>
   </data>
+  <data name="Menu.File.ShowInExplorer" xml:space="preserve">
+    <value>탐색기에서 표시</value>
+  </data>
   <data name="Menu.File.Quit" xml:space="preserve">
     <value>종료</value>
   </data>

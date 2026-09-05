@@ -291,6 +291,9 @@
   <data name="Menu.File.Open" xml:space="preserve">
     <value>打开</value>
   </data>
+  <data name="Menu.File.ShowInExplorer" xml:space="preserve">
+    <value>在资源管理器中显示</value>
+  </data>
   <data name="Menu.File.Quit" xml:space="preserve">
     <value>退出</value>
   </data>
