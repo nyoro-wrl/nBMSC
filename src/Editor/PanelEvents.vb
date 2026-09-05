@@ -240,7 +240,7 @@ Partial Public Class MainWindow
                 Case Keys.Y : TBRedo_Click(TBRedo, New EventArgs)
                 Case Keys.X : TBCut_Click(TBCut, New EventArgs)
                 Case Keys.C : TBCopy_Click(TBCopy, New EventArgs)
-                Case Keys.V : TBPaste_Click(TBPaste, New EventArgs)
+                Case Keys.V : PasteNotesFromKeyboard()
                 Case Keys.A : mnSelectAll_Click(mnSelectAll, New EventArgs)
                 Case Keys.F : TBFind_Click(TBFind, New EventArgs)
                 Case Keys.T : TBStatistics_Click(TBStatistics, New EventArgs)

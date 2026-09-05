@@ -24,6 +24,7 @@ Public Class MainWindow
     'End Function
     Public Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hwnd As IntPtr, ByVal wMsg As Integer, ByVal wParam As Integer, ByVal lParam As Integer) As Integer
     Public Declare Function ReleaseCapture Lib "user32.dll" Alias "ReleaseCapture" () As Integer
+    Private Declare Function GetClipboardSequenceNumber Lib "user32.dll" () As UInteger
 
     'Private Declare Auto Function GetWindowLong Lib "user32" (ByVal hWnd As IntPtr, ByVal nIndex As Integer) As Integer
     'Private Declare Auto Function SetWindowLong Lib "user32" (ByVal hWnd As IntPtr, ByVal nIndex As Integer, ByVal dwNewLong As Integer) As Integer
@@ -3792,6 +3793,9 @@ Public Class MainWindow
         CalculateTotalPlayableNotes()
     End Sub
 
+    Private CopiedNotesSequenceNumber As UInteger
+    Private CopiedNotesBaseVPosition As Double = -1.0#
+
     Private Sub CopyNotes(Optional ByVal Unselect As Boolean = True)
         Dim xStrAll As String = "nBMSC Clipboard Data" & IIf(NTInput, " xNT", "")
         Dim xI1 As Integer
@@ -3830,6 +3834,8 @@ Public Class MainWindow
         End If
 
         Clipboard.SetText(xStrAll)
+        CopiedNotesSequenceNumber = GetClipboardSequenceNumber()
+        CopiedNotesBaseVPosition = MinMeasure
     End Sub
 
     Private Sub RemoveNotes(Optional ByVal SortAndUpdatePairing As Boolean = True)
@@ -5282,6 +5288,7 @@ EndSearch:
         If Not IsValidPanelIndex(iI) Then Return
 
         If SyncingPanelScroll Then
+            If PanelVScroll(iI) <> sender.Value Then CopiedNotesBaseVPosition = -1.0#
             PanelVScroll(iI) = sender.Value
             If Not SuspendPanelScrollRefresh Then RefreshPanel(iI, spMain(iI).DisplayRectangle)
             Exit Sub
@@ -5310,6 +5317,7 @@ EndSearch:
         End If
 
         If iI = PanelFocus And Not LastMouseDownLocation = New Point(-1, -1) And Not VSValue = -1 Then LastMouseDownLocation.Y += (VSValue - (xOldValue + xDelta)) * gxHeight
+        If xDelta <> 0 Then CopiedNotesBaseVPosition = -1.0#
         PanelVScroll(iI) = xOldValue + xDelta
 
         If SyncSplitViewScroll Then
@@ -5446,6 +5454,7 @@ EndSearch:
         Dim iI As Integer = sender.Tag
         If Not IsValidPanelIndex(iI) Then Return
         If Not LastMouseDownLocation = New Point(-1, -1) And Not HSValue = -1 Then LastMouseDownLocation.X += (HSValue - sender.Value) * gxWidth
+        If PanelhBMSCROLL(iI) <> sender.Value Then CopiedNotesBaseVPosition = -1.0#
         PanelhBMSCROLL(iI) = sender.Value
         HSValue = sender.Value
         If Not SuspendPanelScrollRefresh Then RefreshPanel(iI, spMain(iI).DisplayRectangle)
@@ -5941,6 +5950,15 @@ EndSearch:
 
     Private Sub TBPaste_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TBPaste.Click, mnPaste.Click
         PasteNotes()
+    End Sub
+
+    Private Sub PasteNotesFromKeyboard()
+        'The clipboard positions are relative to the first copied measure.
+        If CopiedNotesBaseVPosition >= 0 AndAlso GetClipboardSequenceNumber() = CopiedNotesSequenceNumber Then
+            PasteNotes(CopiedNotesBaseVPosition)
+        Else
+            PasteNotes()
+        End If
     End Sub
 
     Private Sub PasteNotes(Optional ByVal xBaseVPosition As Double = -1.0#)
