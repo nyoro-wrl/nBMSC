@@ -3642,6 +3642,9 @@ Public Class MainWindow
         Next
 
         Dim xPasteBase As Double = If(xBaseVPosition >= 0, xBaseVPosition, ViewAnchorVPosition())
+        If xStrLine(0) = "nBMSC Clipboard Data" OrElse xStrLine(0) = "nBMSC Clipboard Data xNT" Then
+            xPasteBase = AdjustPasteBase(xPasteBase, TryCast(Clipboard.GetData(PasteAlignmentFormat), String))
+        End If
         Dim xTempVP As Double
         Dim xKbu() As Note = Notes
 
@@ -3793,6 +3796,33 @@ Public Class MainWindow
         CalculateTotalPlayableNotes()
     End Sub
 
+    Private Const PasteAlignmentFormat As String = "nBMSC Paste Alignment"
+
+    Private Function AdjustPasteBase(ByVal pasteBase As Double, ByVal alignment As String) As Double
+        If alignment Is Nothing Then Return pasteBase
+        Dim fields() As String = alignment.Split(" "c)
+        If fields.Length <> 3 Then Return pasteBase
+        Dim values(2) As Double
+        For i As Integer = 0 To values.Length - 1
+            If Not Double.TryParse(fields(i), NumberStyles.Float, CultureInfo.InvariantCulture, values(i)) OrElse
+               Double.IsNaN(values(i)) OrElse Double.IsInfinity(values(i)) Then Return pasteBase
+        Next
+
+        Dim firstOffset As Double = values(0)
+        Dim sourceMeasureLength As Double = values(1)
+        Dim subGridOffset As Double = values(2)
+        Dim targetMeasure As Integer = MeasureAtDisplacement(pasteBase)
+        Dim targetBottom As Double = MeasureBottom(targetMeasure)
+        Dim targetUpper As Double = MeasureUpper(targetMeasure)
+        If pasteBase + firstOffset < targetUpper Then Return pasteBase
+
+        Dim distanceFromMeasureEnd As Double = sourceMeasureLength - firstOffset
+        Dim alignedFirst As Double = targetUpper - distanceFromMeasureEnd
+        If alignedFirst >= targetBottom Then Return alignedFirst - firstOffset
+        If subGridOffset < targetUpper - targetBottom Then Return targetBottom + subGridOffset - firstOffset
+        Return targetBottom - firstOffset
+    End Function
+
     Private CopiedNotesSequenceNumber As UInteger
     Private CopiedNotesBaseVPosition As Double = -1.0#
 
@@ -3800,10 +3830,15 @@ Public Class MainWindow
         Dim xStrAll As String = "nBMSC Clipboard Data" & IIf(NTInput, " xNT", "")
         Dim xI1 As Integer
         Dim MinMeasure As Double = 999
+        Dim firstPosition As Double = Double.PositiveInfinity
 
         For xI1 = 1 To UBound(Notes)
-            If Notes(xI1).Selected And MeasureAtDisplacement(Notes(xI1).VPosition) < MinMeasure Then MinMeasure = MeasureAtDisplacement(Notes(xI1).VPosition)
+            If Notes(xI1).Selected Then
+                firstPosition = Math.Min(firstPosition, Notes(xI1).VPosition)
+                MinMeasure = Math.Min(MinMeasure, MeasureAtDisplacement(Notes(xI1).VPosition))
+            End If
         Next
+        Dim sourceMeasureLength As Double = MeasureLength(CInt(MinMeasure))
         MinMeasure = MeasureBottom(MinMeasure)
 
         If Not NTInput Then
@@ -3833,7 +3868,18 @@ Public Class MainWindow
             Next
         End If
 
-        Clipboard.SetText(xStrAll)
+        Dim data As New DataObject()
+        data.SetText(xStrAll)
+        If Not Double.IsPositiveInfinity(firstPosition) Then
+            Dim firstOffset As Double = firstPosition - MinMeasure
+            Dim subGridStep As Double = 192.0R / gSub
+            Dim subGridOffset As Double = firstOffset - Math.Floor(firstOffset / subGridStep) * subGridStep
+            data.SetData(PasteAlignmentFormat, False,
+                         firstOffset.ToString("R", CultureInfo.InvariantCulture) & " " &
+                         sourceMeasureLength.ToString("R", CultureInfo.InvariantCulture) & " " &
+                         subGridOffset.ToString("R", CultureInfo.InvariantCulture))
+        End If
+        Clipboard.SetDataObject(data, True)
         CopiedNotesSequenceNumber = GetClipboardSequenceNumber()
         CopiedNotesBaseVPosition = MinMeasure
     End Sub

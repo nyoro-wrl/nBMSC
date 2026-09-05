@@ -31,6 +31,7 @@ Module TestRunner
         Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
         Run("text input dialog selects existing value", AddressOf TextInputDialogSelectsExistingValue)
         Run("selected note input defaults", AddressOf SelectedNoteInputDefaults)
+        Run("paste alignment clipboard semantics", AddressOf PasteAlignmentClipboardSemantics)
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
@@ -530,6 +531,83 @@ Module TestRunner
                         InvokePrivateFunction(Of String)(window, "SelectedNotePromptDefault", New Object() {False}),
                         "mixed definition labels")
         End Using
+    End Sub
+
+    Private Sub PasteAlignmentClipboardSemantics()
+        Dim original As System.Windows.Forms.IDataObject = System.Windows.Forms.Clipboard.GetDataObject()
+        Dim saved As New System.Windows.Forms.DataObject()
+        If original IsNot Nothing Then
+            For Each format As String In original.GetFormats(False)
+                saved.SetData(format, False, original.GetData(format, False))
+            Next
+        End If
+
+        Try
+            'Source measure length, first offset, target length, expected first offset.
+            Dim cases As Double(,) = {{160, 120, 96, 56}, {192, 96, 96, 0},
+                                     {192, 60, 48, 12}, {192, 40, 40, 0},
+                                     {192, 40, 20, 0}, {192, 40, 48, 40},
+                                     {192, 96, 48, 0}}
+            For Each ntInput As Boolean In New Boolean() {False, True}
+                For row As Integer = 0 To cases.GetLength(0) - 1
+                    Dim operation As String = "paste case " & row.ToString() & " NT=" & ntInput.ToString()
+                    Dim sourceLength As Double = cases(row, 0)
+                    Dim firstOffset As Double = cases(row, 1)
+                    Dim noteLength As Double = If(ntInput, 12.0R, 0.0R)
+                    Dim lengths(999) As Double
+                    For i As Integer = 0 To UBound(lengths)
+                        lengths(i) = 192.0R
+                    Next
+                    lengths(1) = sourceLength
+                    Using source As New MainWindow()
+                        SetPrivateField(source, "MeasureLength", lengths)
+                        SetPrivateField(source, "NTInput", ntInput)
+                        SetPrivateField(source, "gSub", 4)
+                        SetPrivateField(source, "Notes", New Note() {
+                            New Note(MainWindow.niBPM, -1.0R, 1200000),
+                            New Note(MainWindow.niA1, 192.0R + firstOffset, 10000, noteLength) With {.Selected = True},
+                            New Note(MainWindow.niA2, 192.0R + sourceLength + 60.0R, 20000) With {.Selected = True}
+                        })
+                        InvokePrivate(source, "UpdateMeasureBottom", New Object() {})
+                        InvokePrivate(source, "CopyNotes", New Object() {True})
+
+                        'Pasting must use the copied measure/grid, even into another window.
+                        lengths(1) = 64.0R
+                        SetPrivateField(source, "gSub", 8)
+                        InvokePrivate(source, "UpdateMeasureBottom", New Object() {})
+                    End Using
+                    Using target As New MainWindow()
+                        Dim targetLengths(999) As Double
+                        For i As Integer = 0 To UBound(targetLengths)
+                            targetLengths(i) = 192.0R
+                        Next
+                        targetLengths(1) = cases(row, 2)
+                        SetPrivateField(target, "MeasureLength", targetLengths)
+                        SetPrivateField(target, "NTInput", ntInput)
+                        SetPrivateField(target, "gSub", 2)
+                        SetPrivateField(target, "Notes", New Note() {New Note(MainWindow.niBPM, -1.0R, 1200000)})
+                        InvokePrivate(target, "UpdateMeasureBottom", New Object() {})
+                        InvokePrivate(target, "AddNotesFromClipboard", New Object() {True, True, 192.0R})
+
+                        Dim notes() As Note = PrivateField(Of Note())(target, "Notes")
+                        AssertEqual(3, notes.Length, operation & " count")
+                        AssertApprox(192.0R + cases(row, 3), notes(1).VPosition, operation & " first position")
+                        AssertApprox(sourceLength + 60.0R - firstOffset,
+                                     notes(2).VPosition - notes(1).VPosition, operation & " spacing across measures")
+                        AssertApprox(noteLength, notes(1).Length, operation & " long note length")
+                        AssertEqual(MainWindow.niA1, notes(1).ColumnIndex, operation & " first column")
+                        AssertEqual(MainWindow.niA2, notes(2).ColumnIndex, operation & " second column")
+                        AssertTrue(notes(1).Selected AndAlso notes(2).Selected, operation & " selection")
+                    End Using
+                Next
+            Next
+        Finally
+            If original Is Nothing Then
+                System.Windows.Forms.Clipboard.Clear()
+            Else
+                System.Windows.Forms.Clipboard.SetDataObject(saved, True)
+            End If
+        End Try
     End Sub
 
     Private Sub UndoRedoSerialization()
