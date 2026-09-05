@@ -18,6 +18,11 @@ Module TestRunner
         Run("channel label conversion", AddressOf ChannelLabelConversion)
         Run("label validation", AddressOf LabelValidation)
         Run("BMS definition labels", AddressOf BmsDefinitionLabels)
+        Run("BMS base62 header loading", AddressOf BmsBase62HeaderLoading)
+        Run("BMS base62 save header", AddressOf BmsBase62SaveHeader)
+        Run("BMS base36 save header", AddressOf BmsBase36SaveHeader)
+        Run("BMS base62 round trip", AddressOf BmsBase62RoundTrip)
+        Run("base62 option toggle", AddressOf Base62OptionToggle)
         Run("BMS random parser", AddressOf BmsRandomParserParsing)
         Run("BMS random parser omitted end", AddressOf BmsRandomParserOmittedEnd)
         Run("BMS random parser unsupported raw", AddressOf BmsRandomParserUnsupportedRaw)
@@ -142,7 +147,164 @@ Module TestRunner
         AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#00108:000a"}), "lowercase BPM note label requires base62")
         AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#00109:000a"}), "lowercase STOP note label requires base62")
         AssertFalse(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#00103:000a"}), "BPM hex channel should not force base62")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#BASE 62"}), "base62 header should enable base62")
+        AssertTrue(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#base" & vbTab & "62"}), "base62 header should ignore case and accept whitespace")
+        AssertFalse(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#BASE62"}), "base62 header should require whitespace")
+        AssertFalse(nBMSC.Editor.BmsDefinitionLabels.ContainsBase62Definitions(New String() {"#BASE 620"}), "base62 header should require the exact value")
     End Sub
+
+    Private Sub BmsBase62HeaderLoading()
+        Dim emptyChart As String = String.Join(vbCrLf, New String() {
+            "#TITLE Empty base62 chart",
+            "#BASE 62"})
+
+        Using window As New MainWindow()
+            InvokePrivate(window, "OpenBMS", New Object() {emptyChart, "", Nothing})
+            AssertTrue(PrivateField(Of Boolean)(window, "UseBase62Definitions"),
+                       "explicit base62 header should enable base62 for an empty chart")
+            AssertEqual("",
+                        DirectCast(window.Controls.Find("TExpansion", True)(0), System.Windows.Forms.TextBox).Text,
+                        "explicit base62 header should not enter the expansion field for an empty chart")
+        End Using
+
+        Dim uppercaseChart As String = String.Join(vbCrLf, New String() {
+            "#TITLE Uppercase base62 chart",
+            "#WAV0A kick.wav",
+            "#BASE 62",
+            "#00111:0A"})
+
+        Using window As New MainWindow()
+            InvokePrivate(window, "OpenBMS", New Object() {uppercaseChart, "", Nothing})
+            AssertTrue(PrivateField(Of Boolean)(window, "UseBase62Definitions"),
+                       "explicit base62 header should enable base62 for uppercase-only definitions")
+            AssertEqual("",
+                        DirectCast(window.Controls.Find("TExpansion", True)(0), System.Windows.Forms.TextBox).Text,
+                        "explicit base62 header should not enter the expansion field when it follows definitions")
+            AssertEqual("kick.wav",
+                        PrivateField(Of String())(window, "hWAV")(10),
+                        "uppercase definition should still load at its base36-compatible index")
+            AssertEqual(100000,
+                        PrivateField(Of Note())(window, "Notes")(1).Value,
+                        "uppercase note definition should still load at its base36-compatible index")
+        End Using
+    End Sub
+
+    Private Sub BmsBase62SaveHeader()
+        Dim saved As String = SaveBmsForTest(Base62ChartWithLateHeader())
+        Dim baseIndex As Integer = ExactBmsLineIndex(saved, "#BASE 62")
+        Dim wavIndex As Integer = ExactBmsLineIndex(saved, "#WAV0a kick.wav")
+
+        AssertEqual(1, CountBmsLines(saved, "#BASE 62"),
+                    "base62 save should contain exactly one base declaration")
+        AssertTrue(baseIndex >= 0, "base62 save should contain the base declaration")
+        AssertContains(saved, "#RANK 3" & vbCrLf & "#BASE 62" & vbCrLf & vbCrLf,
+                       "base62 declaration should immediately follow RANK before the header section break")
+        AssertTrue(wavIndex >= 0, "base62 save should contain the indexed definition")
+        AssertTrue(baseIndex < wavIndex,
+                   "base62 declaration should be in the header before indexed definitions")
+        AssertContains(saved, "#FOO keep-me", "base62 save should preserve unrelated expansion text")
+    End Sub
+
+    Private Sub BmsBase36SaveHeader()
+        Dim chart As String = String.Join(vbCrLf, New String() {
+            "#TITLE Base36 chart",
+            "#WAV0A kick.wav",
+            "#00111:0A"})
+        Dim saved As String = SaveBmsForTest(chart)
+
+        AssertEqual(0, CountBmsLines(saved, "#BASE 62"),
+                    "base36 save should not contain a base declaration")
+        AssertTrue(ExactBmsLineIndex(saved, "#WAV0A kick.wav") >= 0,
+                   "base36 save should preserve uppercase definition labels")
+    End Sub
+
+    Private Sub BmsBase62RoundTrip()
+        Dim saved As String = SaveBmsForTest(Base62ChartWithLateHeader())
+
+        Using window As New MainWindow()
+            InvokePrivate(window, "OpenBMS", New Object() {saved, "", Nothing})
+            AssertTrue(PrivateField(Of Boolean)(window, "UseBase62Definitions"),
+                       "saved base62 chart should reopen with base62 enabled")
+            Dim expansion As String = DirectCast(window.Controls.Find("TExpansion", True)(0), System.Windows.Forms.TextBox).Text
+            AssertFalse(expansion.IndexOf("#BASE 62", StringComparison.OrdinalIgnoreCase) >= 0,
+                        "saved base62 header should not return to the expansion field")
+            AssertContains(expansion, "#FOO keep-me", "saved base62 chart should retain unrelated expansion text")
+            AssertEqual("kick.wav",
+                        PrivateField(Of String())(window, "hWAV")(36),
+                        "saved base62 definition should round-trip at its base62 index")
+            AssertEqual(360000,
+                        PrivateField(Of Note())(window, "Notes")(1).Value,
+                        "saved base62 note should round-trip at its base62 index")
+        End Using
+    End Sub
+
+    Private Sub Base62OptionToggle()
+        Using window As New MainWindow()
+            Dim chart As String = String.Join(vbCrLf, New String() {
+                "#TITLE Base36 chart",
+                "#WAV0A kick.wav",
+                "#00111:0A"})
+            InvokePrivate(window, "OpenBMS", New Object() {chart, "", Nothing})
+
+            DirectCast(window.Controls.Find("CWAVBase62", True)(0), System.Windows.Forms.CheckBox).Checked = True
+
+            AssertTrue(PrivateField(Of Boolean)(window, "UseBase62Definitions"),
+                       "extend to base62 option should enable base62")
+            AssertTrue(DirectCast(window.Controls.Find("CWAVBase62", True)(0), System.Windows.Forms.CheckBox).Checked,
+                       "extend to base62 option should enable the WAV base62 control")
+            AssertTrue(DirectCast(window.Controls.Find("CBMPBase62", True)(0), System.Windows.Forms.CheckBox).Checked,
+                       "extend to base62 option should enable the BMP base62 control")
+
+            Dim saved As String = InvokePrivateFunction(Of String)(window, "SaveBMS", New Object() {})
+            AssertEqual(1, CountBmsLines(saved, "#BASE 62"),
+                        "enabling extend to base62 should emit one base declaration")
+
+            DirectCast(window.Controls.Find("CWAVBase62", True)(0), System.Windows.Forms.CheckBox).Checked = False
+            AssertFalse(PrivateField(Of Boolean)(window, "UseBase62Definitions"),
+                        "disabling extend to base62 should disable base62")
+
+            saved = InvokePrivateFunction(Of String)(window, "SaveBMS", New Object() {})
+            AssertEqual(0, CountBmsLines(saved, "#BASE 62"),
+                        "disabling extend to base62 should omit the base declaration")
+        End Using
+    End Sub
+
+    Private Function Base62ChartWithLateHeader() As String
+        Return String.Join(vbCrLf, New String() {
+            "#TITLE Base62 chart",
+            "#WAV0a kick.wav",
+            "#BASE 62",
+            "#FOO keep-me",
+            "#00111:0a"})
+    End Function
+
+    Private Function SaveBmsForTest(ByVal chart As String) As String
+        Using window As New MainWindow()
+            InvokePrivate(window, "OpenBMS", New Object() {chart, "", Nothing})
+            Return InvokePrivateFunction(Of String)(window, "SaveBMS", New Object() {})
+        End Using
+    End Function
+
+    Private Function ExactBmsLineIndex(ByVal text As String, ByVal expected As String) As Integer
+        Dim normalized As String = text.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        Dim lines() As String = normalized.Split(New Char() {ChrW(10)}, StringSplitOptions.None)
+        For i As Integer = 0 To lines.Length - 1
+            If String.Equals(lines(i).Trim(), expected, StringComparison.Ordinal) Then Return i
+        Next
+
+        Return -1
+    End Function
+
+    Private Function CountBmsLines(ByVal text As String, ByVal expected As String) As Integer
+        Dim normalized As String = text.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        Dim lines() As String = normalized.Split(New Char() {ChrW(10)}, StringSplitOptions.None)
+        Dim count As Integer = 0
+        For Each line As String In lines
+            If String.Equals(line.Trim(), expected, StringComparison.Ordinal) Then count += 1
+        Next
+
+        Return count
+    End Function
 
     Private Sub BmsRandomParserParsing()
         Dim result As BmsRandomParseResult = BmsRandomParser.Parse(New String() {

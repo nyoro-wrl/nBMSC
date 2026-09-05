@@ -41,9 +41,17 @@ Namespace Editor
             Return False
         End Function
 
+        Public Shared Function IsBase62Header(ByVal line As String) As Boolean
+            Dim trimmedLine As String = line.Trim()
+            Return trimmedLine.StartsWith("#BASE", StringComparison.OrdinalIgnoreCase) AndAlso
+                   trimmedLine.Length > 5 AndAlso Char.IsWhiteSpace(trimmedLine(5)) AndAlso
+                   trimmedLine.Substring(6).Trim() = "62"
+        End Function
+
         Public Shared Function ContainsBase62Definitions(ByVal lines() As String) As Boolean
             For Each line As String In lines
                 Dim trimmedLine As String = line.Trim()
+                If IsBase62Header(trimmedLine) Then Return True
 
                 If trimmedLine.StartsWith("#WAV", StringComparison.CurrentCultureIgnoreCase) OrElse
                    trimmedLine.StartsWith("#BMP", StringComparison.CurrentCultureIgnoreCase) OrElse

@@ -108,6 +108,7 @@ Partial Public Class MainWindow
             sLine = xTopLines(xLineIndex)
             Dim sLineTrim As String = sLine.Trim
             If xStack > 0 Then GoTo Expansion
+            If BmsDefinitionLabels.IsBase62Header(sLineTrim) Then Continue For
 
             If sLineTrim.StartsWith("#") And Mid(sLineTrim, 5, 3) = "02:" Then
                 Dim xIndex As Integer = Val(Mid(sLineTrim, 2, 3))
@@ -737,6 +738,7 @@ AddExpansion:       xExpansion &= sLine & vbCrLf
         xStrHeader &= "#BPM " & WriteDecimalWithDot(Notes(0).Value / 10000) & vbCrLf
         xStrHeader &= "#PLAYLEVEL " & THPlayLevel.Text & vbCrLf
         xStrHeader &= "#RANK " & CHRank.SelectedIndex & vbCrLf
+        If UseBase62Definitions Then xStrHeader &= "#BASE 62" & vbCrLf
         xStrHeader &= vbCrLf
         If THSubTitle.Text <> "" Then xStrHeader &= "#SUBTITLE " & THSubTitle.Text & vbCrLf
         If THSubArtist.Text <> "" Then xStrHeader &= "#SUBARTIST " & THSubArtist.Text & vbCrLf
