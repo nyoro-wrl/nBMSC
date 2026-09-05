@@ -12,11 +12,11 @@ Partial Public Class MainWindow
         If e.KeyCode = 18 Then Exit Sub
 
         If HandleGlobalShortcutFromPreview(e.KeyCode,
-                                           My.Computer.Keyboard.CtrlKeyDown,
-                                           My.Computer.Keyboard.ShiftKeyDown,
-                                           My.Computer.Keyboard.AltKeyDown) Then Return
+                                           e.Control,
+                                           e.Shift,
+                                           e.Alt) Then Return
 
-        If IsMoveKey(e.KeyCode) AndAlso Not My.Computer.Keyboard.ShiftKeyDown Then
+        If IsMoveKey(e.KeyCode) AndAlso Not e.Shift Then
             BeginKeyMove(e.KeyCode)
         Else
             EndKeyMove()
@@ -33,13 +33,12 @@ Partial Public Class MainWindow
 
         Select Case e.KeyCode
             Case Keys.Up
-                If My.Computer.Keyboard.ShiftKeyDown Then
-                    AdjustSelectedLongNoteEnds(e.KeyCode)
+                If e.Shift Then
+                    AdjustSelectedLongNoteEnds(e.KeyCode, e.Control, e.Alt)
                     Exit Select
                 End If
 
-                Dim xVPosition As Double = 192 / gDivide
-                If My.Computer.Keyboard.CtrlKeyDown Then xVPosition = 1
+                Dim xVPosition As Double = SelectedKeyMoveDelta(e.KeyCode, e.Control, e.Alt, False)
 
                 'Ks cannot be beyond the upper boundary
                 Dim muVPosition As Double = GetMaxVPosition() - 1
@@ -73,13 +72,12 @@ Partial Public Class MainWindow
                 RefreshPanelAll()
 
             Case Keys.Down
-                If My.Computer.Keyboard.ShiftKeyDown Then
-                    AdjustSelectedLongNoteEnds(e.KeyCode)
+                If e.Shift Then
+                    AdjustSelectedLongNoteEnds(e.KeyCode, e.Control, e.Alt)
                     Exit Select
                 End If
 
-                Dim xVPosition As Double = -192 / gDivide
-                If My.Computer.Keyboard.CtrlKeyDown Then xVPosition = -1
+                Dim xVPosition As Double = SelectedKeyMoveDelta(e.KeyCode, e.Control, e.Alt, False)
 
                 'Ks cannot be beyond the lower boundary
                 Dim mVPosition As Double = 0
@@ -434,11 +432,45 @@ Partial Public Class MainWindow
         CGDivide.Value = xValue
     End Sub
 
-    Private Sub AdjustSelectedLongNoteEnds(ByVal keyCode As Keys)
+    Private Function SelectedKeyMoveDelta(ByVal keyCode As Keys, ByVal control As Boolean, ByVal alt As Boolean, ByVal endsOnly As Boolean) As Double
+        If Not alt Then
+            Dim xStep As Double = If(control, 1, 192 / gDivide)
+            Return If(keyCode = Keys.Down, -xStep, xStep)
+        End If
+
+        Dim xFirstPosition As Double = Double.MaxValue
+        For xI1 As Integer = 1 To UBound(Notes)
+            If Not Notes(xI1).Selected Then Continue For
+            If endsOnly AndAlso IsColumnNumeric(Notes(xI1).ColumnIndex) Then Continue For
+
+            xFirstPosition = Math.Min(xFirstPosition, Notes(xI1).VPosition + If(endsOnly, Notes(xI1).Length, 0))
+        Next
+        If xFirstPosition = Double.MaxValue Then Return 0
+
+        Dim xMeasure As Integer = MeasureAtDisplacement(xFirstPosition)
+        Dim xTargetMeasure As Integer = xMeasure + If(keyCode = Keys.Down, -1, 1)
+        If xTargetMeasure < 0 Then Return -xFirstPosition
+        If xTargetMeasure > 999 Then Return GetMaxVPosition() - 1 - xFirstPosition
+
+        'Move the leading position to the same fraction of the adjacent measure.
+        'The shared delta keeps the rest of the selection's spacing and lengths intact.
+        Dim xFraction As Double = (xFirstPosition - MeasureBottom(xMeasure)) / MeasureLength(xMeasure)
+        Return MeasureBottom(xTargetMeasure) + xFraction * MeasureLength(xTargetMeasure) - xFirstPosition
+    End Function
+
+    Private Sub AdjustSelectedLongNoteEnds(ByVal keyCode As Keys, ByVal control As Boolean, ByVal alt As Boolean)
         If Not NTInput Then Return
 
-        Dim xDelta As Double = If(My.Computer.Keyboard.CtrlKeyDown, 1, 192 / gDivide)
-        If keyCode = Keys.Down Then xDelta = -xDelta
+        Dim xDelta As Double = SelectedKeyMoveDelta(keyCode, control, alt, True)
+        If alt Then
+            'Stop all selected ends together when any end reaches its start or the chart limit.
+            For xI1 As Integer = 1 To UBound(Notes)
+                If Not Notes(xI1).Selected OrElse IsColumnNumeric(Notes(xI1).ColumnIndex) Then Continue For
+
+                xDelta = Math.Max(-Notes(xI1).Length, xDelta)
+                xDelta = Math.Min(Math.Max(0, GetMaxVPosition() - 1 - Notes(xI1).VPosition - Notes(xI1).Length), xDelta)
+            Next
+        End If
 
         Dim xUndo As UndoRedo.LinkedURCmd = Nothing
         Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void

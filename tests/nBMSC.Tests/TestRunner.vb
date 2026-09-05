@@ -28,6 +28,10 @@ Module TestRunner
         Run("theme gaps follow visible groups", AddressOf ThemeGapsFollowVisibleGroups)
         Run("theme gaps retain both border lines", AddressOf ThemeGapsRetainBothBorderLines)
         Run("up arrow follows variable chart bounds", AddressOf UpArrowFollowsVariableChartBounds)
+        Run("Alt arrows translate selection between measures", AddressOf AltArrowsTranslateSelectionBetweenMeasures)
+        Run("Alt arrows respect chart bounds", AddressOf AltArrowsRespectChartBounds)
+        Run("Alt Shift arrows translate long note ends", AddressOf AltShiftArrowsTranslateLongNoteEnds)
+        Run("arrow modifier compatibility", AddressOf ArrowModifierCompatibility)
         Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
         Run("text input dialog selects existing value", AddressOf TextInputDialogSelectsExistingValue)
         Run("selected note input defaults", AddressOf SelectedNoteInputDefaults)
@@ -406,6 +410,125 @@ Module TestRunner
                           "PMainInPreviewKeyDown",
                           New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(System.Windows.Forms.Keys.Down)})
             AssertApprox(120.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "down arrow should return one grid step")
+        End Using
+    End Sub
+
+    Private Function CreateArrowTestWindow(ByVal positions() As Double, ByVal noteLengths() As Double) As MainWindow
+        Dim window As New MainWindow()
+        Dim lengths(999) As Double
+        For i As Integer = 0 To 999
+            lengths(i) = 192.0R
+        Next
+        lengths(1) = 96.0R
+        lengths(2) = 384.0R
+        Dim notes(positions.Length) As Note
+        notes(0) = PrivateField(Of Note())(window, "Notes")(0)
+        For i As Integer = 0 To positions.Length - 1
+            notes(i + 1) = New Note(MainWindow.niA1 + i, positions(i), (i + 1) * 10000)
+            notes(i + 1).Length = noteLengths(i)
+            notes(i + 1).LongNote = noteLengths(i) > 0
+            notes(i + 1).Selected = True
+            window.column(MainWindow.niA1 + i).isVisible = True
+        Next
+        SetPrivateField(window, "MeasureLength", lengths)
+        SetPrivateField(window, "Notes", notes)
+        SetPrivateField(window, "gDivide", 16)
+        SetPrivateField(window, "NTInput", True)
+        InvokePrivate(window, "UpdateMeasureBottom", New Object() {})
+        Return window
+    End Function
+
+    Private Sub PressArrow(ByVal window As MainWindow, ByVal keyData As System.Windows.Forms.Keys)
+        Dim panel As System.Windows.Forms.Panel = DirectCast(window.Controls.Find("PMainIn", True)(0), System.Windows.Forms.Panel)
+        InvokePrivate(window, "PMainInPreviewKeyDown",
+                      New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(keyData)})
+    End Sub
+
+    Private Sub AltArrowsTranslateSelectionBetweenMeasures()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {144, 240}, New Double() {24, 96})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {264, 360}, New Double() {24, 96}, "three-quarter anchor stays in the adjacent short measure; all notes share its displacement")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {576, 672}, New Double() {24, 96}, "anchor stays at three quarters in the longer measure")
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextNotes(window, New Double() {144, 240}, New Double() {24, 96}, "one undo restores the key repeat")
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextNotes(window, New Double() {576, 672}, New Double() {24, 96}, "redo restores the whole movement")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {264, 360}, New Double() {24, 96}, "Down returns to the adjacent short measure")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {144, 240}, New Double() {24, 96}, "Up and Down are reversible across changing measure lengths")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {0, 144}, New Double() {0, 24})
+            PrivateField(Of Note())(window, "Notes")(1).Selected = False
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {0, 264}, New Double() {0, 24}, "unselected notes neither anchor nor move")
+        End Using
+    End Sub
+
+    Private Sub AltArrowsRespectChartBounds()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {24, 120}, New Double() {48, 96})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {0, 96}, New Double() {48, 96}, "chart start clamps the whole selection")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {0, 96}, New Double() {48, 96}, "chart start cannot be crossed")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {192000, 192024}, New Double() {12, 48})
+            'The variable measure map ends at 192096; the last legal endpoint is 192095.
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {192023, 192047}, New Double() {12, 48}, "chart end clamps all starts while preserving long lengths")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {288}, New Double() {0})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {192}, New Double() {0}, "Down on a measure line goes to the preceding measure line")
+        End Using
+    End Sub
+
+    Private Sub AltShiftArrowsTranslateLongNoteEnds()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {24, 120}, New Double() {360, 312})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {24, 120}, New Double() {696, 648}, "earliest end moves from quarter position to quarter position; starts and end spacing stay fixed")
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextNotes(window, New Double() {24, 120}, New Double() {360, 312}, "undo restores both ends")
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertContextNotes(window, New Double() {24, 120}, New Double() {696, 648}, "redo restores both ends")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {24, 120}, New Double() {360, 312}, "Down returns the ends to their original positions")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {216, 312}, New Double() {12, 48})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {216, 312}, New Double() {0, 36}, "shortest long note limits the shared contraction")
+            AssertFalse(PrivateField(Of Note())(window, "Notes")(1).LongNote, "zero length becomes a normal note")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {192000, 192024}, New Double() {12, 48})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {192000, 192024}, New Double() {35, 71}, "chart end limits shared extension")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {216, 312}, New Double() {0, 48})
+            PrivateField(Of Note())(window, "Notes")(1).ColumnIndex = MainWindow.niBPM
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {216, 312}, New Double() {0, 396}, "numeric events do not anchor or resize")
+        End Using
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {240}, New Double() {0})
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {240}, New Double() {240}, "a normal note can extend to the next measure's midpoint")
+            AssertTrue(PrivateField(Of Note())(window, "Notes")(1).LongNote, "extension creates a long note")
+        End Using
+    End Sub
+
+    Private Sub ArrowModifierCompatibility()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {216}, New Double() {24})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {217}, New Double() {24}, "Ctrl remains one unit")
+            PressArrow(window, System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {217}, New Double() {36}, "Shift remains one grid unit")
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Down)
+            AssertContextNotes(window, New Double() {217}, New Double() {35}, "Ctrl Shift remains one unit")
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {388}, New Double() {35}, "Alt measure movement takes precedence over Ctrl")
+            SetPrivateField(window, "NTInput", False)
+            PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertContextNotes(window, New Double() {388}, New Double() {35}, "Shift still does nothing outside NT input")
         End Using
     End Sub
 
