@@ -16,6 +16,17 @@ Partial Public Class MainWindow
                                            e.Shift,
                                            e.Alt) Then Return
 
+        If e.Control AndAlso e.Alt AndAlso (e.KeyCode = Keys.Up OrElse e.KeyCode = Keys.Down) Then
+            EndKeyMove()
+            Dim xPanelIndex As Integer = sender.Tag
+            If Not IsValidPanelIndex(xPanelIndex) Then Return
+            ReDim SelectedNotes(-1)
+            DuplicateSelectedNotesFromKeyboard(e.KeyCode, e.Shift, xPanelIndex)
+            PMainInMouseMove(sender)
+            POStatusRefresh()
+            Return
+        End If
+
         If IsMoveKey(e.KeyCode) AndAlso Not e.Shift Then
             BeginKeyMove(e.KeyCode)
         Else
@@ -457,6 +468,45 @@ Partial Public Class MainWindow
         Dim xFraction As Double = (xFirstPosition - MeasureBottom(xMeasure)) / MeasureLength(xMeasure)
         Return MeasureBottom(xTargetMeasure) + xFraction * MeasureLength(xTargetMeasure) - xFirstPosition
     End Function
+
+    Private Sub DuplicateSelectedNotesFromKeyboard(ByVal keyCode As Keys, ByVal byMeasure As Boolean, ByVal panelIndex As Integer)
+        Dim xDelta As Double = SelectedKeyMoveDelta(keyCode, False, byMeasure, False)
+        Dim xSelectedCount As Integer = 0
+        For i As Integer = 1 To UBound(Notes)
+            If Not Notes(i).Selected Then Continue For
+
+            xSelectedCount += 1
+            xDelta = Math.Max(-Notes(i).VPosition, xDelta)
+            Dim xEnd As Double = Notes(i).VPosition + If(NTInput, Notes(i).Length, 0)
+            xDelta = Math.Min(Math.Max(0, GetMaxVPosition() - 1 - xEnd), xDelta)
+        Next
+        If xSelectedCount = 0 OrElse xDelta = 0 Then Return
+
+        Dim xUndo As UndoRedo.LinkedURCmd = Nothing
+        Dim xRedo As UndoRedo.LinkedURCmd = New UndoRedo.Void
+        Dim xBaseRedo As UndoRedo.LinkedURCmd = xRedo
+        Dim xOriginalLast As Integer = UBound(Notes)
+        ReDim Preserve Notes(xOriginalLast + xSelectedCount)
+        Dim xNext As Integer = xOriginalLast + 1
+        For i As Integer = 1 To xOriginalLast
+            If Not Notes(i).Selected Then Continue For
+
+            Dim xCopy As Note = Notes(i)
+            xCopy.VPosition += xDelta
+            RedoAddNote(xCopy, xUndo, xRedo)
+            Notes(i).Selected = False
+            Notes(xNext) = xCopy
+            xNext += 1
+        Next
+
+        AddUndo(xUndo, xBaseRedo.Next)
+        SortByVPositionInsertion()
+        UpdatePairing()
+        CalculateTotalPlayableNotes()
+        CalculateGreatestVPosition()
+        FollowSelectedNotes(panelIndex, keyCode)
+        RefreshPanelAll()
+    End Sub
 
     Private Sub AdjustSelectedLongNoteEnds(ByVal keyCode As Keys, ByVal control As Boolean, ByVal alt As Boolean)
         If Not NTInput Then Return

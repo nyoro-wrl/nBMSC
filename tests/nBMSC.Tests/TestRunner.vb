@@ -11,6 +11,9 @@ Module TestRunner
     Private Passed As Integer
     Private Failed As Integer
     Private Const TestTimeoutMilliseconds As Integer = 10000
+    Private Declare Function GetKeyboardState Lib "user32.dll" (ByVal keyState() As Byte) As Integer
+    Private Declare Function SetKeyboardState Lib "user32.dll" (ByVal keyState() As Byte) As Integer
+    Private Const VirtualKeyControl As Integer = &H11
 
     <STAThread()>
     Public Function Main() As Integer
@@ -37,6 +40,10 @@ Module TestRunner
         Run("Alt arrows respect chart bounds", AddressOf AltArrowsRespectChartBounds)
         Run("Alt Shift arrows translate long note ends", AddressOf AltShiftArrowsTranslateLongNoteEnds)
         Run("arrow modifier compatibility", AddressOf ArrowModifierCompatibility)
+        Run("Ctrl Alt arrows duplicate notes", AddressOf CtrlAltArrowsDuplicateNotes)
+        Run("Ctrl Alt Shift arrows duplicate across measures", AddressOf CtrlAltShiftArrowsDuplicateAcrossMeasures)
+        Run("Ctrl Alt arrows clamp chart bounds", AddressOf CtrlAltArrowsClampChartBounds)
+        Run("Ctrl Alt duplicate follows vertical scroll", AddressOf CtrlAltDuplicateFollowsVerticalScroll)
         Run("player missing prompt decisions", AddressOf PlayerMissingPromptDecisions)
         Run("text input dialog selects existing value", AddressOf TextInputDialogSelectsExistingValue)
         Run("selected note input defaults", AddressOf SelectedNoteInputDefaults)
@@ -687,11 +694,285 @@ Module TestRunner
             PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Down)
             AssertContextNotes(window, New Double() {217}, New Double() {35}, "Ctrl Shift remains one unit")
             PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Up)
-            AssertContextNotes(window, New Double() {388}, New Double() {35}, "Alt measure movement takes precedence over Ctrl")
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "Ctrl Alt should add one grid-step copy")
+            AssertDuplicateNote(window, MainWindow.niA1, 217.0R, 35.0R, 10000, False,
+                                False, False, -1, 0, "Ctrl Alt should keep the original note")
+            AssertDuplicateNote(window, MainWindow.niA1, 229.0R, 35.0R, 10000, True,
+                                False, False, -1, 0, "Ctrl Alt should select the copied note")
             SetPrivateField(window, "NTInput", False)
             PressArrow(window, System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
-            AssertContextNotes(window, New Double() {388}, New Double() {35}, "Shift still does nothing outside NT input")
+            AssertDuplicateNote(window, MainWindow.niA1, 217.0R, 35.0R, 10000, False,
+                                False, False, -1, 0, "Shift still does nothing outside NT input")
+            AssertDuplicateNote(window, MainWindow.niA1, 229.0R, 35.0R, 10000, True,
+                                False, False, -1, 0, "Shift should not change the copied note outside NT input")
         End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {264}, New Double() {0})
+            SetPrivateField(window, "NTInput", False)
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "Ctrl Alt Shift should duplicate normal notes outside NT input")
+            AssertDuplicateNote(window, MainWindow.niA1, 264.0R, 0.0R, 10000, False,
+                                False, False, -1, 0, "non-NT measure copy should retain the original")
+            AssertDuplicateNote(window, MainWindow.niA1, 576.0R, 0.0R, 10000, True,
+                                False, False, -1, 0, "non-NT measure copy should keep the relative measure position")
+        End Using
+    End Sub
+
+    Private Sub CtrlAltArrowsDuplicateNotes()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120, 216, 500}, New Double() {24, 0, 12})
+            Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+            notes(1).Hidden = True
+            notes(1).RandomIndex = 7
+            notes(1).RandomValue = 4
+            notes(2).Landmine = True
+            notes(2).RandomIndex = 8
+            notes(2).RandomValue = 5
+            notes(3).Selected = False
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertEqual(6, PrivateField(Of Note())(window, "Notes").Length,
+                        "one grid copy should add one copy for each selected note")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 24.0R, 10000, False,
+                                True, False, 7, 4, "grid Up should retain the original long note")
+            AssertDuplicateNote(window, MainWindow.niA1, 132.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "grid Up should copy long note attributes")
+            AssertDuplicateNote(window, MainWindow.niA2, 216.0R, 0.0R, 20000, False,
+                                False, True, 8, 5, "grid Up should retain the original normal note")
+            AssertDuplicateNote(window, MainWindow.niA2, 228.0R, 0.0R, 20000, True,
+                                False, True, 8, 5, "grid Up should copy normal note attributes")
+            AssertDuplicateNote(window, MainWindow.niA3, 500.0R, 12.0R, 30000, False,
+                                False, False, -1, 0, "unselected notes should remain untouched")
+            AssertEqual(2, CountSelectedNotes(window), "only the first copies should be selected")
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertEqual(8, PrivateField(Of Note())(window, "Notes").Length,
+                        "repeating grid Up should copy the currently selected notes")
+            AssertDuplicateNote(window, MainWindow.niA1, 132.0R, 24.0R, 10000, False,
+                                True, False, 7, 4, "repeat should deselect the previous copy")
+            AssertDuplicateNote(window, MainWindow.niA1, 144.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "repeat should select only the newest copy")
+            AssertDuplicateNote(window, MainWindow.niA2, 228.0R, 0.0R, 20000, False,
+                                False, True, 8, 5, "repeat should retain the first normal copy")
+            AssertDuplicateNote(window, MainWindow.niA2, 240.0R, 0.0R, 20000, True,
+                                False, True, 8, 5, "repeat should select the newest normal copy")
+            AssertEqual(2, CountSelectedNotes(window), "a repeated copy should replace the selection")
+
+            InvokePrivate(window, "TBUndo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertEqual(6, PrivateField(Of Note())(window, "Notes").Length,
+                        "undo should remove the most recent repeated copies")
+            AssertNoNoteAt(window, MainWindow.niA1, 144.0R, "undo should remove the newest long-note copy")
+            AssertNoNoteAt(window, MainWindow.niA2, 240.0R, "undo should remove the newest normal-note copy")
+
+            InvokePrivate(window, "TBRedo_Click", New Object() {Nothing, EventArgs.Empty})
+            AssertEqual(8, PrivateField(Of Note())(window, "Notes").Length,
+                        "redo should restore the most recent repeated copies")
+            AssertDuplicateNote(window, MainWindow.niA1, 144.0R, 24.0R, 10000, True,
+                                True, False, 7, 4, "redo should restore the selected long-note copy")
+            AssertDuplicateNote(window, MainWindow.niA2, 240.0R, 0.0R, 20000, True,
+                                False, True, 8, 5, "redo should restore the selected normal-note copy")
+        End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120, 216, 500}, New Double() {24, 0, 12})
+            PrivateField(Of Note())(window, "Notes")(3).Selected = False
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertEqual(6, PrivateField(Of Note())(window, "Notes").Length,
+                        "grid Down should add one copy for each selected note")
+            AssertDuplicateNote(window, MainWindow.niA1, 120.0R, 24.0R, 10000, False,
+                                False, False, -1, 0, "grid Down should retain the original")
+            AssertDuplicateNote(window, MainWindow.niA1, 108.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "grid Down should place the copy one grid unit below")
+            AssertDuplicateNote(window, MainWindow.niA2, 216.0R, 0.0R, 20000, False,
+                                False, False, -1, 0, "grid Down should retain the second original")
+            AssertDuplicateNote(window, MainWindow.niA2, 204.0R, 0.0R, 20000, True,
+                                False, False, -1, 0, "grid Down should place the second copy one grid unit below")
+        End Using
+    End Sub
+
+    Private Sub CtrlAltShiftArrowsDuplicateAcrossMeasures()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {144, 240}, New Double() {24, 96})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertEqual(5, PrivateField(Of Note())(window, "Notes").Length,
+                        "measure copy should add one copy for each selected note")
+            AssertDuplicateNote(window, MainWindow.niA1, 144.0R, 24.0R, 10000, False,
+                                False, False, -1, 0, "measure Up should retain the first original")
+            AssertDuplicateNote(window, MainWindow.niA1, 264.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "measure Up should keep the relative position in the next measure")
+            AssertDuplicateNote(window, MainWindow.niA2, 240.0R, 96.0R, 20000, False,
+                                False, False, -1, 0, "measure Up should retain the second original")
+            AssertDuplicateNote(window, MainWindow.niA2, 360.0R, 96.0R, 20000, True,
+                                False, False, -1, 0, "measure Up should preserve spacing across variable measures")
+
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Up)
+            AssertEqual(7, PrivateField(Of Note())(window, "Notes").Length,
+                        "repeating measure Up should use the new selected copies")
+            AssertDuplicateNote(window, MainWindow.niA1, 576.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "repeat should use the next variable measure's relative position")
+            AssertDuplicateNote(window, MainWindow.niA2, 672.0R, 96.0R, 20000, True,
+                                False, False, -1, 0, "repeat should preserve the selected spacing")
+        End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {264, 360}, New Double() {24, 96})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Down)
+            AssertEqual(5, PrivateField(Of Note())(window, "Notes").Length,
+                        "measure Down should add one copy for each selected note")
+            AssertDuplicateNote(window, MainWindow.niA1, 264.0R, 24.0R, 10000, False,
+                                False, False, -1, 0, "measure Down should retain the first original")
+            AssertDuplicateNote(window, MainWindow.niA1, 144.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "measure Down should keep the relative position in the previous measure")
+            AssertDuplicateNote(window, MainWindow.niA2, 360.0R, 96.0R, 20000, False,
+                                False, False, -1, 0, "measure Down should retain the second original")
+            AssertDuplicateNote(window, MainWindow.niA2, 240.0R, 96.0R, 20000, True,
+                                False, False, -1, 0, "measure Down should preserve spacing across variable measures")
+        End Using
+    End Sub
+
+    Private Sub CtrlAltArrowsClampChartBounds()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {192070, 192080}, New Double() {20, 10})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+            AssertEqual(5, PrivateField(Of Note())(window, "Notes").Length,
+                        "upper-bound copy should still be created when a common clamp is available")
+            AssertDuplicateNote(window, MainWindow.niA1, 192070.0R, 20.0R, 10000, False,
+                                False, False, -1, 0, "upper-bound clamp should retain the first original")
+            AssertDuplicateNote(window, MainWindow.niA1, 192075.0R, 20.0R, 10000, True,
+                                False, False, -1, 0, "upper-bound clamp should preserve the first note length")
+            AssertDuplicateNote(window, MainWindow.niA2, 192080.0R, 10.0R, 20000, False,
+                                False, False, -1, 0, "upper-bound clamp should retain the second original")
+            AssertDuplicateNote(window, MainWindow.niA2, 192085.0R, 10.0R, 20000, True,
+                                False, False, -1, 0, "upper-bound clamp should preserve the second note length")
+        End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {6, 30}, New Double() {24, 12})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertEqual(5, PrivateField(Of Note())(window, "Notes").Length,
+                        "lower-bound copy should still be created when a common clamp is available")
+            AssertDuplicateNote(window, MainWindow.niA1, 6.0R, 24.0R, 10000, False,
+                                False, False, -1, 0, "lower-bound clamp should retain the first original")
+            AssertDuplicateNote(window, MainWindow.niA1, 0.0R, 24.0R, 10000, True,
+                                False, False, -1, 0, "lower-bound clamp should preserve the first note length")
+            AssertDuplicateNote(window, MainWindow.niA2, 30.0R, 12.0R, 20000, False,
+                                False, False, -1, 0, "lower-bound clamp should retain the second original")
+            AssertDuplicateNote(window, MainWindow.niA2, 24.0R, 12.0R, 20000, True,
+                                False, False, -1, 0, "lower-bound clamp should preserve the second note length")
+        End Using
+
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {0, 24}, New Double() {0, 0})
+            PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Down)
+            AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                        "a zero clamped delta should not create any copy")
+            AssertEqual(2, CountSelectedNotes(window), "a zero clamped delta should leave the source selection intact")
+        End Using
+    End Sub
+
+    Private Sub CtrlAltDuplicateFollowsVerticalScroll()
+        Dim previousKeyboardState(255) As Byte
+        If GetKeyboardState(previousKeyboardState) = 0 Then
+            Throw New InvalidOperationException("GetKeyboardState failed")
+        End If
+
+        Try
+            Dim controlKeyboardState() As Byte = CType(previousKeyboardState.Clone(), Byte())
+            controlKeyboardState(VirtualKeyControl) = &H80
+            If SetKeyboardState(controlKeyboardState) = 0 Then
+                Throw New InvalidOperationException("SetKeyboardState failed")
+            End If
+            AssertTrue(My.Computer.Keyboard.CtrlKeyDown,
+                       "the test must set the real Ctrl keyboard state before invoking the event")
+
+            Using window As MainWindow = CreateArrowTestWindow(New Double() {630}, New Double() {0})
+                InvokePrivate(window, "CalculateGreatestVPosition", New Object() {})
+                Dim panel As System.Windows.Forms.Panel = DirectCast(window.Controls.Find("PMainIn", True)(0), System.Windows.Forms.Panel)
+                Dim beforePanelScroll As Integer = PrivateField(Of Integer())(window, "PanelVScroll")(0)
+                Dim beforeScrollBar As Integer = MainPanelScrollValue(window)
+                AssertEqual(0, beforePanelScroll, "the follow test should start at the top of the chart")
+                AssertEqual(beforePanelScroll, beforeScrollBar, "panel and scrollbar should start synchronized")
+
+                PressArrow(window, System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Up)
+                AssertEqual(3, PrivateField(Of Note())(window, "Notes").Length,
+                            "the follow test should create one copy")
+                AssertDuplicateNote(window, MainWindow.niA1, 642.0R, 0.0R, 10000, True,
+                                    False, False, -1, 0, "the copied note should remain selected")
+
+                Dim afterPanelScroll As Integer = PrivateField(Of Integer())(window, "PanelVScroll")(0)
+                Dim afterScrollBar As Integer = MainPanelScrollValue(window)
+                AssertTrue(afterPanelScroll < beforePanelScroll,
+                           "a copied note beyond the visible area should move the panel scroll position")
+                AssertEqual(afterPanelScroll, afterScrollBar,
+                            "the panel scroll field and scrollbar should remain synchronized after following")
+
+                InvokePrivate(window, "PMainInMouseWheel",
+                              New Object() {panel,
+                                            New System.Windows.Forms.MouseEventArgs(System.Windows.Forms.MouseButtons.None,
+                                                                                    0, 0, 0, 120)})
+                AssertEqual(afterPanelScroll, PrivateField(Of Integer())(window, "PanelVScroll")(0),
+                            "Ctrl wheel should not change the panel scroll position")
+                AssertEqual(afterScrollBar, MainPanelScrollValue(window),
+                            "Ctrl wheel should not change the scrollbar value")
+            End Using
+        Finally
+            SetKeyboardState(previousKeyboardState)
+        End Try
+    End Sub
+
+    Private Function MainPanelScrollValue(ByVal window As MainWindow) As Integer
+        Dim scrollBar As Object = InvokePrivateFunction(Of Object)(window, "GetPanelVScrollBar", New Object() {0})
+        Dim valueProperty As Reflection.PropertyInfo = scrollBar.GetType().GetProperty("Value")
+        If valueProperty Is Nothing Then Throw New InvalidOperationException("Missing scrollbar Value property")
+        Return CInt(valueProperty.GetValue(scrollBar, Nothing))
+    End Function
+
+    Private Function CountSelectedNotes(ByVal window As MainWindow) As Integer
+        Dim count As Integer = 0
+        Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+        For i As Integer = 1 To UBound(notes)
+            If notes(i).Selected Then count += 1
+        Next
+
+        Return count
+    End Function
+
+    Private Sub AssertDuplicateNote(ByVal window As MainWindow,
+                                    ByVal columnIndex As Integer,
+                                    ByVal expectedPosition As Double,
+                                    ByVal expectedLength As Double,
+                                    ByVal expectedValue As Long,
+                                    ByVal expectedSelected As Boolean,
+                                    ByVal expectedHidden As Boolean,
+                                    ByVal expectedLandmine As Boolean,
+                                    ByVal expectedRandomIndex As Integer,
+                                    ByVal expectedRandomValue As Integer,
+                                    ByVal operation As String)
+        Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+        For i As Integer = 1 To UBound(notes)
+            If notes(i).ColumnIndex <> columnIndex Then Continue For
+            If Math.Abs(notes(i).VPosition - expectedPosition) > 0.0000001R Then Continue For
+
+            AssertApprox(expectedLength, notes(i).Length, operation & " length")
+            AssertEqual(expectedLength > 0.0R, notes(i).LongNote, operation & " long-note flag")
+            AssertEqual(expectedValue, notes(i).Value, operation & " value")
+            AssertEqual(expectedSelected, notes(i).Selected, operation & " selection")
+            AssertEqual(expectedHidden, notes(i).Hidden, operation & " hidden flag")
+            AssertEqual(expectedLandmine, notes(i).Landmine, operation & " landmine flag")
+            AssertEqual(expectedRandomIndex, notes(i).RandomIndex, operation & " random index")
+            AssertEqual(expectedRandomValue, notes(i).RandomValue, operation & " random value")
+            Return
+        Next
+
+        Throw New InvalidOperationException(operation & ": missing note at column " & columnIndex.ToString() &
+                                             ", position " & expectedPosition.ToString())
+    End Sub
+
+    Private Sub AssertNoNoteAt(ByVal window As MainWindow,
+                               ByVal columnIndex As Integer,
+                               ByVal position As Double,
+                               ByVal operation As String)
+        Dim notes() As Note = PrivateField(Of Note())(window, "Notes")
+        For i As Integer = 1 To UBound(notes)
+            If notes(i).ColumnIndex = columnIndex AndAlso Math.Abs(notes(i).VPosition - position) <= 0.0000001R Then
+                Throw New InvalidOperationException(operation & ": unexpected note at position " & position.ToString())
+            End If
+        Next
     End Sub
 
     Private Sub PlayerMissingPromptDecisions()

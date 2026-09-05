@@ -5363,12 +5363,6 @@ EndSearch:
             Exit Sub
         End If
 
-        ' az: We got a wheel event when we're zooming in/out
-        If My.Computer.Keyboard.CtrlKeyDown Then
-            sender.Value = VSValue ' Undo the scroll
-            Exit Sub
-        End If
-
         Dim xOldValue As Integer = PanelVScroll(iI)
         Dim xDelta As Integer = sender.Value - xOldValue
         If SyncSplitViewScroll Then
