@@ -2,7 +2,19 @@ name: Build
 
 on:
   push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Theme/**'
+      - 'nBMSC.sln'
+      - '.github/workflows/build.yml'
   pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Theme/**'
+      - 'nBMSC.sln'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 permissions:
