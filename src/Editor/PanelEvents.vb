@@ -257,8 +257,6 @@ Partial Public Class MainWindow
 
         If My.Computer.Keyboard.CtrlKeyDown And (Not My.Computer.Keyboard.AltKeyDown) And (Not My.Computer.Keyboard.ShiftKeyDown) Then
             Select Case e.KeyCode
-                Case Keys.Z : TBUndo_Click(TBUndo, New EventArgs)
-                Case Keys.Y : TBRedo_Click(TBRedo, New EventArgs)
                 Case Keys.X : TBCut_Click(TBCut, New EventArgs)
                 Case Keys.C : TBCopy_Click(TBCopy, New EventArgs)
                 Case Keys.V : PasteNotesFromKeyboard()

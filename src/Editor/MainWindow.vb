@@ -4573,7 +4573,7 @@ Public Class MainWindow
         Select Case keyCode
             Case Keys.Oemplus, Keys.Add, Keys.OemMinus, Keys.Subtract
                 Return True
-            Case Keys.Oem5, Keys.Oem102
+            Case Keys.Oem5, Keys.Oem102, Keys.Z, Keys.Y
                 Return Not shift
         End Select
 
@@ -4587,10 +4587,27 @@ Public Class MainWindow
         Return True
     End Function
 
+    Private Function HasFocusedTextInput(ByVal control As Control) As Boolean
+        If Not control.ContainsFocus Then Return False
+
+        If TypeOf control Is TextBoxBase OrElse TypeOf control Is UpDownBase Then Return True
+        If TypeOf control Is ComboBox AndAlso DirectCast(control, ComboBox).DropDownStyle <> ComboBoxStyle.DropDownList Then Return True
+
+        For Each child As Control In control.Controls
+            If HasFocusedTextInput(child) Then Return True
+        Next
+        Return False
+    End Function
+
     Private Function HandleGlobalShortcut(ByVal keyCode As Keys, ByVal ctrl As Boolean, ByVal shift As Boolean, ByVal alt As Boolean) As Boolean
         If Not IsGlobalShortcutKey(keyCode, ctrl, shift, alt) Then Return False
+        If (keyCode = Keys.Z OrElse keyCode = Keys.Y) AndAlso HasFocusedTextInput(Me) Then Return False
 
         Select Case keyCode
+            Case Keys.Z
+                TBUndo_Click(TBUndo, EventArgs.Empty)
+            Case Keys.Y
+                TBRedo_Click(TBRedo, EventArgs.Empty)
             Case Keys.Oemplus, Keys.Add
                 AddRightSplitPane()
             Case Keys.OemMinus, Keys.Subtract

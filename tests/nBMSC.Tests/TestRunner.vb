@@ -13,6 +13,7 @@ Module TestRunner
     Private Const TestTimeoutMilliseconds As Integer = 10000
     Private Declare Function GetKeyboardState Lib "user32.dll" (ByVal keyState() As Byte) As Integer
     Private Declare Function SetKeyboardState Lib "user32.dll" (ByVal keyState() As Byte) As Integer
+    Private Declare Function SetFocus Lib "user32.dll" (ByVal handle As IntPtr) As IntPtr
     Private Const VirtualKeyControl As Integer = &H11
 
     <STAThread()>
@@ -61,6 +62,8 @@ Module TestRunner
         Run("chart text encoding modes", AddressOf ChartTextEncodingModes)
         Run("chart text encoding detection", AddressOf ChartTextEncodingDetection)
         Run("version tag parsing", AddressOf VersionTagParsing)
+        Run("undo redo shortcuts follow focus", AddressOf UndoRedoShortcutsFollowFocus)
+        Run("undo redo shortcuts execute once", AddressOf UndoRedoShortcutsExecuteOnce)
         Run("undo redo serialization", AddressOf UndoRedoSerialization)
         Run("measure insertion copies following value", AddressOf MeasureInsertionBeforeSelection)
         Run("multiple measure removal", AddressOf MultipleMeasureRemoval)
@@ -589,6 +592,103 @@ Module TestRunner
                           "PMainInPreviewKeyDown",
                           New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(System.Windows.Forms.Keys.Down)})
             AssertApprox(120.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "down arrow should return one grid step")
+        End Using
+    End Sub
+
+    Private Sub UndoRedoShortcutsFollowFocus()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120}, New Double() {0})
+            PressArrow(window, System.Windows.Forms.Keys.Up)
+            For Each name As String In New String() {"LWAV", "LBMP", "LBeat", "CGSnap", "CHMode", "PMainIn", "PMainInL", "PMainInR"}
+                Dim control As System.Windows.Forms.Control = window.Controls.Find(name, True)(0)
+                FocusShortcutControl(control)
+                AssertChartUndoRedoShortcut(window, True, name)
+            Next
+
+            Dim toolbar As System.Windows.Forms.ToolStrip = DirectCast(window.Controls.Find("TBMain", True)(0), System.Windows.Forms.ToolStrip)
+            Dim player As System.Windows.Forms.ToolStripComboBox = DirectCast(toolbar.Items("TBPlayer"), System.Windows.Forms.ToolStripComboBox)
+            FocusShortcutControl(player.ComboBox)
+            AssertChartUndoRedoShortcut(window, True, "toolbar selection list")
+
+            For Each name As String In New String() {"THTitle", "THComment", "THBPM"}
+                Dim control As System.Windows.Forms.Control = window.Controls.Find(name, True)(0)
+                If TypeOf control Is System.Windows.Forms.UpDownBase Then
+                    For Each child As System.Windows.Forms.Control In control.Controls
+                        If TypeOf child Is System.Windows.Forms.TextBoxBase Then
+                            control = child
+                            Exit For
+                        End If
+                    Next
+                End If
+                FocusShortcutControl(control)
+                AssertChartUndoRedoShortcut(window, False, name)
+            Next
+
+            Dim grid As System.Windows.Forms.ToolStripComboBox = DirectCast(toolbar.Items("TBGridDivide"), System.Windows.Forms.ToolStripComboBox)
+            FocusShortcutControl(grid.ComboBox)
+            AssertChartUndoRedoShortcut(window, False, "editable toolbar combo")
+            Dim status As System.Windows.Forms.ToolStrip = DirectCast(window.Controls.Find("FStatus2", True)(0), System.Windows.Forms.ToolStrip)
+            Dim value As System.Windows.Forms.ToolStripTextBox = DirectCast(status.Items("TVCM"), System.Windows.Forms.ToolStripTextBox)
+            FocusShortcutControl(value.TextBox)
+            AssertChartUndoRedoShortcut(window, False, "toolbar text box")
+        End Using
+    End Sub
+
+    Private Sub FocusShortcutControl(ByVal control As System.Windows.Forms.Control)
+        Dim ancestors As New Stack(Of System.Windows.Forms.Control)()
+        Dim current As System.Windows.Forms.Control = control
+        While current IsNot Nothing
+            ancestors.Push(current)
+            current = current.Parent
+        End While
+        While ancestors.Count > 0
+            Dim handle As IntPtr = ancestors.Pop().Handle
+        End While
+        SetFocus(control.Handle)
+        AssertTrue(control.Focused, control.Name & " should receive focus")
+    End Sub
+
+    Private Sub AssertChartUndoRedoShortcut(ByVal window As MainWindow, ByVal handlesChart As Boolean, ByVal label As String)
+        Dim undo As New System.Windows.Forms.KeyEventArgs(System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Z)
+        InvokePrivate(window, "Form1_KeyDown", New Object() {window, undo})
+        AssertEqual(handlesChart, undo.SuppressKeyPress, label & " undo routing")
+        AssertApprox(If(handlesChart, 120.0R, 132.0R), PrivateField(Of Note())(window, "Notes")(1).VPosition, label & " undo result")
+
+        Dim redo As New System.Windows.Forms.KeyEventArgs(System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Y)
+        InvokePrivate(window, "Form1_KeyDown", New Object() {window, redo})
+        AssertEqual(handlesChart, redo.SuppressKeyPress, label & " redo routing")
+        AssertApprox(132.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, label & " redo result")
+    End Sub
+
+    Private Sub UndoRedoShortcutsExecuteOnce()
+        Using window As MainWindow = CreateArrowTestWindow(New Double() {120}, New Double() {0})
+            PressArrow(window, System.Windows.Forms.Keys.Up)
+            InvokePrivate(window, "EndKeyMove", New Object() {})
+            PressArrow(window, System.Windows.Forms.Keys.Up)
+            InvokePrivate(window, "EndKeyMove", New Object() {})
+            Dim panel As System.Windows.Forms.Control = window.Controls.Find("PMainIn", True)(0)
+            FocusShortcutControl(panel)
+            For Each key As System.Windows.Forms.Keys In New System.Windows.Forms.Keys() {System.Windows.Forms.Keys.Z, System.Windows.Forms.Keys.Y}
+                Dim keyData As System.Windows.Forms.Keys = System.Windows.Forms.Keys.Control Or key
+                InvokePrivate(window, "PMainInPreviewKeyDown", New Object() {panel, New System.Windows.Forms.PreviewKeyDownEventArgs(keyData)})
+                Dim expected As Double = If(key = System.Windows.Forms.Keys.Z, 132.0R, 144.0R)
+                AssertApprox(expected, PrivateField(Of Note())(window, "Notes")(1).VPosition, "preview should execute once")
+                Dim args As New System.Windows.Forms.KeyEventArgs(keyData)
+                InvokePrivate(window, "Form1_KeyDown", New Object() {window, args})
+                AssertTrue(args.SuppressKeyPress, "key down should consume the preview shortcut")
+                AssertApprox(expected, PrivateField(Of Note())(window, "Notes")(1).VPosition, "key down should not execute again")
+            Next
+
+            For Each keyData As System.Windows.Forms.Keys In New System.Windows.Forms.Keys() {
+                System.Windows.Forms.Keys.Z, System.Windows.Forms.Keys.Y,
+                System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Z,
+                System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Shift Or System.Windows.Forms.Keys.Y,
+                System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Z,
+                System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.Alt Or System.Windows.Forms.Keys.Y}
+                Dim args As New System.Windows.Forms.KeyEventArgs(keyData)
+                InvokePrivate(window, "Form1_KeyDown", New Object() {window, args})
+                AssertFalse(args.SuppressKeyPress, "other modifiers should retain their behavior")
+                AssertApprox(144.0R, PrivateField(Of Note())(window, "Notes")(1).VPosition, "other modifiers should not change the chart")
+            Next
         End Using
     End Sub
 
