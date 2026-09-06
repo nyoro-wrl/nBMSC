@@ -3904,7 +3904,7 @@ Partial Class MainWindow
         Me.TBMain.AccessibleRole = System.Windows.Forms.AccessibleRole.ToolBar
         Me.TBMain.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch
         Me.TBMain.Dock = System.Windows.Forms.DockStyle.None
-        Me.TBMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBSave, Me.ToolStripSeparator1, Me.TBTimeSelect, Me.TBSelect, Me.TBWrite, Me.ToolStripSeparator3, Me.TBPlayer, Me.TBPlayB, Me.TBPlay, Me.TBStop, Me.ToolStripSeparator4, Me.TBGridDivideLabel, Me.TBGridDivide, Me.TBGridSubLabel, Me.TBGridSub, Me.ToolStripSeparatorGridScale, Me.TBGridHeightLabel, Me.TBGridHeight, Me.TBGridWidthLabel, Me.TBGridWidth, Me.ToolStripSeparatorDisableVertical, Me.TBDisableVertical, Me.TBGridSnap, Me.ToolStripSeparatorSplitView, Me.TBAddSplitView, Me.TBRemoveSplitView, Me.TBSyncSplitViewScroll, Me.ToolStripSeparatorSidePanel, Me.TBSidePanel})
+        Me.TBMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TBSave, Me.ToolStripSeparator1, Me.TBUndo, Me.TBRedo, Me.ToolStripSeparator2, Me.TBTimeSelect, Me.TBSelect, Me.TBWrite, Me.ToolStripSeparator3, Me.TBPlayer, Me.TBPlayB, Me.TBPlay, Me.TBStop, Me.ToolStripSeparator4, Me.TBGridDivideLabel, Me.TBGridDivide, Me.TBGridSubLabel, Me.TBGridSub, Me.ToolStripSeparatorGridScale, Me.TBGridHeightLabel, Me.TBGridHeight, Me.TBGridWidthLabel, Me.TBGridWidth, Me.ToolStripSeparatorDisableVertical, Me.TBDisableVertical, Me.TBGridSnap, Me.ToolStripSeparatorSplitView, Me.TBAddSplitView, Me.TBRemoveSplitView, Me.TBSyncSplitViewScroll, Me.ToolStripSeparatorSidePanel, Me.TBSidePanel})
         Me.TBMain.Location = New System.Drawing.Point(3, 23)
         Me.TBMain.Name = "TBMain"
         Me.TBMain.Size = New System.Drawing.Size(276, 25)
