@@ -95,11 +95,11 @@ jobs:
           Compress-Archive -Path $packageRoot -DestinationPath $zipPath
           "asset=$zipPath" >> $env:GITHUB_OUTPUT
 
-      - name: Create release
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
           $tag = '${{ steps.version.outputs.tag }}'
           $asset = '${{ steps.package.outputs.asset }}'
-          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --notes ""
+          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --notes "" --draft

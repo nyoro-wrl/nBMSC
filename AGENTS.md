@@ -1,11 +1,12 @@
 # リリース
 
 - 既存の Release ワークフローは `master` への push で実行させる
-- `.github/workflows/release.yml` は、ワークフロー自体が壊れている場合だけ修正する
+- `.github/workflows/release.yml` は、ワークフロー自体が壊れている場合、またはユーザーがリリース方式の変更を明示した場合だけ修正する
 - バージョン更新は原則として以下だけを変更する
   - `src/My Project/AssemblyInfo.vb` の `AssemblyVersion` / `AssemblyFileVersion`
   - `src/nBMSC.vbproj` の `ApplicationVersion`
-- Release 本文は CI/CD で Release が作成された後、`gh release edit <version> --notes-file <file>` で設定する
+- CI/CD は配布物を添付した下書き（draft）の Release を作成し、公開しない
+- CI/CD 成功後、確定した本文を `gh release edit <version> --repo nyoro-wrl/nBMSC --notes-file <file> --draft=false` で設定すると同時に公開する。本文が空の状態で公開しない
 - Release 本文が指定されていない場合は確認する
 
 # WinForms UI
