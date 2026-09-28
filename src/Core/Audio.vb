@@ -4,15 +4,25 @@ Imports CSCore.Codecs
 Imports CSCore.SoundOut
 
 Module Audio
-    Dim Output As WasapiOut
+    Dim Output As ISoundOut
     Dim Source As IWaveSource
 
     Public Sub Initialize()
-        Output = New WasapiOut()
+        Output = CreateOutput()
         CodecFactory.Instance.Register("ogg", New CodecFactoryEntry(Function(s)
                                                                         Return New NVorbisSource(s).ToWaveSource()
                                                                     End Function, ".ogg"))
     End Sub
+
+    Private Function CreateOutput() As ISoundOut
+        Try
+            Return New WasapiOut()
+        Catch ex As Exception
+            ' WASAPI is not available in this environment (for example Wine without
+            ' a working DMO implementation). Use DirectSound instead.
+            Return New DirectSoundOut()
+        End Try
+    End Function
 
     Public Sub Finalize()
         Output.Stop()
@@ -65,7 +75,16 @@ Module Audio
         End If
 
         Source = CodecFactory.Instance.GetCodec(fn)
-        Output.Initialize(Source)
+        Try
+            Output.Initialize(Source)
+        Catch ex As Exception
+            ' CSCore's WASAPI output converts the source format to the format of the
+            ' audio device with a DMO resampler. Wine's DMO implementation is a stub
+            ' and returns E_NOTIMPL, so fall back to DirectSound for playback.
+            Output.Dispose()
+            Output = New DirectSoundOut()
+            Output.Initialize(Source)
+        End Try
         Output.Play()
     End Sub
 
